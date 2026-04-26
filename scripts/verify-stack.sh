@@ -4,14 +4,50 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="${ROOT_DIR}/.env"
 
-if [ ! -f "$ENV_FILE" ]; then
-  printf '.env не найден: %s\n' "$ENV_FILE" >&2
+log_info() {
+  printf '[INFO] %s\n' "$1"
+}
+
+log_ok() {
+  printf '[ OK ] %s\n' "$1"
+}
+
+log_warn() {
+  printf '[WARN] %s\n' "$1" >&2
+}
+
+log_error() {
+  printf '[ERR ] %s\n' "$1" >&2
+}
+
+die() {
+  log_error "$1"
   exit 1
+}
+
+STEP_COUNTER=0
+TOTAL_STEPS=2
+
+if [ ! -f "$ENV_FILE" ]; then
+  die ".env не найден: ${ENV_FILE}"
 fi
 
 set -a
 . "$ENV_FILE"
 set +a
+
+if [ -f "${ROOT_DIR}/n8n/local-files/opencode-routing.json" ]; then
+  TOTAL_STEPS=$((TOTAL_STEPS + 1))
+fi
+
+if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
+  TOTAL_STEPS=$((TOTAL_STEPS + 1))
+fi
+
+step_start() {
+  STEP_COUNTER=$((STEP_COUNTER + 1))
+  printf '\n[INFO] [%s/%s] %s\n' "$STEP_COUNTER" "$TOTAL_STEPS" "$1"
+}
 
 BASE_COMPOSE=(docker compose -f docker-compose.yml)
 if [ -d "${ROOT_DIR}/compose.overrides" ]; then
@@ -30,7 +66,7 @@ check_url() {
   else
     curl -fsS "$url" >/dev/null
   fi
-  printf 'ok: %s\n' "$label"
+  log_ok "$label"
 }
 
 retry_with_remediation() {
@@ -44,8 +80,10 @@ retry_with_remediation() {
     return 0
   fi
 
-  printf 'warn: %s не ответил, пробую восстановление через docker compose up -d %s\n' "$label" "$service"
-  "${BASE_COMPOSE[@]}" up -d "$service" >/dev/null
+  log_warn "${label} не ответил, пробую восстановление через docker compose up -d ${service}"
+  if ! "${BASE_COMPOSE[@]}" up -d "$service" >/dev/null; then
+    die "Не удалось выполнить docker compose up -d ${service} во время восстановления ${label}."
+  fi
   sleep 5
   check_url "$label" "$url" "$user" "$pass"
 }
@@ -67,31 +105,38 @@ check_worker_urls() {
   done < <(jq -c '.workers | to_entries[] | .value' "$routing_file")
 }
 
-printf 'Проверяю docker compose services...\n'
-"${BASE_COMPOSE[@]}" ps
+step_start 'Проверяю docker compose services'
+if ! "${BASE_COMPOSE[@]}" ps; then
+  die 'Не удалось получить список docker compose services.'
+fi
+log_ok 'docker compose services доступны.'
 
-printf '\nПроверяю n8n...\n'
+step_start 'Проверяю n8n'
 retry_with_remediation "n8n" "n8n" "http://127.0.0.1:${N8N_PORT:-5678}" "${N8N_BASIC_AUTH_USER:-admin}" "${N8N_BASIC_AUTH_PASSWORD}"
 
 if [ -f "${ROOT_DIR}/n8n/local-files/opencode-routing.json" ]; then
-  printf '\nПроверяю routing-файл...\n'
-  jq . "${ROOT_DIR}/n8n/local-files/opencode-routing.json" >/dev/null
-  printf 'ok: routing json\n'
-  printf '\nПроверяю все OpenCode worker-ы из routing-файла...\n'
+  step_start 'Проверяю routing-файл и worker-ы'
+  if ! jq . "${ROOT_DIR}/n8n/local-files/opencode-routing.json" >/dev/null; then
+    die 'Routing JSON невалиден.'
+  fi
+  log_ok 'routing json'
   check_worker_urls
 else
-  printf '\nПроверяю OpenCode worker-1...\n'
+  log_info 'Routing-файл не найден, проверяю только OpenCode worker-1.'
   check_url "opencode-worker-1" "http://127.0.0.1:${OPENCODE_WORKER_1_PORT:-4096}/global/health" "opencode" "${OPENCODE_WORKER_1_PASSWORD}"
 fi
 
 if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
-  printf '\nПроверяю Telegram интеграцию...\n'
+  step_start 'Проверяю Telegram интеграцию'
   if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
-    printf 'warn: TELEGRAM_CHAT_ID не задан, Telegram поток считается некорректно настроенным\n' >&2
+    log_warn 'TELEGRAM_CHAT_ID не задан, Telegram поток считается некорректно настроенным'
   fi
   if ! bash "${ROOT_DIR}/scripts/bootstrap-telegram-integration.sh"; then
-    printf 'warn: Telegram bootstrap не завершился успешно\n' >&2
+    log_warn 'Telegram bootstrap не завершился успешно'
+  else
+    log_ok 'Telegram bootstrap завершен.'
   fi
 fi
 
-printf '\nИтог: базовая проверка пройдена.\n'
+printf '\n'
+log_ok 'Базовая проверка пройдена.'

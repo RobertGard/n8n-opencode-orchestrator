@@ -8,7 +8,7 @@
       "install_dependencies": true,
       "package_manager": "auto",
       "install_gsd_local": true,
-      "auto_start_docker": false
+      "auto_start_docker": true
     }
   ]
 }

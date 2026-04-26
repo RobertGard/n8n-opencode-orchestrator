@@ -170,6 +170,21 @@ ensure_env_default() {
   log_ok "${key} восстановлен со значением по умолчанию"
 }
 
+ensure_env_boolean_default() {
+  local key="$1"
+  local default="$2"
+  local current="${!key:-}"
+
+  case "$current" in
+    true|false) return ;;
+    '') ;;
+    *) log_warn "${key} имеет невалидное значение '${current}', восстанавливаю '${default}'" ;;
+  esac
+
+  upsert_env_value "$key" "$default"
+  log_ok "${key} восстановлен со значением ${default}"
+}
+
 reset_worker_state() {
   WORKER_NAMES=()
   WORKER_ALIASES=()
@@ -473,7 +488,7 @@ recover_existing_configuration() {
   step_start 'Проверяю и дозаполняю текущую конфигурацию'
   ensure_env_default COMPOSE_PROJECT_NAME opencode-lab
   ensure_env_default TZ UTC
-  ensure_env_default ENABLE_CADDY_PROXY false
+  ensure_env_boolean_default ENABLE_CADDY_PROXY false
   ensure_env_default N8N_PORT 5678
   ensure_env_default N8N_PROXY_HOPS 1
   ensure_env_default N8N_CONCURRENCY_PRODUCTION_LIMIT 4
@@ -500,7 +515,7 @@ recover_existing_configuration() {
   fi
 
   if [ "${ENABLE_CADDY_PROXY:-false}" = "true" ]; then
-    ensure_env_default N8N_PROTOCOL https
+    upsert_env_value N8N_PROTOCOL https
     ensure_env_required PUBLIC_N8N_DOMAIN 'Публичный домен для n8n' 'n8n.example.com'
     ensure_env_required ACME_EMAIL "Email для Let's Encrypt" 'admin@example.com'
     ensure_env_default N8N_HOST "$PUBLIC_N8N_DOMAIN"

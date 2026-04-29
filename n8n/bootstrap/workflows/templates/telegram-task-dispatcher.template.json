@@ -567,7 +567,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { agent: $('Готовим пакеты worker-ов').item.json.opencodeAgent, parts: [{ type: 'text', content: $('Выбираем кандидатную задачу').item.json.promptText }] } }}",
+        "jsonBody": "={{ { agent: $('Готовим пакеты worker-ов').item.json.opencodeAgent, parts: [{ type: 'text', text: $('Выбираем кандидатную задачу').item.json.promptText }] } }}",
         "options": {
           "response": {
             "response": {
@@ -603,7 +603,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { agent: $('Готовим пакеты worker-ов').item.json.opencodeAgent, parts: [{ type: 'text', content: $('Готовим ответ пользователю').item.json.answerText }] } }}",
+        "jsonBody": "={{ { agent: $('Готовим пакеты worker-ов').item.json.opencodeAgent, parts: [{ type: 'text', text: $('Готовим ответ пользователю').item.json.answerText }] } }}",
         "options": {
           "response": {
             "response": {

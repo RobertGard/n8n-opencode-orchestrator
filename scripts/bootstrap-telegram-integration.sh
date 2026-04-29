@@ -177,7 +177,7 @@ import_workflow_from_host_file() {
     die "Не найден workflow-файл для импорта: ${host_file}"
   fi
 
-  if ! "${BASE_COMPOSE[@]}" exec -T n8n sh -lc "cat > /tmp/${temp_file_name} && n8n import:workflow --input=/tmp/${temp_file_name} >/dev/null && rm -f /tmp/${temp_file_name}" < "$host_file"; then
+  if ! "${BASE_COMPOSE[@]}" exec -T n8n sh -lc "cat > /tmp/${temp_file_name} && n8n import:workflow --input=/tmp/${temp_file_name} && rm -f /tmp/${temp_file_name}" < "$host_file"; then
     die "Не удалось импортировать workflow: ${host_file}"
   fi
 }

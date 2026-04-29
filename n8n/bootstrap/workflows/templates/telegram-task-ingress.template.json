@@ -419,43 +419,7 @@
       ]
     }
   ],
-  "pinData": {
-    "Триггер Telegram": [
-      {
-        "json": {
-          "update_id": 737459491,
-          "message": {
-            "message_id": 1625,
-            "from": {
-              "id": 1781493994,
-              "is_bot": false,
-              "first_name": "Роберт Гард",
-              "username": "DE_GARD",
-              "language_code": "ru"
-            },
-            "chat": {
-              "id": 1781493994,
-              "first_name": "Роберт Гард",
-              "username": "DE_GARD",
-              "type": "private"
-            },
-            "date": 1777385542,
-            "text": "/task --worker=\"primary\" --prompt=\"Почини CI\" --parent-id=\"task-abc123\" --match=\"готово\"",
-            "entities": [
-              {
-                "offset": 0,
-                "length": 5,
-                "type": "bot_command"
-              }
-            ]
-          }
-        },
-        "pairedItem": {
-          "item": 0
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Триггер Telegram": {
       "main": [

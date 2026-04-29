@@ -194,6 +194,63 @@ ensure_env_boolean_default() {
   log_ok "${key} восстановлен со значением ${default}"
 }
 
+path_owner_user() {
+  stat -c '%U' "$1" 2>/dev/null || stat -f '%Su' "$1" 2>/dev/null
+}
+
+path_owner_group() {
+  stat -c '%G' "$1" 2>/dev/null || stat -f '%Sg' "$1" 2>/dev/null
+}
+
+preferred_fs_owner() {
+  local owner
+  local group
+
+  owner="$(path_owner_user "$ROOT_DIR" || true)"
+  group="$(path_owner_group "$ROOT_DIR" || true)"
+  if [ -n "$owner" ] && [ -n "$group" ] && [ "$owner" != "UNKNOWN" ] && [ "$group" != "UNKNOWN" ]; then
+    printf '%s:%s' "$owner" "$group"
+    return
+  fi
+
+  owner="${SUDO_USER:-$(id -un)}"
+  group="$(id -gn "$owner" 2>/dev/null || id -gn)"
+  printf '%s:%s' "$owner" "$group"
+}
+
+ensure_worker_dir_writable() {
+  local worker_dir="$1"
+  local repo_file="${worker_dir}/repos.json"
+  local owner_group
+
+  if [ -w "$worker_dir" ] && { [ ! -e "$repo_file" ] || [ -w "$repo_file" ]; }; then
+    return
+  fi
+
+  owner_group="$(preferred_fs_owner)"
+  log_warn "Недостаточно прав для ${worker_dir}. Пытаюсь исправить owner/permissions на ${owner_group}."
+
+  if [ "$(id -u)" -eq 0 ]; then
+    chown -R "$owner_group" "$worker_dir" || die "Не удалось изменить owner для ${worker_dir}"
+    chmod u+rwx "$worker_dir" || die "Не удалось выдать права на запись для ${worker_dir}"
+    if [ -e "$repo_file" ]; then
+      chmod u+rw "$repo_file" || die "Не удалось выдать права на запись для ${repo_file}"
+    fi
+  elif command -v sudo >/dev/null 2>&1; then
+    sudo chown -R "$owner_group" "$worker_dir" || die "Не удалось изменить owner для ${worker_dir} через sudo"
+    sudo chmod u+rwx "$worker_dir" || die "Не удалось выдать права на запись для ${worker_dir} через sudo"
+    if [ -e "$repo_file" ]; then
+      sudo chmod u+rw "$repo_file" || die "Не удалось выдать права на запись для ${repo_file} через sudo"
+    fi
+  else
+    die "Нет прав на запись в ${worker_dir}, и sudo недоступен. Исправьте owner/permissions вручную."
+  fi
+
+  if [ ! -w "$worker_dir" ] || { [ -e "$repo_file" ] && [ ! -w "$repo_file" ]; }; then
+    die "Не удалось восстановить права на запись для ${worker_dir}"
+  fi
+}
+
 reset_worker_state() {
   WORKER_NAMES=()
   WORKER_ALIASES=()
@@ -619,6 +676,7 @@ recover_existing_configuration() {
     worker_dir_rel="workers/${worker_name}"
     worker_dir_abs="${ROOT_DIR}/${worker_dir_rel}"
     mkdir -p "$worker_dir_abs"
+    ensure_worker_dir_writable "$worker_dir_abs"
     if [ ! -f "${worker_dir_abs}/repos.json" ]; then
       write_disabled_placeholder_repo "${worker_dir_abs}/repos.json"
       log_warn "Не найден ${worker_dir_rel}/repos.json. Создан placeholder-файл."
@@ -791,6 +849,18 @@ write_repos_file() {
   local install_gsd_local="${10}"
   local auto_start_docker="${11}"
   local post_bootstrap="${12:-}"
+  local parent_dir
+
+  parent_dir="$(dirname "$file")"
+  if [ ! -d "$parent_dir" ]; then
+    die "Каталог для repos.json не найден: ${parent_dir}"
+  fi
+  if [ -e "$file" ] && [ ! -w "$file" ]; then
+    die "Нет прав на запись в ${file}. Проверьте owner/permissions каталога worker-а."
+  fi
+  if [ ! -e "$file" ] && [ ! -w "$parent_dir" ]; then
+    die "Нет прав на запись в ${parent_dir}. Проверьте owner/permissions каталога worker-а."
+  fi
 
   {
     printf '{\n'
@@ -815,6 +885,19 @@ write_repos_file() {
 
 write_disabled_placeholder_repo() {
   local file="$1"
+  local parent_dir
+
+  parent_dir="$(dirname "$file")"
+  if [ ! -d "$parent_dir" ]; then
+    die "Каталог для repos.json не найден: ${parent_dir}"
+  fi
+  if [ -e "$file" ] && [ ! -w "$file" ]; then
+    die "Нет прав на запись в ${file}. Проверьте owner/permissions каталога worker-а."
+  fi
+  if [ ! -e "$file" ] && [ ! -w "$parent_dir" ]; then
+    die "Нет прав на запись в ${parent_dir}. Проверьте owner/permissions каталога worker-а."
+  fi
+
   cat >"$file" <<'EOF'
 {
   "repos": [
@@ -1040,6 +1123,7 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
   worker_dir_rel="workers/${worker_name}"
   worker_dir_abs="${ROOT_DIR}/${worker_dir_rel}"
   mkdir -p "$worker_dir_abs"
+  ensure_worker_dir_writable "$worker_dir_abs"
   log_info "worker ${i}/${WORKER_COUNT}: каталог ${worker_dir_rel} подготовлен"
 
   repo_slug="project-${i}"

@@ -61,7 +61,7 @@ RUN su agent -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
 RUN su agent -c 'curl -fsSL https://bun.sh/install | bash'
 
 RUN su agent -c 'curl -fsSL https://opencode.ai/install | bash'
-RUN ln -sf /home/agent/.local/bin/opencode /usr/local/bin/opencode
+RUN ln -sf /home/agent/.opencode/bin/opencode /usr/local/bin/opencode
 RUN ln -sf /home/agent/.local/bin/uv /usr/local/bin/uv || true
 RUN ln -sf /home/agent/.local/bin/serena /usr/local/bin/serena || true
 
@@ -70,7 +70,7 @@ COPY templates/ /opt/opencode/templates/
 
 RUN chmod +x /opt/opencode/bin/*.sh
 
-ENV PATH="/home/agent/.local/bin:/home/agent/.bun/bin:/usr/local/bin:/usr/bin:/bin"
+ENV PATH="/home/agent/.opencode/bin:/home/agent/.local/bin:/home/agent/.bun/bin:/usr/local/bin:/usr/bin:/bin"
 
 WORKDIR /workspace
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/agent/.opencode/bin:/home/agent/.local/bin:/home/agent/.bun/bin:${PATH:-}"
 
 AGENT_USER="agent"
 AGENT_HOME="/home/${AGENT_USER}"

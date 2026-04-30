@@ -116,7 +116,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
-        "text": "=Команда распарсена с ошибкой",
+        "text": "Команда распарсена с ошибкой",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -139,7 +139,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
-        "text": "=Недопустимый чат",
+        "text": "Недопустимый чат",
         "additionalFields": {
           "appendAttribution": false
         }

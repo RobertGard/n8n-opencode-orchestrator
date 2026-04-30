@@ -881,7 +881,6 @@
         "resource": "message",
         "operation": "sendAndWait",
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "subject": "={{ `Вопрос по задаче ${$('Выбираем кандидатную задачу').item.json.task.task_key}` }}",
         "message": "={{ $('Разбираем ответ OpenCode').item.json.questionText }}",
         "responseType": "freeText",
         "options": {

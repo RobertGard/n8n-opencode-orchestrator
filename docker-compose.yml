@@ -150,6 +150,7 @@ services:
       redis:
         condition: service_healthy
     networks:
+      - edge
       - control
       - data
     stop_grace_period: 10m

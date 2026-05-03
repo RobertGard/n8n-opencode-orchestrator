@@ -41,6 +41,7 @@ services:
     environment:
       TZ: \${TZ:-UTC}
       OPENAI_API_KEY: \${OPENAI_API_KEY:-}
+      DEEPSEEK_API_KEY: \${DEEPSEEK_API_KEY:-}
       ANTHROPIC_API_KEY: \${ANTHROPIC_API_KEY:-}
       OPENROUTER_API_KEY: \${OPENROUTER_API_KEY:-}
       CONTEXT7_API_KEY: \${CONTEXT7_API_KEY:-}

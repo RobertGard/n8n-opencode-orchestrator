@@ -956,6 +956,7 @@ services:
     environment:
       TZ: \${TZ:-UTC}
       OPENAI_API_KEY: \${OPENAI_API_KEY:-}
+      DEEPSEEK_API_KEY: \${DEEPSEEK_API_KEY:-}
       ANTHROPIC_API_KEY: \${ANTHROPIC_API_KEY:-}
       OPENROUTER_API_KEY: \${OPENROUTER_API_KEY:-}
       CONTEXT7_API_KEY: \${CONTEXT7_API_KEY:-}
@@ -1075,6 +1076,7 @@ N8N_BASIC_AUTH_PASSWORD="$(ask_secret "Пароль входа в n8n" 24)"
 
 printf '\n--- API ключи ---\n'
 OPENAI_API_KEY=""
+DEEPSEEK_API_KEY=""
 ANTHROPIC_API_KEY=""
 OPENROUTER_API_KEY=""
 CONTEXT7_API_KEY=""
@@ -1086,6 +1088,7 @@ NPM_TOKEN=""
 PNPM_HOME=""
 if ask_yes_no "Хочешь сразу указать API ключи?" y; then
   OPENAI_API_KEY="$(ask "OPENAI_API_KEY (можно пусто)" "")"
+  DEEPSEEK_API_KEY="$(ask "DEEPSEEK_API_KEY (можно пусто)" "")"
   ANTHROPIC_API_KEY="$(ask "ANTHROPIC_API_KEY (можно пусто)" "")"
   OPENROUTER_API_KEY="$(ask "OPENROUTER_API_KEY (можно пусто)" "")"
   CONTEXT7_API_KEY="$(ask "CONTEXT7_API_KEY (можно пусто)" "")"
@@ -1264,6 +1267,7 @@ step_start 'Записываю .env'
   write_env_line OPENCODE_MCP_TIMEOUT_MS "$OPENCODE_MCP_TIMEOUT_MS"
   printf '\n'
   write_env_line OPENAI_API_KEY "$OPENAI_API_KEY"
+  write_env_line DEEPSEEK_API_KEY "$DEEPSEEK_API_KEY"
   write_env_line ANTHROPIC_API_KEY "$ANTHROPIC_API_KEY"
   write_env_line OPENROUTER_API_KEY "$OPENROUTER_API_KEY"
   write_env_line CONTEXT7_API_KEY "$CONTEXT7_API_KEY"

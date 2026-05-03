@@ -18,6 +18,7 @@ export const InjectEnvPlugin = async () => {
     "shell.env": async (_input, output) => {
       const allowlist = [
         "OPENAI_API_KEY",
+        "DEEPSEEK_API_KEY",
         "ANTHROPIC_API_KEY",
         "OPENROUTER_API_KEY",
         "CONTEXT7_API_KEY",

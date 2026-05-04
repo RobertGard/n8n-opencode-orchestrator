@@ -16,7 +16,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    workerAlias: String(input.workerAlias || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionCreatePath: String(input.sessionCreatePath || '').trim(),\n    latestSessionId: String(input.latestSessionId || '').trim(),\n    createNewSession: input.createNewSession === true,\n    taskKey: String(input.taskKey || '').trim(),\n  },\n}"
+        "jsCode": "const input = $('Запуск по вызову из другого сценария').item.json\n\nreturn {\n  json: {\n    workerAlias: String(input.workerAlias || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionCreatePath: String(input.sessionCreatePath || '').trim(),\n    latestSessionId: String(input.latestSessionId || '').trim(),\n    createNewSession: input.createNewSession === true,\n    taskKey: String(input.taskKey || '').trim(),\n  },\n}"
       },
       "id": "parse-input",
       "name": "Разбираем входные данные",
@@ -117,7 +117,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const sessionResponse = $json\nconst sessionId = String(sessionResponse.sessionId || sessionResponse.id || sessionResponse.data?.id || '').trim()\nconst launchError = sessionResponse.error ? String(sessionResponse.error.message || sessionResponse.error) : (sessionId ? '' : 'OpenCode не вернул session id.')\n\nreturn {\n  json: { sessionId, launchError },\n}"
+        "jsCode": "const sessionResponse = $input.item.json\nconst sessionId = String(sessionResponse.sessionId || sessionResponse.id || sessionResponse.data?.id || '').trim()\nconst launchError = sessionResponse.error ? String(sessionResponse.error.message || sessionResponse.error) : (sessionId ? '' : 'OpenCode не вернул session id.')\n\nreturn {\n  json: { sessionId, launchError },\n}"
       },
       "id": "normalize-session",
       "name": "Нормализуем ответ",

@@ -841,6 +841,38 @@
         2880,
         520
       ]
+    },
+    {
+      "id": "if-reply-error",
+      "name": "Есть ошибка ответа?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        260,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.error || $('Обработка интеракций').item.json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
     }
   ],
   "pinData": {},
@@ -1076,14 +1108,7 @@
       "main": [
         [
           {
-            "node": "Завершение задачи",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Завершение задачи",
+            "node": "Есть ошибка ответа?",
             "type": "main",
             "index": 0
           }
@@ -1129,7 +1154,13 @@
     },
     "Сообщаем: ошибка ответа на вопрос": {
       "main": [
-        []
+        [
+          {
+            "node": "Завершение задачи",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Есть ошибка запуска?": {
@@ -1162,6 +1193,24 @@
         [
           {
             "node": "Отправляем промежуточный прогресс в Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Есть ошибка ответа?": {
+      "main": [
+        [
+          {
+            "node": "Сообщаем: ошибка ответа на вопрос",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Завершение задачи",
             "type": "main",
             "index": 0
           }

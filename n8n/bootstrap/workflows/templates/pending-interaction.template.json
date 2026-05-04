@@ -16,7 +16,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    pendingQuestion: String(input.pendingQuestion || '').trim(),\n    pendingOptionsJson: String(input.pendingOptionsJson || '[]'),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    questionListPath: String(input.questionListPath || '').trim(),\n    questionReplyPath: String(input.questionReplyPath || '').trim(),\n    questionRejectPath: String(input.questionRejectPath || '').trim(),\n    permissionListPath: String(input.permissionListPath || '').trim(),\n    permissionReplyPath: String(input.permissionReplyPath || '').trim(),\n    abortRequested: input.abortRequested === true,\n    contextJson: input.contextJson || {},\n  },\n}"
+        "jsCode": "const input = $('Запуск по вызову из другого сценария').item.json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    pendingQuestion: String(input.pendingQuestion || '').trim(),\n    pendingOptionsJson: String(input.pendingOptionsJson || '[]'),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    questionListPath: String(input.questionListPath || '').trim(),\n    questionReplyPath: String(input.questionReplyPath || '').trim(),\n    questionRejectPath: String(input.questionRejectPath || '').trim(),\n    permissionListPath: String(input.permissionListPath || '').trim(),\n    permissionReplyPath: String(input.permissionReplyPath || '').trim(),\n    abortRequested: input.abortRequested === true,\n    contextJson: input.contextJson || {},\n  },\n}"
       },
       "id": "parse-input",
       "name": "Разбираем входные данные",
@@ -467,7 +467,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const permission = $json\nconst question = $json\nconst source = permission.hasInteraction ? permission : question\n\nreturn { json: { hasInteraction: Boolean(source.hasInteraction), pendingQuestionText: String(source.pendingQuestionText || '').trim(), pendingOptionsJson: String(source.pendingOptionsJson || '[]') } }"
+        "jsCode": "const permission = $input.item.json\nconst question = $input.item.json\nconst source = permission.hasInteraction ? permission : question\n\nreturn { json: { hasInteraction: Boolean(source.hasInteraction), pendingQuestionText: String(source.pendingQuestionText || '').trim(), pendingOptionsJson: String(source.pendingOptionsJson || '[]') } }"
       },
       "id": "pick-source",
       "name": "Выбираем найденную интеракцию",
@@ -482,7 +482,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const launched = $json\nerror = $json\n\nreturn {\n  json: {\n    hasAnswerPayload: launched.hasAnswerPayload || false,\n    hasInteraction: launched.hasInteraction || false,\n  },\n}"
+        "jsCode": "const launched = $input.item.json\nerror = $input.item.json\n\nreturn {\n  json: {\n    hasAnswerPayload: launched.hasAnswerPayload || false,\n    hasInteraction: launched.hasInteraction || false,\n  },\n}"
       },
       "id": "merge-result",
       "name": "Собираем итог интеракции",

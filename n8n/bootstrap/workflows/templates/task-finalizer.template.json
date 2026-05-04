@@ -16,7 +16,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionStatusPath: String(input.sessionStatusPath || '').trim(),\n    messageListPath: String(input.messageListPath || '').trim(),\n    latestSentId: String(input.latestSentId || '').trim(),\n  },\n}"
+        "jsCode": "const input = $('Запуск по вызову из другого сценария').item.json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionStatusPath: String(input.sessionStatusPath || '').trim(),\n    messageListPath: String(input.messageListPath || '').trim(),\n    latestSentId: String(input.latestSentId || '').trim(),\n  },\n}"
       },
       "id": "parse-input",
       "name": "Разбираем входные данные",
@@ -62,7 +62,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "const input = $('Разбираем входные данные').item.json\nconst statusMap = $json || {}\nconst sessionStatus = statusMap[input.sessionId] || {}\nconst statusType = String(sessionStatus.type || '').trim()\n\nreturn {\n  json: { isIdle: statusType === 'idle' },\n}"
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nconst statusMap = $('Получаем статусы сессий').item.json || {}\nconst sessionStatus = statusMap[input.sessionId] || {}\nconst statusType = String(sessionStatus.type || '').trim()\n\nreturn {\n  json: { isIdle: statusType === 'idle' },\n}"
       },
       "id": "read-status",
       "name": "Проверяем статус сессии",
@@ -191,14 +191,7 @@
       "main": [
         [
           {
-            "node": "Получаем сообщения сессии",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Получаем сообщения сессии",
+            "node": "Сессия завершена?",
             "type": "main",
             "index": 0
           }
@@ -214,6 +207,18 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Сессия завершена?": {
+      "main": [
+        [
+          {
+            "node": "Получаем сообщения сессии",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     }
   },

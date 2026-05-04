@@ -1,0 +1,227 @@
+{
+  "name": "Task Finalizer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-trigger",
+      "name": "Запуск по вызову из другого сценария",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionStatusPath: String(input.sessionStatusPath || '').trim(),\n    messageListPath: String(input.messageListPath || '').trim(),\n    latestSentId: String(input.latestSentId || '').trim(),\n  },\n}"
+      },
+      "id": "parse-input",
+      "name": "Разбираем входные данные",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.sessionStatusPath }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "get-status",
+      "name": "Получаем статусы сессий",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        320
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nconst statusMap = $json || {}\nconst sessionStatus = statusMap[input.sessionId] || {}\nconst statusType = String(sessionStatus.type || '').trim()\n\nreturn {\n  json: { isIdle: statusType === 'idle' },\n}"
+      },
+      "id": "read-status",
+      "name": "Проверяем статус сессии",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Проверяем статус сессии').item.json.isIdle }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-idle",
+      "name": "Сессия завершена?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.messageListPath.replace(':id', $('Разбираем входные данные').item.json.sessionId) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "get-messages",
+      "name": "Получаем сообщения сессии",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        320
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nconst isIdle = String($('Проверяем статус сессии').item.json.isIdle) === 'true'\nconst latestSentId = input.latestSentId\nconst rawItems = $('Получаем сообщения сессии').all().map((item) => item.json)\nconst messages = rawItems.flatMap((item) => Array.isArray(item) ? item : [item]).filter(Boolean)\n\nconst assistantMessages = messages.filter((message) => String(message.info?.role || '') === 'assistant').sort((left, right) => Number(left.info?.time?.created || 0) - Number(right.info?.time?.created || 0))\n\nconst latestAssistant = assistantMessages[assistantMessages.length - 1] || null\n\nlet streamProgressText = ''\nlet newLatestSentId = latestSentId\n\nconst newMessages = latestSentId ? assistantMessages.filter((message) => String(message.info?.id || '') > latestSentId) : assistantMessages\nfor (const message of newMessages) {\n  const texts = Array.isArray(message.parts) ? message.parts.filter((part) => String(part.type || '') === 'text').map((part) => String(part.text || part.content || '').trim()).filter(Boolean) : []\n  if (texts.length > 0) {\n    streamProgressText = texts.join('\\n').trim()\n    newLatestSentId = String(message.info?.id || '').trim()\n  }\n}\n\nif (isIdle) {\n  if (!latestAssistant) return {\n    json: { resultStatus: 'failed', streamProgressText: '', latestSentId: newLatestSentId, taskCompleted: true, replyText: `Задача ${input.taskKey} завершилась без итогового ответа OpenCode.`, taskKey: input.taskKey },\n  }\n\n  const assistantError = latestAssistant.info?.error\n  if (assistantError) {\n    const errorMessage = String(assistantError.data?.message || assistantError.message || assistantError.name || 'OpenCode завершился с ошибкой.')\n    return {\n      json: { resultStatus: 'failed', streamProgressText: '', latestSentId: newLatestSentId, taskCompleted: true, replyText: `Задача ${input.taskKey} завершилась ошибкой OpenCode: ${errorMessage}`, taskKey: input.taskKey },\n    }\n  }\n\n  const textParts = Array.isArray(latestAssistant.parts) ? latestAssistant.parts.filter((part) => String(part.type || '') === 'text').map((part) => String(part.text || part.content || '').trim()).filter(Boolean) : []\n  const rawText = textParts.join('\\n').trim() || JSON.stringify(latestAssistant)\n\n  return {\n    json: { resultStatus: 'done', streamProgressText: '', latestSentId: newLatestSentId, taskCompleted: true, replyText: `Задача ${input.taskKey} завершена.\\n\\n${rawText}`, taskKey: input.taskKey },\n  }\n}\n\nreturn {\n  json: { resultStatus: 'running', streamProgressText, latestSentId: newLatestSentId, taskCompleted: false, replyText: '', taskKey: input.taskKey },\n}"
+      },
+      "id": "normalize-response",
+      "name": "Разбираем ответ OpenCode",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1660,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Запуск по вызову из другого сценария": {
+      "main": [
+        [
+          {
+            "node": "Разбираем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Разбираем входные данные": {
+      "main": [
+        [
+          {
+            "node": "Получаем статусы сессий",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем статусы сессий": {
+      "main": [
+        [
+          {
+            "node": "Проверяем статус сессии",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Проверяем статус сессии": {
+      "main": [
+        [
+          {
+            "node": "Получаем сообщения сессии",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем сообщения сессии",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем сообщения сессии": {
+      "main": [
+        [
+          {
+            "node": "Разбираем ответ OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "900015",
+  "tags": []
+}

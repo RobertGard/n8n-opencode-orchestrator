@@ -1,0 +1,203 @@
+{
+  "name": "Session Manager",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-trigger",
+      "name": "Запуск по вызову из другого сценария",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    workerAlias: String(input.workerAlias || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionCreatePath: String(input.sessionCreatePath || '').trim(),\n    latestSessionId: String(input.latestSessionId || '').trim(),\n    createNewSession: input.createNewSession === true,\n    taskKey: String(input.taskKey || '').trim(),\n  },\n}"
+      },
+      "id": "parse-input",
+      "name": "Разбираем входные данные",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Разбираем входные данные').item.json.createNewSession }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-create-new",
+      "name": "Нужна новая сессия?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "return {\n  json: {\n    sessionId: String($('Разбираем входные данные').item.json.latestSessionId || '').trim(),\n    launchError: '',\n  },\n}"
+      },
+      "id": "reuse-session",
+      "name": "Переиспользуем сессию",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.sessionCreatePath }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { title: 'telegram-task-' + $('Разбираем входные данные').item.json.taskKey } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "create-session",
+      "name": "Создаём сессию",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        400
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const sessionResponse = $json\nconst sessionId = String(sessionResponse.sessionId || sessionResponse.id || sessionResponse.data?.id || '').trim()\nconst launchError = sessionResponse.error ? String(sessionResponse.error.message || sessionResponse.error) : (sessionId ? '' : 'OpenCode не вернул session id.')\n\nreturn {\n  json: { sessionId, launchError },\n}"
+      },
+      "id": "normalize-session",
+      "name": "Нормализуем ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Запуск по вызову из другого сценария": {
+      "main": [
+        [
+          {
+            "node": "Разбираем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Разбираем входные данные": {
+      "main": [
+        [
+          {
+            "node": "Нужна новая сессия?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нужна новая сессия?": {
+      "main": [
+        [
+          {
+            "node": "Создаём сессию",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Переиспользуем сессию",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Создаём сессию": {
+      "main": [
+        [
+          {
+            "node": "Нормализуем ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Переиспользуем сессию": {
+      "main": [
+        [
+          {
+            "node": "Нормализуем ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "900012",
+  "tags": []
+}

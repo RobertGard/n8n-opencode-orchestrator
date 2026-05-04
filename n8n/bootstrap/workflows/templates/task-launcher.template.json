@@ -1,0 +1,339 @@
+{
+  "name": "Task Launcher",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-trigger",
+      "name": "Запуск по вызову из другого сценария",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    taskKey: String(input.taskKey || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    claimToken: String(input.claimToken || '').trim(),\n    promptText: String(input.promptText || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    launchError: String(input.launchError || '').trim(),\n    promptAsyncPath: String(input.promptAsyncPath || '').trim(),\n    opencodeAgent: String(input.opencodeAgent || 'build').trim(),\n    opencodeModelProviderID: String(input.opencodeModelProviderID || '').trim(),\n    opencodeModelModelID: String(input.opencodeModelModelID || '').trim(),\n  },\n}"
+      },
+      "id": "parse-input",
+      "name": "Разбираем входные данные",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
+            },
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "queued"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "running",
+            "session_id": "={{ $('Разбираем входные данные').item.json.claimToken }}",
+            "pending_question": "",
+            "pending_options_json": "[]"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "claim-task",
+      "name": "Захватываем ожидающую задачу",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        700,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "rowExists",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
+            },
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "running"
+            },
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.claimToken }}"
+            }
+          ]
+        }
+      },
+      "id": "verify-claim",
+      "name": "Проверяем: задача захвачена",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        940,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Разбираем входные данные').item.json.sessionId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-session-ready",
+      "name": "Сессия готова?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.promptAsyncPath.replace(':id', $('Разбираем входные данные').item.json.sessionId) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { agent: $('Разбираем входные данные').item.json.opencodeAgent, ...( $('Разбираем входные данные').item.json.opencodeModelProviderID ? { model: { providerID: $('Разбираем входные данные').item.json.opencodeModelProviderID, modelID: $('Разбираем входные данные').item.json.opencodeModelModelID } } : {} ), parts: [{ type: 'text', text: $('Разбираем входные данные').item.json.promptText }] } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "send-prompt",
+      "name": "Запускаем задачу в OpenCode",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        320
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
+            },
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "running"
+            },
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.claimToken }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('Разбираем входные данные').item.json.sessionId }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "save-session-id",
+      "name": "Сохраняем идентификатор сессии",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1660,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nlet launchError = input.launchError || ''\nconst promptError = $json.error\nif (promptError) launchError = String(promptError.message || promptError)\n\nreturn {\n  json: {\n    sessionId: input.sessionId,\n    launchError,\n    taskKey: input.taskKey,\n  },\n}"
+      },
+      "id": "normalize-result",
+      "name": "Нормализуем результат",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1900,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Запуск по вызову из другого сценария": {
+      "main": [
+        [
+          {
+            "node": "Разбираем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Разбираем входные данные": {
+      "main": [
+        [
+          {
+            "node": "Захватываем ожидающую задачу",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Захватываем ожидающую задачу": {
+      "main": [
+        [
+          {
+            "node": "Проверяем: задача захвачена",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Проверяем: задача захвачена": {
+      "main": [
+        [
+          {
+            "node": "Сессия готова?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сессия готова?": {
+      "main": [
+        [
+          {
+            "node": "Запускаем задачу в OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Нормализуем результат",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запускаем задачу в OpenCode": {
+      "main": [
+        [
+          {
+            "node": "Сохраняем идентификатор сессии",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сохраняем идентификатор сессии": {
+      "main": [
+        [
+          {
+            "node": "Нормализуем результат",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "900013",
+  "tags": []
+}

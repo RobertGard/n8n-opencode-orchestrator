@@ -6,6 +6,10 @@ ENV_FILE="${ROOT_DIR}/.env"
 ENV_LIB_FILE="${ROOT_DIR}/scripts/lib/load-env.sh"
 INGRESS_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/telegram-task-ingress.template.json"
 DISPATCH_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/telegram-task-dispatcher.template.json"
+SESSION_MGR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/session-manager.template.json"
+TASK_LAUNCHER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-launcher.template.json"
+PENDING_INTERACTION_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/pending-interaction.template.json"
+TASK_FINALIZER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-finalizer.template.json"
 ROUTING_FILE="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
 TASKS_TABLE_NAME="agent_tasks"
 STATE_FILE="${ROOT_DIR}/.n8n-bootstrap-state.json"
@@ -245,11 +249,19 @@ opencode_routing_json="$(render_opencode_routing_json)"
 opencode_routing_json_escaped="$(escape_json_string_content "$opencode_routing_json")"
 INGRESS_WORKFLOW_TEMP="$(mktemp)"
 DISPATCH_WORKFLOW_TEMP="$(mktemp)"
+SESSION_MGR_WORKFLOW_TEMP="$(mktemp)"
+TASK_LAUNCHER_WORKFLOW_TEMP="$(mktemp)"
+PENDING_INTERACTION_WORKFLOW_TEMP="$(mktemp)"
+TASK_FINALIZER_WORKFLOW_TEMP="$(mktemp)"
 
 printf '{"telegramCredentialId":"%s","tasksTableId":"%s"}\n' "$credential_id" "$tasks_table_id" > "$STATE_FILE"
 
 render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
 render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+render_template "$TASK_LAUNCHER_TEMPLATE" "$TASK_LAUNCHER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
 
 log_ok 'Временные workflow-файлы подготовлены.'
 
@@ -257,6 +269,10 @@ step_start 'Импортирую workflow в n8n'
 
 import_workflow_from_host_file "$INGRESS_WORKFLOW_TEMP" 'telegram-task-ingress.json'
 import_workflow_from_host_file "$DISPATCH_WORKFLOW_TEMP" 'telegram-task-dispatcher.json'
+import_workflow_from_host_file "$SESSION_MGR_WORKFLOW_TEMP" 'session-manager.json'
+import_workflow_from_host_file "$TASK_LAUNCHER_WORKFLOW_TEMP" 'task-launcher.json'
+import_workflow_from_host_file "$PENDING_INTERACTION_WORKFLOW_TEMP" 'pending-interaction.json'
+import_workflow_from_host_file "$TASK_FINALIZER_WORKFLOW_TEMP" 'task-finalizer.json'
 
 ingress_workflow_id="$(workflow_id_by_name "$INGRESS_WORKFLOW_NAME")"
 dispatch_workflow_id="$(workflow_id_by_name "$DISPATCH_WORKFLOW_NAME")"

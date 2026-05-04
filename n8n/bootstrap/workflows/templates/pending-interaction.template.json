@@ -1,0 +1,706 @@
+{
+  "name": "Pending Interaction",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sub-trigger",
+      "name": "Запуск по вызову из другого сценария",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    pendingQuestion: String(input.pendingQuestion || '').trim(),\n    pendingOptionsJson: String(input.pendingOptionsJson || '[]'),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    questionListPath: String(input.questionListPath || '').trim(),\n    questionReplyPath: String(input.questionReplyPath || '').trim(),\n    questionRejectPath: String(input.questionRejectPath || '').trim(),\n    permissionListPath: String(input.permissionListPath || '').trim(),\n    permissionReplyPath: String(input.permissionReplyPath || '').trim(),\n    abortRequested: input.abortRequested === true,\n    contextJson: input.contextJson || {},\n  },\n}"
+      },
+      "id": "parse-input",
+      "name": "Разбираем входные данные",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Разбираем входные данные').item.json.taskStatus }}",
+              "rightValue": "needs_input",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-needs-input",
+      "name": "Задача уже ждёт ответ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nlet pendingMeta = {}\ntry { pendingMeta = JSON.parse(String(input.pendingOptionsJson || '{}')) } catch {}\n\nconst requestId = String(pendingMeta.requestId || '').trim()\nconst deliveredAt = String(pendingMeta.deliveredAt || '').trim()\nconst interactionType = Array.isArray(pendingMeta.questions) ? 'question' : String(pendingMeta.type || 'permission').trim()\nconst answers = Array.isArray(pendingMeta.answers) ? pendingMeta.answers : []\nconst rejectRequested = pendingMeta.rejectRequested === true\nconst permissionReply = String(pendingMeta.reply || '').trim()\nconst permissionMessage = String(pendingMeta.message || '').trim()\nconst hasAnswerPayload = interactionType === 'question' ? Boolean(requestId) && (rejectRequested || answers.length > 0) : Boolean(requestId) && Boolean(permissionReply)\nconst shouldSendQuestion = Boolean(requestId) && !hasAnswerPayload && !deliveredAt && String(input.pendingQuestion || '').trim()\n\nreturn {\n  json: {\n    hasAnswerPayload,\n    shouldSendQuestion,\n    interactionType,\n    requestId,\n    requestAction: rejectRequested ? 'reject' : 'reply',\n    answers,\n    permissionReply,\n    permissionMessage,\n  },\n}"
+      },
+      "id": "prepare-answer",
+      "name": "Готовим ответ пользователю",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        940,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Готовим ответ пользователю').item.json.hasAnswerPayload }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-answer-ready",
+      "name": "Ответ пользователя сохранён?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.permissionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionRejectPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: $('Готовим ответ пользователю').item.json.answers } }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "send-answer",
+      "name": "Отвечаем на вопрос OpenCode",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        320
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Готовим ответ пользователю').item.json.shouldSendQuestion }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-should-send",
+      "name": "Нужно отправить ожидающий вопрос?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1180,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
+        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "send-pending-question",
+      "name": "Отправляем ожидающую интеракцию",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1420,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.permissionListPath }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "get-permissions",
+      "name": "Получаем запросы прав",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        700
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nconst rawItems = $('Получаем запросы прав').all().map((item) => item.json)\nconst requests = rawItems.flatMap((item) => Array.isArray(item) ? item : [item]).filter((item) => item && !item.error)\nconst request = requests.find((item) => String(item.sessionID || '').trim() === input.sessionId)\n\nif (!request) return { json: { hasInteraction: false } }\n\nconst patterns = Array.isArray(request.patterns) ? request.patterns : []\nconst alwaysPatterns = Array.isArray(request.always) ? request.always : []\nconst metadata = request.metadata && typeof request.metadata === 'object' ? request.metadata : {}\nconst patternLines = patterns.length > 0 ? patterns.map((pattern) => `- ${String(pattern).trim()}`).join('\\n') : '- (паттерн не указан)'\nconst alwaysLines = alwaysPatterns.length > 0 ? alwaysPatterns.map((pattern) => `- ${String(pattern).trim()}`).join('\\n') : '- (нет рекомендуемых паттернов)'\nconst metadataText = Object.keys(metadata).length > 0 ? JSON.stringify(metadata, null, 2) : ''\n\nconst questionText = [\n  `OpenCode запрашивает разрешение по задаче ${input.taskKey}.`,\n  String(request.title || 'Требуется подтверждение действия.').trim(), '',\n  `Тип permission: ${String(request.permission || 'unknown').trim()}`,\n  'Запрошенные паттерны:', patternLines, '',\n  'Если выбрать always, будут разрешены паттерны:', alwaysLines,\n  metadataText ? `\\nДополнительные данные:\\n${metadataText}` : '', '',\n  'Ответьте одним из вариантов:', '1. once - разрешить один раз',\n  '2. always - разрешить всегда для предложенных паттернов', '3. reject - отклонить',\n].filter(Boolean).join('\\n').trim()\n\nreturn {\n  json: {\n    hasInteraction: true,\n    interactionType: 'permission',\n    pendingQuestionText: questionText,\n    pendingOptionsJson: JSON.stringify({ type: 'permission', requestId: String(request.id || '').trim(), reply: '', message: '' }),\n  },\n}"
+      },
+      "id": "find-permission",
+      "name": "Ищем права для сессии",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Ищем права для сессии').item.json.hasInteraction }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-permission-found",
+      "name": "Есть права?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1420,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionListPath }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "get-questions",
+      "name": "Получаем ожидающие вопросы",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1660,
+        700
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const input = $('Разбираем входные данные').item.json\nconst rawItems = $('Получаем ожидающие вопросы').all().map((item) => item.json)\nconst requests = rawItems.flatMap((item) => Array.isArray(item) ? item : [item]).filter((item) => item && !item.error)\nconst request = requests.find((item) => String(item.sessionID || '').trim() === input.sessionId)\n\nif (!request) return { json: { hasInteraction: false } }\n\nconst questions = Array.isArray(request.questions) ? request.questions : []\nconst blocks = questions.map((question, index) => {\n  const lines = []\n  lines.push(`${index + 1}. ${String(question.header || '').trim()}`)\n  const body = String(question.question || '').trim()\n  if (body) lines.push(body)\n  const options = Array.isArray(question.options) ? question.options : []\n  if (options.length > 0) {\n    lines.push('')\n    options.forEach((option, i) => { lines.push(`${i + 1}. ${String(option.label || '').trim()}`) })\n  }\n  lines.push('')\n  lines.push(question.multiple ? 'Можно выбрать несколько вариантов.' : 'Выберите один вариант.')\n  return lines.join('\\n').trim()\n})\n\nconst questionText = [`OpenCode ждёт уточнение по задаче ${input.taskKey}.`, '', blocks.join('\\n\\n'), '', 'Для отклонения отправьте /reject или task_key: /reject.'].join('\\n').trim()\n\nreturn {\n  json: {\n    hasInteraction: true,\n    interactionType: 'question',\n    pendingQuestionText: questionText,\n    pendingOptionsJson: JSON.stringify({ requestId: String(request.id || '').trim(), questions: questions.map((question) => ({ question: String(question.question || '').trim(), header: String(question.header || '').trim(), multiple: Boolean(question.multiple), custom: question.custom !== false, options: (Array.isArray(question.options) ? question.options : []).map((option) => ({ label: String(option.label || '').trim(), description: String(option.description || '').trim() })), })), answers: null, rejectRequested: false }),\n  },\n}"
+      },
+      "id": "find-question",
+      "name": "Ищем вопрос для сессии",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1900,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Ищем вопрос для сессии').item.json.hasInteraction }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-question-found",
+      "name": "Есть вопрос?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2140,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Разбираем входные данные').item.json.abortRequested }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-abort-requested",
+      "name": "Запрошено прерывание?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        940,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + '/session/' + $('Разбираем входные данные').item.json.sessionId + '/abort' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Разбираем входные данные').item.json.authorizationHeader }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "abort-session",
+      "name": "Отменяем сессию OpenCode",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1180,
+        900
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "cancelled",
+            "pending_question": "",
+            "pending_options_json": "[]",
+            "result_text": "={{ `Задача ${$('Разбираем входные данные').item.json.taskKey} прервана.` }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "mark-aborted",
+      "name": "Помечаем задачу отмененной",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1420,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const permission = $json\nconst question = $json\nconst source = permission.hasInteraction ? permission : question\n\nreturn { json: { hasInteraction: Boolean(source.hasInteraction), pendingQuestionText: String(source.pendingQuestionText || '').trim(), pendingOptionsJson: String(source.pendingOptionsJson || '[]') } }"
+      },
+      "id": "pick-source",
+      "name": "Выбираем найденную интеракцию",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2380,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const launched = $json\nerror = $json\n\nreturn {\n  json: {\n    hasAnswerPayload: launched.hasAnswerPayload || false,\n    hasInteraction: launched.hasInteraction || false,\n  },\n}"
+      },
+      "id": "merge-result",
+      "name": "Собираем итог интеракции",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2620,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Запуск по вызову из другого сценария": {
+      "main": [
+        [
+          {
+            "node": "Разбираем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Разбираем входные данные": {
+      "main": [
+        [
+          {
+            "node": "Задача уже ждёт ответ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Задача уже ждёт ответ?": {
+      "main": [
+        [
+          {
+            "node": "Готовим ответ пользователю",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Запрошено прерывание?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим ответ пользователю": {
+      "main": [
+        [
+          {
+            "node": "Ответ пользователя сохранён?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ответ пользователя сохранён?": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем на вопрос OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Нужно отправить ожидающий вопрос?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем на вопрос OpenCode": {
+      "main": [
+        [
+          {
+            "node": "Собираем итог интеракции",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нужно отправить ожидающий вопрос?": {
+      "main": [
+        [
+          {
+            "node": "Отправляем ожидающую интеракцию",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем запросы прав": {
+      "main": [
+        [
+          {
+            "node": "Ищем права для сессии",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ищем права для сессии": {
+      "main": [
+        [
+          {
+            "node": "Есть права?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Есть права?": {
+      "main": [
+        [
+          {
+            "node": "Выбираем найденную интеракцию",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем ожидающие вопросы",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получаем ожидающие вопросы": {
+      "main": [
+        [
+          {
+            "node": "Ищем вопрос для сессии",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ищем вопрос для сессии": {
+      "main": [
+        [
+          {
+            "node": "Есть вопрос?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Есть вопрос?": {
+      "main": [
+        [
+          {
+            "node": "Выбираем найденную интеракцию",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Собираем итог интеракции",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запрошено прерывание?": {
+      "main": [
+        [
+          {
+            "node": "Отменяем сессию OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем запросы прав",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отменяем сессию OpenCode": {
+      "main": [
+        [
+          {
+            "node": "Помечаем задачу отмененной",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "900014",
+  "tags": []
+}

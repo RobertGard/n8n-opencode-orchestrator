@@ -11,23 +11,13 @@ if [ -z "${CATALOG_FILE}" ] || [ ! -f "${CATALOG_FILE}" ]; then
   exit 0
 fi
 
-github_auth_header() {
+github_authenticate_url() {
   local repo_url="$1"
   if [ -n "${GITHUB_TOKEN:-}" ] && [[ "${repo_url}" == https://github.com/* ]]; then
-    printf 'Authorization: Bearer %s' "${GITHUB_TOKEN}"
+    printf '%s' "https://${GITHUB_TOKEN}@github.com/${repo_url#https://github.com/}"
     return
   fi
-
-  return 1
-}
-
-git_network_args() {
-  local repo_url="$1"
-  GIT_NETWORK_ARGS=()
-
-  if auth_header="$(github_auth_header "${repo_url}")"; then
-    GIT_NETWORK_ARGS=(-c "http.https://github.com/.extraHeader=${auth_header}")
-  fi
+  printf '%s' "${repo_url}"
 }
 
 repo_items() {
@@ -184,16 +174,16 @@ while IFS= read -r repo; do
 
   mkdir -p "$(dirname "${repo_dir}")"
 
-  git_network_args "${repo_url}"
+  auth_url="$(github_authenticate_url "${repo_url}")"
 
   if [ ! -d "${repo_dir}/.git" ]; then
-    git "${GIT_NETWORK_ARGS[@]}" clone "${repo_url}" "${repo_dir}"
+    git clone "${auth_url}" "${repo_dir}"
   fi
 
   git -C "${repo_dir}" remote set-url origin "${repo_url}"
-  git "${GIT_NETWORK_ARGS[@]}" -C "${repo_dir}" fetch --all --prune || true
+  git -C "${repo_dir}" fetch "${auth_url}" --all --prune || true
   git -C "${repo_dir}" checkout "${repo_ref}" || true
-  git "${GIT_NETWORK_ARGS[@]}" -C "${repo_dir}" pull --ff-only origin "${repo_ref}" || true
+  git -C "${repo_dir}" pull --ff-only "${auth_url}" "${repo_ref}" || true
 
   if [ "${install_deps}" = "true" ]; then
     install_repo_dependencies "${repo_dir}" "${package_manager}"

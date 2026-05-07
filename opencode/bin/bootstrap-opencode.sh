@@ -147,6 +147,12 @@ cat > "${CONFIG_FILE}" <<EOF
         "timeout": ${OPENCODE_PROVIDER_TIMEOUT_MS:-1800000},
         "chunkTimeout": ${OPENCODE_PROVIDER_CHUNK_TIMEOUT_MS:-900000}
       }
+    },
+    "deepseek": {
+      "options": {
+        "timeout": ${OPENCODE_PROVIDER_TIMEOUT_MS:-1800000},
+        "chunkTimeout": ${OPENCODE_PROVIDER_CHUNK_TIMEOUT_MS:-900000}
+      }
     }
   },
   "mcp": {

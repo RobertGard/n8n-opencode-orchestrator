@@ -446,7 +446,8 @@ ask_model_id() {
   printf '  - opencode/minimax-m2.5-free (бесплатная модель OpenCode Zen)\n' >&2
   printf '  - openai/gpt-5.5\n' >&2
   printf '  - opencode/gemini-3.1-pro\n' >&2
-  ask_matching "$1" "$2" '^[^[:space:]]+/[^[:space:]]+$' 'Укажи полную модель в формате provider/model, например opencode/minimax-m2.5-free, openai/gpt-5.5 или opencode/gemini-3.1-pro.'
+  printf '  - deepseek/deepseek-v4-pro\n' >&2
+  ask_matching "$1" "$2" '^[^[:space:]]+/[^[:space:]]+$' 'Укажи полную модель в формате provider/model, например opencode/minimax-m2.5-free, openai/gpt-5.5, opencode/gemini-3.1-pro или deepseek/deepseek-v4-pro.'
 }
 
 write_routing_file() {

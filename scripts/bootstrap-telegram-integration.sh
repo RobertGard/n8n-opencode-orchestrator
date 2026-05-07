@@ -156,7 +156,7 @@ render_opencode_routing_json() {
     die "Не заданы env с паролями OpenCode worker: ${missing_password_envs[*]}"
   fi
 
-  jq -c --argjson requestTimeoutMs "${OPENCODE_PROVIDER_TIMEOUT_MS:-1800000}" '. + {requestTimeoutMs: $requestTimeoutMs} | .workers |= with_entries(.value |= (. + {authorizationHeader: ("Basic " + ((.username + ":" + (env[.passwordEnv] // "")) | @base64))} | del(.passwordEnv)))' "$ROUTING_FILE"
+  jq --argjson requestTimeoutMs "${OPENCODE_PROVIDER_TIMEOUT_MS:-1800000}" '. + {requestTimeoutMs: $requestTimeoutMs} | .workers |= with_entries(.value |= (. + {authorizationHeader: ("Basic " + ((.username + ":" + (env[.passwordEnv] // "")) | @base64))} | del(.passwordEnv)))' "$ROUTING_FILE"
 }
 
 escape_json_string_content() {

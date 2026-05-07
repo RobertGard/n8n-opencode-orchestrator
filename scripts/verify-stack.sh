@@ -140,10 +140,22 @@ if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
   if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
     log_warn 'TELEGRAM_CHAT_ID не задан, Telegram поток считается некорректно настроенным'
   fi
-  if ! bash "${ROOT_DIR}/scripts/bootstrap-telegram-integration.sh"; then
-    log_warn 'Telegram bootstrap не завершился успешно'
+
+  N8N_URL="http://127.0.0.1:${N8N_PORT:-5678}"
+  if [ -z "${N8N_API_KEY:-}" ]; then
+    log_warn 'N8N_API_KEY не задан — пропускаю проверку Telegram креденшелов и workflow'
   else
-    log_ok 'Telegram bootstrap завершен.'
+    # Проверяем существование Telegram credential
+    cred_count="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" | jq -r '[.data // . // [] | map(select(.type == "telegramApi"))] | length')" || cred_count="0"
+    if [ "${cred_count:-0}" -gt 0 ]; then
+      log_ok 'Telegram credential существует'
+    else
+      log_warn 'Telegram credential не найден — запусти bootstrap-telegram-integration.sh'
+    fi
+
+    # Проверяем существование workflow
+    wf_count="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" | jq -r '[.data // . // [] | length]')" || wf_count="0"
+    log_ok "Найдено workflow в n8n: ${wf_count:-0}"
   fi
 fi
 

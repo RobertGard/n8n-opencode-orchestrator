@@ -15,6 +15,10 @@ TASKS_TABLE_NAME="agent_tasks"
 STATE_FILE="${ROOT_DIR}/.n8n-bootstrap-state.json"
 INGRESS_WORKFLOW_NAME="Постановка задач через Telegram"
 DISPATCH_WORKFLOW_NAME="Диспетчер задач Telegram"
+SESSION_MGR_WORKFLOW_NAME="Менеджер сессий"
+TASK_LAUNCHER_WORKFLOW_NAME="Запуск задачи"
+PENDING_INTERACTION_WORKFLOW_NAME="Обработка интеракций"
+TASK_FINALIZER_WORKFLOW_NAME="Завершение задачи"
 INGRESS_WORKFLOW_TEMP=""
 DISPATCH_WORKFLOW_TEMP=""
 
@@ -222,7 +226,14 @@ step_start 'Проверяю Telegram credential'
 credential_id=""
 if [ -f "$STATE_FILE" ]; then
   credential_id="$(jq -r '.telegramCredentialId // empty' "$STATE_FILE" 2>/dev/null || true)"
-  [ -n "$credential_id" ] && log_info "Нашел сохраненный credential id в ${STATE_FILE}"
+  if [ -n "$credential_id" ]; then
+    log_info "Нашел сохраненный credential id в ${STATE_FILE}: ${credential_id}"
+    # Проверяем что креденшел реально существует в n8n (а не остался от предыдущего docker compose down -v)
+    if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials/${credential_id}" >/dev/null 2>&1; then
+      log_warn "Credential ${credential_id} не найден в n8n (возможно БД была очищена). Создам новый."
+      credential_id=""
+    fi
+  fi
 fi
 
 if [ -z "$credential_id" ]; then
@@ -266,6 +277,21 @@ render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$cre
 log_ok 'Временные workflow-файлы подготовлены.'
 
 step_start 'Импортирую workflow в n8n'
+
+# Удаляем существующие workflow с теми же именами перед импортом, чтобы избежать дубликатов
+for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
+               "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
+               "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME"; do
+  existing_ids="$(curl -fsS \
+    -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
+    "${N8N_URL}/api/v1/workflows" | jq -r --arg name "$wf_name" '.data // . // [] | map(select(.name == $name)) | .[].id')"
+  for old_id in $existing_ids; do
+    if [ -n "$old_id" ] && [ "$old_id" != "null" ]; then
+      log_info "Удаляю старый workflow '${wf_name}' (id=${old_id})"
+      curl -fsS -X DELETE -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${old_id}" >/dev/null || true
+    fi
+  done
+done
 
 import_workflow_from_host_file "$INGRESS_WORKFLOW_TEMP" 'telegram-task-ingress.json'
 import_workflow_from_host_file "$DISPATCH_WORKFLOW_TEMP" 'telegram-task-dispatcher.json'

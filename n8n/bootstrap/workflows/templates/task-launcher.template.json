@@ -1,8 +1,61 @@
 {
-  "name": "Task Launcher",
+  "name": "Запуск задачи",
   "nodes": [
     {
-      "parameters": {},
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "promptText",
+              "type": "string"
+            },
+            {
+              "name": "opencodeAgent",
+              "type": "string"
+            },
+            {
+              "name": "opencodeModelProviderID",
+              "type": "string"
+            },
+            {
+              "name": "opencodeModelModelID",
+              "type": "string"
+            },
+            {
+              "name": "taskKey",
+              "type": "string"
+            },
+            {
+              "name": "taskStatus",
+              "type": "string"
+            },
+            {
+              "name": "claimToken",
+              "type": "string"
+            },
+            {
+              "name": "sessionId",
+              "type": "string"
+            },
+            {
+              "name": "launchError",
+              "type": "string"
+            },
+            {
+              "name": "promptAsyncPath",
+              "type": "string"
+            },
+            {
+              "name": "workerBaseUrl",
+              "type": "string"
+            },
+            {
+              "name": "authorizationHeader",
+              "type": "string"
+            }
+          ]
+        }
+      },
       "id": "sub-trigger",
       "name": "Запуск по вызову из другого сценария",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
@@ -66,7 +119,7 @@
       "id": "claim-task",
       "name": "Захватываем ожидающую задачу",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         700,
         320
@@ -104,7 +157,7 @@
       "id": "verify-claim",
       "name": "Проверяем: задача захвачена",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         940,
         320
@@ -221,7 +274,7 @@
       "id": "save-session-id",
       "name": "Сохраняем идентификатор сессии",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1660,
         320

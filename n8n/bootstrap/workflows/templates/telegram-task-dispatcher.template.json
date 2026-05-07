@@ -52,7 +52,7 @@
       "id": "get-all-tasks",
       "name": "Получаем все задачи",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         700,
         320
@@ -182,7 +182,7 @@
       "id": "parent-exists",
       "name": "Проверяем: родитель найден",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         2140,
         320
@@ -212,7 +212,7 @@
       "id": "get-parent-task",
       "name": "Получаем родительскую задачу",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         2140,
         520
@@ -284,7 +284,7 @@
       "id": "cancel-parent-unsuccessful",
       "name": "Отменяем: родитель неуспешен",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         2860,
         520
@@ -387,7 +387,7 @@
       "id": "cancel-parent-match-missing",
       "name": "Отменяем: вхождение не найдено",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         3100,
         200
@@ -520,7 +520,7 @@
       "id": "save-final-result",
       "name": "Сохраняем результат задачи",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         5020,
         440
@@ -771,7 +771,7 @@
       "id": "mark-stream-progress-sent",
       "name": "Помечаем прогресс отправленным",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         3120,
         540

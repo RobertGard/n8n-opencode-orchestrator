@@ -427,7 +427,7 @@
       "id": "queue-task",
       "name": "Вставляем задачу",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1248,
         304
@@ -464,7 +464,7 @@
       "id": "get-pending-input-tasks",
       "name": "Получаем задачи с ожиданием ответа",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         768,
         208
@@ -538,7 +538,7 @@
       "id": "save-user-answer",
       "name": "Сохраняем ответ пользователя",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1488,
         208
@@ -576,7 +576,7 @@
       "id": "verify-user-answer-saved",
       "name": "Проверяем: ответ сохранён",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1728,
         208
@@ -745,7 +745,7 @@
       "id": "get-active-running-tasks",
       "name": "Получаем работающие задачи",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1488,
         528
@@ -802,7 +802,7 @@
       "id": "save-abort-flag",
       "name": "Сохраняем флаг прерывания",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1968,
         528

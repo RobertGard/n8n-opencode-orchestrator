@@ -1,8 +1,37 @@
 {
-  "name": "Session Manager",
+  "name": "Менеджер сессий",
   "nodes": [
     {
-      "parameters": {},
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "workerBaseUrl",
+              "type": "string"
+            },
+            {
+              "name": "authorizationHeader",
+              "type": "string"
+            },
+            {
+              "name": "sessionCreatePath",
+              "type": "string"
+            },
+            {
+              "name": "latestSessionId",
+              "type": "string"
+            },
+            {
+              "name": "createNewSession",
+              "type": "string"
+            },
+            {
+              "name": "taskKey",
+              "type": "string"
+            }
+          ]
+        }
+      },
       "id": "sub-trigger",
       "name": "Запуск по вызову из другого сценария",
       "type": "n8n-nodes-base.executeWorkflowTrigger",

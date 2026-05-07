@@ -1,8 +1,73 @@
 {
-  "name": "Pending Interaction",
+  "name": "Обработка интеракций",
   "nodes": [
     {
-      "parameters": {},
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "taskKey",
+              "type": "string"
+            },
+            {
+              "name": "sessionId",
+              "type": "string"
+            },
+            {
+              "name": "chatId",
+              "type": "string"
+            },
+            {
+              "name": "taskStatus",
+              "type": "string"
+            },
+            {
+              "name": "pendingQuestion",
+              "type": "string"
+            },
+            {
+              "name": "pendingOptionsJson",
+              "type": "string"
+            },
+            {
+              "name": "workerBaseUrl",
+              "type": "string"
+            },
+            {
+              "name": "authorizationHeader",
+              "type": "string"
+            },
+            {
+              "name": "questionListPath",
+              "type": "string"
+            },
+            {
+              "name": "questionReplyPath",
+              "type": "string"
+            },
+            {
+              "name": "questionRejectPath",
+              "type": "string"
+            },
+            {
+              "name": "permissionListPath",
+              "type": "string"
+            },
+            {
+              "name": "permissionReplyPath",
+              "type": "string"
+            },
+            {
+              "name": "abortRequested",
+              "type": "string"
+            },
+            {
+              "name": "contextJson",
+              "type": "string"
+            }
+          ]
+        }
+      },
       "id": "sub-trigger",
       "name": "Запуск по вызову из другого сценария",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
@@ -457,7 +522,7 @@
       "id": "mark-aborted",
       "name": "Помечаем задачу отмененной",
       "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 2,
+      "typeVersion": 1.1,
       "position": [
         1420,
         900

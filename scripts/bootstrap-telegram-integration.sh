@@ -326,14 +326,12 @@ activate_and_verify() {
   local wf_id="$1"
   local wf_label="$2"
   activate_workflow_by_id "$wf_id" "$wf_label"
-  if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${wf_id}" | jq -e '.active == true' >/dev/null 2>&1; then
+  if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${wf_id}" | jq -e '(.active // .data.active) == true' >/dev/null 2>&1; then
     die "Не удалось активировать workflow ${wf_label}."
   fi
 }
 
-activate_and_verify "$ingress_workflow_id" "$INGRESS_WORKFLOW_NAME"
-activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
-
+# Активируем sub-workflow ПЕРВЫМИ — n8n 2.x требует чтобы все зависимые workflow были активны
 log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
 for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME"; do
@@ -344,6 +342,10 @@ for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
   activate_and_verify "$sub_wf_id" "$wf_name"
 done
 log_ok 'Sub-workflow активированы.'
+
+# Теперь активируем основные workflow
+activate_and_verify "$ingress_workflow_id" "$INGRESS_WORKFLOW_NAME"
+activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
 
 log_ok 'Workflow импортированы и активированы.'
 

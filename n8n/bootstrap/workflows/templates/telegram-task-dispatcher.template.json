@@ -424,7 +424,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "text": "={{ `Задача ${$('Выбираем кандидатную задачу').item.json.task.task_key} не запущена: ${$('Запуск задачи').item.json.launchError}` }}",
+        "text": "={{ `Задача ${$('Выбираем кандидатную задачу').item.json.task.task_key} успешно запущена. Ожидайте результат.` }}",
         "additionalFields": {
           "appendAttribution": false
         }

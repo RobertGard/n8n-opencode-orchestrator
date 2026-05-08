@@ -447,7 +447,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "text": "={{ `Асинхронный запуск задачи ${$('Выбираем кандидатную задачу').item.json.task.task_key} не удался: ${String(($('Запуск задачи').item.json.error || {}).message || $('Запуск задачи').item.json.error || 'OpenCode не принял запрос.')}` }}",
+        "text": "={{ `Асинхронный запуск задачи ${$('Выбираем кандидатную задачу').item.json.task.task_key} не удался: ${$('Запуск задачи').item.json.launchError || 'OpenCode не принял запрос.'}` }}",
         "additionalFields": {
           "appendAttribution": false
         }

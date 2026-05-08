@@ -1,0 +1,250 @@
+{
+  "name": "Отмена задачи",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cancel-task",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Вебхук: отмена задачи",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        220,
+        320
+      ],
+      "webhookId": null
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "task_key",
+              "value": "={{ $json.body.task_key || $json.query.task_key }}",
+              "type": "string"
+            },
+            {
+              "name": "reason",
+              "value": "={{ $json.body.reason || $json.query.reason || 'Отменено администратором' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-input",
+      "name": "Извлекаем параметры",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "has-task-key",
+              "leftValue": "={{ $json.task_key }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "validate-input",
+      "name": "Указан task_key?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        700,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Извлекаем параметры').item.json.task_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "cancelled",
+            "result_text": "={{ 'Задача отменена: ' + $('Извлекаем параметры').item.json.reason }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "cancel-task",
+      "name": "Отменяем задачу",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        940,
+        320
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "const updated = $input.item.json\nconst found = Number(updated?.count || 0) > 0\nreturn {\n  json: {\n    ok: found,\n    task_key: $('Извлекаем параметры').item.json.task_key,\n    reason: $('Извлекаем параметры').item.json.reason,\n    message: found\n      ? `Задача ${$('Извлекаем параметры').item.json.task_key} отменена`\n      : `Задача ${$('Извлекаем параметры').item.json.task_key} не найдена или уже завершена`,\n  },\n}"
+      },
+      "id": "build-response",
+      "name": "Формируем ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "language": "javaScript",
+        "jsCode": "return {\n  json: {\n    ok: false,\n    task_key: '',\n    message: 'Не передан параметр task_key',\n  },\n}"
+      },
+      "id": "error-fallback",
+      "name": "Параметр не передан",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Отвечаем",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        1420,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Вебхук: отмена задачи": {
+      "main": [
+        [
+          {
+            "node": "Извлекаем параметры",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Извлекаем параметры": {
+      "main": [
+        [
+          {
+            "node": "Указан task_key?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Указан task_key?": {
+      "main": [
+        [
+          {
+            "node": "Отменяем задачу",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Параметр не передан",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отменяем задачу": {
+      "main": [
+        [
+          {
+            "node": "Формируем ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Формируем ответ": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Параметр не передан": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    "utility",
+    "webhook"
+  ],
+  "description": "Гибкая отмена задач через вебхук. POST /cancel-task с body { task_key, reason? }. Отменяет задачу по task_key независимо от текущего статуса."
+}

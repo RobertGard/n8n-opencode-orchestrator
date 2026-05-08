@@ -313,11 +313,10 @@ fi
 activate_workflow_by_id() {
   local wf_id="$1"
   local wf_label="$2"
-  if ! curl -fsS -X PATCH \
+  if ! curl -fsS -X POST \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     -H 'Content-Type: application/json' \
-    -d '{"active": true}' \
-    "${N8N_URL}/api/v1/workflows/${wf_id}" >/dev/null; then
+    "${N8N_URL}/api/v1/workflows/${wf_id}/activate" >/dev/null 2>&1; then
     log_warn "Не удалось активировать workflow ${wf_label} (id=${wf_id})"
   fi
 }
@@ -326,7 +325,8 @@ activate_and_verify() {
   local wf_id="$1"
   local wf_label="$2"
   activate_workflow_by_id "$wf_id" "$wf_label"
-  if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${wf_id}" | jq -e '(.active // .data.active) == true' >/dev/null 2>&1; then
+  # Верификация через список workflow
+  if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" | jq -e --arg id "$wf_id" '[.data // . // [] | map(select(.id == $id and .active == true))] | length > 0' >/dev/null 2>&1; then
     die "Не удалось активировать workflow ${wf_label}."
   fi
 }

@@ -113,7 +113,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "claim-task",
@@ -152,6 +153,9 @@
               "keyValue": "={{ $('Разбираем входные данные').item.json.claimToken }}"
             }
           ]
+        },
+        "options": {
+          "alwaysOutputData": true
         }
       },
       "id": "verify-claim",
@@ -268,7 +272,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "save-session-id",

@@ -47,7 +47,10 @@
         "returnAll": true,
         "orderBy": true,
         "orderByColumn": "queued_at",
-        "orderByDirection": "ASC"
+        "orderByDirection": "ASC",
+        "options": {
+          "alwaysOutputData": true
+        }
       },
       "id": "get-all-tasks",
       "name": "Получаем все задачи",
@@ -177,6 +180,9 @@
               "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.parentTaskKey }}"
             }
           ]
+        },
+        "options": {
+          "alwaysOutputData": true
         }
       },
       "id": "parent-exists",
@@ -207,7 +213,10 @@
           ]
         },
         "returnAll": false,
-        "limit": 1
+        "limit": 1,
+        "options": {
+          "alwaysOutputData": true
+        }
       },
       "id": "get-parent-task",
       "name": "Получаем родительскую задачу",
@@ -278,7 +287,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "cancel-parent-unsuccessful",
@@ -381,7 +391,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "cancel-parent-match-missing",
@@ -514,7 +525,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "save-final-result",
@@ -765,7 +777,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "mark-stream-progress-sent",

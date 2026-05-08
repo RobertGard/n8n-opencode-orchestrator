@@ -421,7 +421,8 @@
           "convertFieldsToString": false
         },
         "options": {
-          "optimizeBulk": true
+          "optimizeBulk": true,
+          "alwaysOutputData": true
         }
       },
       "id": "queue-task",
@@ -459,7 +460,10 @@
         "returnAll": true,
         "orderBy": true,
         "orderByColumn": "queued_at",
-        "orderByDirection": "ASC"
+        "orderByDirection": "ASC",
+        "options": {
+          "alwaysOutputData": true
+        }
       },
       "id": "get-pending-input-tasks",
       "name": "Получаем задачи с ожиданием ответа",
@@ -532,7 +536,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "save-user-answer",
@@ -571,6 +576,9 @@
               "keyValue": "={{ $('Ответ распознан?').first().json.updatedPendingOptionsJson }}"
             }
           ]
+        },
+        "options": {
+          "alwaysOutputData": true
         }
       },
       "id": "verify-user-answer-saved",
@@ -740,7 +748,10 @@
         "returnAll": true,
         "orderBy": true,
         "orderByColumn": "queued_at",
-        "orderByDirection": "ASC"
+        "orderByDirection": "ASC",
+        "options": {
+          "alwaysOutputData": true
+        }
       },
       "id": "get-active-running-tasks",
       "name": "Получаем работающие задачи",
@@ -796,7 +807,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "save-abort-flag",

@@ -516,7 +516,8 @@
           }
         },
         "options": {
-          "dryRun": false
+          "dryRun": false,
+          "alwaysOutputData": true
         }
       },
       "id": "mark-aborted",

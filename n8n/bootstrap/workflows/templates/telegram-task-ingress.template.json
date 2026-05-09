@@ -133,8 +133,7 @@
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
         "text": "={{ (() => { try { if ($json.replyText) return $json.replyText } catch {} try { return $('Готовим ожидающую интеракцию').first().json.replyText } catch {} return $('Разбираем базовое сообщение Telegram').first().json.replyText })() }}",
         "additionalFields": {
-          "appendAttribution": false,
-            "parse_mode": ""
+          "appendAttribution": false
         }
       },
       "id": "send-parse-error",
@@ -157,8 +156,7 @@
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
         "text": "Недопустимый чат",
         "additionalFields": {
-          "appendAttribution": false,
-            "parse_mode": ""
+          "appendAttribution": false
         }
       },
       "id": "send-invalid-chat",
@@ -196,8 +194,7 @@
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
         "text": "={{ $('Готовим новую задачу').first().json.replyText }}",
         "additionalFields": {
-          "appendAttribution": false,
-            "parse_mode": ""
+          "appendAttribution": false
         }
       },
       "id": "send-queued-message",
@@ -594,8 +591,7 @@
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
         "text": "={{ $('Ответ распознан?').first().json.replyText }}",
         "additionalFields": {
-          "appendAttribution": false,
-            "parse_mode": ""
+          "appendAttribution": false
         }
       },
       "id": "send-answer-accepted",
@@ -823,8 +819,7 @@
         "chatId": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
         "text": "={{ $('Определяем цель прерывания').first().json.replyText }}",
         "additionalFields": {
-          "appendAttribution": false,
-            "parse_mode": ""
+          "appendAttribution": false
         }
       },
       "id": "send-abort-confirmation",

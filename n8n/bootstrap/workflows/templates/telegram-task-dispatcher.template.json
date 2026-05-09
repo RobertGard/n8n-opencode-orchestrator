@@ -300,7 +300,7 @@
         "text": "={{ `Задача ${$('Выбираем кандидатную задачу').item.json.task.task_key} отменена: родительская задача ${$('Выбираем кандидатную задачу').item.json.parentTaskKey} завершилась со статусом ${$('Получаем родительскую задачу').item.json.status}.` }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "notify-parent-unsuccessful",
@@ -405,7 +405,7 @@
         "text": "={{ `Задача ${$('Выбираем кандидатную задачу').item.json.task.task_key} отменена: в результате ${$('Выбираем кандидатную задачу').item.json.parentTaskKey} не найдено вхождение '${$('Выбираем кандидатную задачу').item.json.parentMatchText}'.` }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "notify-parent-match-missing",
@@ -429,7 +429,7 @@
         "text": "={{ `Задача ${$('Выбираем кандидатную задачу').item.json.task.task_key} успешно запущена. Ожидайте результат.` }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "notify-launch-error",
@@ -453,7 +453,7 @@
         "text": "={{ `Асинхронный запуск задачи ${$('Выбираем кандидатную задачу').item.json.task.task_key} не удался: ${$('Запуск задачи').item.json.launchError || 'OpenCode не принял запрос.'}` }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "notify-prompt-error",
@@ -473,11 +473,57 @@
     },
     {
       "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}"
+            },
+            {
+              "keyName": "status",
+              "condition": "eq",
+              "keyValue": "queued"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "failed",
+            "result_text": "={{ `Ошибка запуска: ${$('Запуск задачи').item.json.launchError || 'неизвестная ошибка'}` }}",
+            "pending_question": "",
+            "pending_options_json": "[]"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "mark-launch-failed",
+      "name": "Помечаем задачу проваленной при ошибке запуска",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5260,
+        560
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').item.json.task.chat_id }}",
         "text": "={{ `Ответ на вопрос по задаче ${$('Выбираем активную задачу').item.json.task.task_key} не отправлен: ${String($('Обработка интеракций').item.json.error || 'OpenCode не вернул корректный ответ.')}` }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "notify-answer-error",
@@ -543,7 +589,7 @@
         "text": "={{ $('Завершение задачи').item.json.replyText }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "send-final-result",
@@ -755,7 +801,7 @@
         "text": "={{ $('Завершение задачи').item.json.streamProgressText }}",
         "additionalFields": {
           "appendAttribution": false,
-            "parse_mode": "HTML"
+          "parse_mode": "HTML"
         }
       },
       "id": "send-stream-progress",
@@ -1178,7 +1224,13 @@
     },
     "Сообщаем: ошибка асинхронного запуска": {
       "main": [
-        []
+        [
+          {
+            "node": "Помечаем задачу проваленной при ошибке запуска",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Сообщаем: ошибка запуска": {

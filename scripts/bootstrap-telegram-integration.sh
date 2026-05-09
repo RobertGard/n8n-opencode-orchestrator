@@ -317,7 +317,7 @@ activate_workflow_by_id() {
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     -H 'Content-Type: application/json' \
     "${N8N_URL}/api/v1/workflows/${wf_id}/activate" >/dev/null 2>&1; then
-    log_warn "Не удалось активировать workflow ${wf_label} (id=${wf_id})"
+    die "Не удалось активировать workflow ${wf_label} (id=${wf_id})"
   fi
 }
 
@@ -330,6 +330,19 @@ activate_and_verify() {
     die "Не удалось активировать workflow ${wf_label}."
   fi
 }
+
+log_ok 'Workflow импортированы.'
+
+step_start 'Перезапускаю n8n и n8n-worker'
+log_info 'Перезапуск сервисов может занять до нескольких десятков секунд.'
+if ! "${BASE_COMPOSE[@]}" restart n8n n8n-worker >/dev/null; then
+  die 'Не удалось перезапустить n8n и n8n-worker.'
+fi
+
+# Ждём готовности после рестарта — иначе активация упадёт
+if ! wait_for_n8n; then
+  die 'n8n не поднялся после перезапуска.'
+fi
 
 # Активируем sub-workflow ПЕРВЫМИ — n8n 2.x требует чтобы все зависимые workflow были активны
 log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
@@ -347,12 +360,6 @@ log_ok 'Sub-workflow активированы.'
 activate_and_verify "$ingress_workflow_id" "$INGRESS_WORKFLOW_NAME"
 activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
 
-log_ok 'Workflow импортированы и активированы.'
-
-step_start 'Перезапускаю n8n и n8n-worker'
-log_info 'Перезапуск сервисов может занять до нескольких десятков секунд.'
-if ! "${BASE_COMPOSE[@]}" restart n8n n8n-worker >/dev/null; then
-  die 'Не удалось перезапустить n8n и n8n-worker.'
-fi
+log_ok 'Workflow активированы после перезапуска.'
 
 log_ok 'Telegram credential и workflow импортированы.'

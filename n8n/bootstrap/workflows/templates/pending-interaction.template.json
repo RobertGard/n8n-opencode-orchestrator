@@ -580,6 +580,45 @@
       }
     },
     {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_question": "={{ $('Обогащаем: вопрос отправлен').item.json.pendingQuestionText || '' }}",
+            "pending_options_json": "={{ $('Обогащаем: вопрос отправлен').item.json.updatedPendingOptionsJson || '[]' }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "save-pending-in-sub",
+      "name": "Сохраняем pending в БД (sub-workflow)",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1660,
+        240
+      ],
+      "alwaysOutputData": true
+    },
+    {
       "id": "enrich-abort",
       "name": "Обогащаем: задача отменена",
       "type": "n8n-nodes-base.code",
@@ -855,7 +894,7 @@
       "main": [
         [
           {
-            "node": "Собираем итог интеракции",
+            "node": "Сохраняем pending в БД (sub-workflow)",
             "type": "main",
             "index": 0
           }
@@ -874,6 +913,17 @@
       ]
     },
     "Обогащаем: ответ в OpenCode отправлен": {
+      "main": [
+        [
+          {
+            "node": "Собираем итог интеракции",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сохраняем pending в БД (sub-workflow)": {
       "main": [
         [
           {

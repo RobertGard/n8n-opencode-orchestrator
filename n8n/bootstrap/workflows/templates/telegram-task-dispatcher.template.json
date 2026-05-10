@@ -519,7 +519,8 @@
             "status": "={{ $('Завершение задачи').item.json.resultStatus }}",
             "pending_question": "",
             "pending_options_json": "[]",
-            "result_text": "={{ $('Завершение задачи').item.json.replyText }}"
+            "result_text": "={{ $('Завершение задачи').item.json.replyText }}",
+            "session_id": "={{ $('Завершение задачи').item.json.clearSessionId ? '' : $('Выбираем активную задачу').first().json.sessionId }}"
           }
         },
         "options": {

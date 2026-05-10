@@ -246,22 +246,18 @@
     },
     {
       "parameters": {
-        "resource": "message",
-        "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "messageType": "freeText",
-        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
+        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML",
           "reply_markup": "={{ JSON.parse($('Готовим ответ пользователю').item.json.replyMarkup || '{}') }}"
-        },
-        "options": {}
+        }
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",
       "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.3,
+      "typeVersion": 1.2,
       "position": [
         1420,
         200
@@ -580,7 +576,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// После sendAndWait получаем ответ пользователя напрямую.\n// Отправляем в OpenCode API.\n\nconst context = $('Разбираем входные данные').item.json\nconst waitResponse = $input.item.json\nconst userAnswer = String(waitResponse.text || waitResponse.message?.text || '').trim()\n\nconst answer = $('Готовим ответ пользователю').item.json\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\nconst isReject = /^\\/?(reject|skip|cancel)\\b/i.test(userAnswer)\n\nconst answers = isReject ? [] : [userAnswer]\n\nreturn {\n  json: {\n    taskKey: answer.taskKey || context.taskKey,\n    sessionId: answer.sessionId || context.sessionId,\n    chatId: answer.chatId || context.chatId,\n    resultType: 'interaction_processed',\n    interactionType: 'question',\n    hasInteraction: true,\n    hasAnswerPayload: true,\n    pendingOptionsJson: JSON.stringify({\n      ...pendingMeta,\n      answers: isReject ? null : answers,\n      rejectRequested: isReject,\n      answeredAt: new Date().toISOString(),\n    }),\n    replyError: '',\n  },\n}",
+        "jsCode": "// Маркируем: вопрос отправлен пользователю в Telegram.\nconst context = $('Разбираем входные данные').item.json\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true } }",
         "language": "javaScript"
       }
     },
@@ -838,7 +834,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем на вопрос OpenCode",
+            "node": "Обогащаем: вопрос отправлен",
             "type": "main",
             "index": 0
           }

@@ -246,12 +246,16 @@
     },
     {
       "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
+        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
+        "responseType": "freeText",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
-        }
+        },
+        "options": {}
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",
@@ -575,7 +579,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Маркируем вопрос отправленным. Ответ придёт через ingress.\nconst context = $('Разбираем входные данные').item.json\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\npendingMeta.deliveredAt = new Date().toISOString()\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true, updatedPendingOptionsJson: JSON.stringify(pendingMeta) } }",
+        "jsCode": "// После sendAndWait — ответ пользователя в $input.item.json\nconst context = $('Разбираем входные данные').item.json\nconst resp = $input.item.json\n// sendAndWait freeText возвращает {data: {text: \"...\"}} или {text: \"...\"}\nconst userText = String(resp.text || resp.data?.text || '').trim()\n\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\nif (userText) pendingMeta.answers = [userText]\npendingMeta.deliveredAt = new Date().toISOString()\n\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true, updatedPendingOptionsJson: JSON.stringify(pendingMeta) } }",
         "language": "javaScript"
       }
     },

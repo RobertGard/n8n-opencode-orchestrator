@@ -750,8 +750,8 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "pending_options_json": "={{ $json.pendingOptionsJson && $json.pendingOptionsJson !== '[]' ? ($json.resultType === 'interaction_processed' ? '[]' : $json.pendingOptionsJson) : undefined }}",
-            "pending_question": "={{ $json.resultType === 'interaction_processed' ? '' : ($json.pendingQuestionText || undefined) }}",
+            "pending_options_json": "={{ $json.resultType === 'interaction_processed' ? '' : $json.pendingOptionsJson }}",
+            "pending_question": "={{ $json.resultType === 'interaction_processed' ? '' : $json.pendingQuestionText }}",
             "status": "={{ $json.pendingQuestionText ? 'needs_input' : undefined }}"
           }
         },

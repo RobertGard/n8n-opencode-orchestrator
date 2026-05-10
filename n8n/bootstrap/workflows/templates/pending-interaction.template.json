@@ -191,7 +191,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: [String(($('Отправляем ожидающую интеракцию').first().json.text || '').trim())] } }}",
+        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: $('Готовим ответ пользователю').item.json.answers } }}",
         "options": {
           "response": {
             "response": {
@@ -246,16 +246,12 @@
     },
     {
       "parameters": {
-        "resource": "message",
-        "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
-        "responseType": "freeText",
+        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
-        },
-        "options": {}
+        }
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",
@@ -579,7 +575,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// После sendAndWait получаем ответ и маркируем отправку.\nconst context = $('Разбираем входные данные').item.json\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'interaction_processed', questionSent: true } }",
+        "jsCode": "const context = $('Разбираем входные данные').item.json\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true } }",
         "language": "javaScript"
       }
     },
@@ -837,7 +833,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем на вопрос OpenCode",
+            "node": "Обогащаем: вопрос отправлен",
             "type": "main",
             "index": 0
           }

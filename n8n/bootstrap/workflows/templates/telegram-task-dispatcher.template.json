@@ -870,7 +870,7 @@
             {
               "keyName": "task_key",
               "condition": "eq",
-              "keyValue": "={{ $('Выбираем активную задачу').first().json.task.task_key }}"
+              "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
             }
           ]
         },
@@ -879,7 +879,7 @@
           "value": {
             "status": "={{ $('Завершение задачи').first().json.questionText ? 'needs_input' : $('Завершение задачи').first().json.resultStatus }}",
             "pending_question": "={{ $('Завершение задачи').first().json.questionText || '' }}",
-            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.task.pending_question ? undefined : $('Завершение задачи').first().json.optionsJson }}"
+            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.task.pending_question ? undefined : ($('Завершение задачи').first().json.optionsJson || '[]') }}"
           }
         },
         "options": {

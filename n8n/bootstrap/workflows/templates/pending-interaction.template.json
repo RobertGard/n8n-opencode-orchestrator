@@ -175,7 +175,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + '/session/' + $('Разбираем входные данные').item.json.sessionId + '/prompt_async' }}",
+        "url": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.permissionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionRejectPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Готовим ответ пользователю').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -191,7 +191,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { agent: 'build', parts: [{ type: 'text', text: String(($('Отправляем ожидающую интеракцию').first().json.text || '').trim()) }] } }}",
+        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: $('Готовим ответ пользователю').item.json.answers }) }}",
         "options": {
           "response": {
             "response": {
@@ -579,7 +579,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const context = $('Разбираем входные данные').item.json\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\npendingMeta.deliveredAt = new Date().toISOString()\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true, updatedPendingOptionsJson: JSON.stringify(pendingMeta) } }",
+        "jsCode": "// После sendAndWait: сохраняем ответ пользователя в pending_options_json.answers\n// На следующем тике prepare-answer увидит hasAnswerPayload=true и отправит в OpenCode.\n\nconst context = $('Разбираем входные данные').item.json\nconst waitResponse = $input.item.json\nconst userText = String(waitResponse.text || waitResponse.message?.text || '').trim()\n\n// Обновляем pendingMeta с ответом пользователя\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\npendingMeta.answers = userText ? [userText] : []\npendingMeta.deliveredAt = new Date().toISOString()\n\nreturn {\n  json: {\n    taskKey: context.taskKey,\n    sessionId: context.sessionId,\n    chatId: context.chatId,\n    resultType: 'pending_sent',\n    questionSent: true,\n    updatedPendingOptionsJson: JSON.stringify(pendingMeta),\n  },\n}",
         "language": "javaScript"
       }
     },
@@ -837,7 +837,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем на вопрос OpenCode",
+            "node": "Обогащаем: вопрос отправлен",
             "type": "main",
             "index": 0
           }

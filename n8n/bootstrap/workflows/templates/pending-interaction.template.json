@@ -601,7 +601,8 @@
           "mappingMode": "defineBelow",
           "value": {
             "pending_question": "={{ $json.pendingQuestionText || '' }}",
-            "pending_options_json": "={{ $json.updatedPendingOptionsJson || $json.pendingOptionsJson || '[]' }}"
+            "pending_options_json": "={{ $json.updatedPendingOptionsJson || $json.pendingOptionsJson || '[]' }}",
+            "status": "={{ $json.pendingQuestionText ? 'needs_input' : undefined }}"
           }
         },
         "options": {

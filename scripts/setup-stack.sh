@@ -334,7 +334,24 @@ prompt_for_n8n_api_key_if_needed() {
   fi
 }
 
-run_startup_pipeline() {
+install_cleanup_cron() {
+  local cron_marker="# n8n-opencode-cleanup"
+  local cleanup_script="${ROOT_DIR}/scripts/cleanup-executions.sh"
+  local log_dir="${ROOT_DIR}/logs"
+  local cron_line="0 */6 * * * bash ${cleanup_script} >> ${log_dir}/cleanup.log 2>&1 ${cron_marker}"
+
+  mkdir -p "$log_dir"
+
+  # Check if cron entry already exists
+  if crontab -l 2>/dev/null | grep -qF "${cron_marker}"; then
+    log_ok 'Cron-задача очистки executions уже установлена.'
+    return
+  fi
+
+  # Add cron entry
+  (crontab -l 2>/dev/null; echo "$cron_line") | crontab -
+  log_ok 'Cron-задача очистки executions установлена (каждые 6 часов).'
+}
   local run_cmd=("${compose_cmd[@]}")
 
   step_start 'Запускаю docker compose'
@@ -365,13 +382,17 @@ run_startup_pipeline() {
     die 'Проверка стека завершилась ошибкой.'
   fi
   log_ok 'Проверка стека завершена успешно.'
+
+  step_start 'Устанавливаю автоочистку старых executions'
+  install_cleanup_cron
+
   printf '\nКонтейнеры запущены.\n'
 }
 
 prepare_resume_run() {
   load_env_file
 
-  ACTION_TOTAL_STEPS=4
+  ACTION_TOTAL_STEPS=5
   if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
     ACTION_TOTAL_STEPS=$((ACTION_TOTAL_STEPS + 1))
   fi

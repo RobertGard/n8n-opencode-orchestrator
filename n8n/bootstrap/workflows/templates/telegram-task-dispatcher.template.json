@@ -937,6 +937,38 @@
       ]
     },
     {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Завершение задачи').item.json.streamProgressText }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-progress",
+      "name": "Есть текст прогресса?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3100,
+        540
+      ]
+    },
+    {
       "id": "if-reply-error",
       "name": "Есть ошибка ответа?",
       "type": "n8n-nodes-base.if",
@@ -1292,7 +1324,7 @@
         ],
         [
           {
-            "node": "Отправляем промежуточный прогресс в Telegram",
+            "node": "Есть текст прогресса?",
             "type": "main",
             "index": 0
           }
@@ -1322,6 +1354,24 @@
         [
           {
             "node": "Запуск задачи",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Есть текст прогресса?": {
+      "main": [
+        [
+          {
+            "node": "Отправляем промежуточный прогресс в Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Помечаем прогресс отправленным",
             "type": "main",
             "index": 0
           }

@@ -348,8 +348,13 @@ install_cleanup_cron() {
     return
   fi
 
-  # Add cron entry
-  (crontab -l 2>/dev/null; echo "$cron_line") | crontab -
+  # Add cron entry (crontab -l may fail if no crontab exists)
+  {
+    crontab -l 2>/dev/null || true
+    echo "$cron_line"
+  } | crontab -
+
+  log_info "Добавлена cron-запись: ${cron_line}"
   log_ok 'Cron-задача очистки executions установлена (каждый час).'
 }
 

@@ -870,16 +870,16 @@
             {
               "keyName": "task_key",
               "condition": "eq",
-              "keyValue": "={{ $('Завершение задачи').item.json.taskKey }}"
+              "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "status": "={{ $('Завершение задачи').item.json.questionText ? 'needs_input' : $('Завершение задачи').item.json.resultStatus }}",
-            "pending_question": "={{ $('Завершение задачи').item.json.questionText || '' }}",
-            "pending_options_json": "={{ $('Завершение задачи').item.json.optionsJson || '[]' }}"
+            "status": "={{ $('Завершение задачи').first().json.questionText ? 'needs_input' : $('Завершение задачи').first().json.resultStatus }}",
+            "pending_question": "={{ $('Завершение задачи').first().json.questionText || '' }}",
+            "pending_options_json": "={{ $('Завершение задачи').first().json.optionsJson || '[]' }}"
           }
         },
         "options": {

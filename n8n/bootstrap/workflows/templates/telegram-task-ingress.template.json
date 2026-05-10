@@ -234,7 +234,7 @@
             "parent_task_key": "={{ $('Готовим новую задачу').first().json.parentTaskId }}",
             "parent_match_text": "={{ $('Готовим новую задачу').first().json.parentMatchText }}",
             "context_json": "={{ $('Готовим новую задачу').first().json.contextJson }}",
-            "status": "queued",
+            "status": "={{ 'queued' }}",
             "queued_at": "={{ $('Готовим новую задачу').first().json.queuedAt }}"
           },
           "matchingColumns": [],

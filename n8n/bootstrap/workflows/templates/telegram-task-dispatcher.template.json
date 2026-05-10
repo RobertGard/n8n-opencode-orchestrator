@@ -731,46 +731,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
-        "operation": "update",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "task_key",
-              "condition": "eq",
-              "keyValue": "={{ $json.taskKey }}"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "pending_options_json": "={{ $json.resultType === 'interaction_processed' ? '' : $json.pendingOptionsJson }}",
-            "pending_question": "={{ $json.resultType === 'interaction_processed' ? '' : $json.pendingQuestionText }}",
-            "status": "={{ $json.pendingQuestionText ? 'needs_input' : undefined }}"
-          }
-        },
-        "options": {
-          "dryRun": false
-        }
-      },
-      "id": "save-pending-immediate",
-      "name": "Сохраняем pending после интеракции",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        2140,
-        620
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "workflowId": {
           "__rl": true,
           "value": "900015",
@@ -1227,7 +1187,7 @@
       "main": [
         [
           {
-            "node": "Сохраняем pending после интеракции",
+            "node": "Есть ошибка ответа?",
             "type": "main",
             "index": 0
           }
@@ -1359,17 +1319,6 @@
         [
           {
             "node": "Помечаем прогресс отправленным",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Сохраняем pending после интеракции": {
-      "main": [
-        [
-          {
-            "node": "Есть ошибка ответа?",
             "type": "main",
             "index": 0
           }

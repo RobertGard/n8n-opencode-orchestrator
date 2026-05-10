@@ -897,46 +897,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
-        "operation": "update",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "session_id",
-              "condition": "eq",
-              "keyValue": "={{ $json.sessionId }}"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "status": "={{ $json.questionText ? 'needs_input' : undefined }}",
-            "pending_question": "={{ $json.questionText || '' }}",
-            "pending_options_json": "={{ $json.optionsJson && $json.optionsJson !== '[]' ? $json.optionsJson : undefined }}"
-          }
-        },
-        "options": {
-          "dryRun": false
-        }
-      },
-      "id": "save-question-if-any",
-      "name": "Сохраняем вопрос OpenCode если есть",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        2620,
-        520
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -1277,7 +1237,7 @@
       "main": [
         [
           {
-            "node": "Сохраняем вопрос OpenCode если есть",
+            "node": "Задача завершена?",
             "type": "main",
             "index": 0
           }
@@ -1398,17 +1358,6 @@
         [
           {
             "node": "Помечаем прогресс отправленным",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Сохраняем вопрос OpenCode если есть": {
-      "main": [
-        [
-          {
-            "node": "Задача завершена?",
             "type": "main",
             "index": 0
           }

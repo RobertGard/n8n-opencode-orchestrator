@@ -191,7 +191,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $('Отправляем ожидающую интеракцию').item.json.interactionType === 'permission' ? { reply: $('Отправляем ожидающую интеракцию').item.json.permissionReply, ...( $('Отправляем ожидающую интеракцию').item.json.permissionMessage ? { message: $('Отправляем ожидающую интеракцию').item.json.permissionMessage } : {} ) } : $('Отправляем ожидающую интеракцию').item.json.requestAction === 'reject' ? {} : { answers: [$('Отправляем ожидающую интеракцию').item.json.text || $('Отправляем ожидающую интеракцию').item.json.message?.text || ''] } }}",
+        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: [String(($('Отправляем ожидающую интеракцию').first().json.text || '').trim())] } }}",
         "options": {
           "response": {
             "response": {
@@ -246,13 +246,17 @@
     },
     {
       "parameters": {
+        "resource": "message",
+        "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
+        "messageType": "freeText",
+        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML",
           "reply_markup": "={{ JSON.parse($('Готовим ответ пользователю').item.json.replyMarkup || '{}') }}"
-        }
+        },
+        "options": {}
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",
@@ -576,7 +580,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Маркируем: вопрос отправлен пользователю в Telegram.\nconst context = $('Разбираем входные данные').item.json\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true } }",
+        "jsCode": "// После sendAndWait получаем ответ и отправляем его в OpenCode.\nconst context = $('Разбираем входные данные').item.json\nconst reply = $input.item.json\nconst userText = String(reply.text || '').trim()\n\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'interaction_processed', hasInteraction: true, questionSent: true } }",
         "language": "javaScript"
       }
     },
@@ -834,7 +838,7 @@
       "main": [
         [
           {
-            "node": "Обогащаем: вопрос отправлен",
+            "node": "Отвечаем на вопрос OpenCode",
             "type": "main",
             "index": 0
           }

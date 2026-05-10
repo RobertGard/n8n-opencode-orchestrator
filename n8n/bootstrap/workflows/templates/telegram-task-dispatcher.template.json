@@ -982,8 +982,8 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "pending_question": "={{ $('Обработка интеракций').first().json.pendingQuestionText || '' }}",
-            "pending_options_json": "={{ $('Обработка интеракций').first().json.pendingOptionsJson || '[]' }}"
+            "pending_question": "={{ $json.pendingQuestionText || '' }}",
+            "pending_options_json": "={{ $json.pendingOptionsJson || '[]' }}"
           }
         },
         "options": {

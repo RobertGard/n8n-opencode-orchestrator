@@ -10,10 +10,10 @@ log_ok()    { printf '[ OK ] %s\n' "$1"; }
 log_warn()  { printf '[WARN] %s\n' "$1" >&2; }
 die()       { printf '[ERR ] %s\n' "$1" >&2; exit 1; }
 
-# Retention: delete executions older than this many hours (default 24)
-RETENTION_HOURS="${EXECUTION_RETENTION_HOURS:-24}"
-# Max executions to delete per run (safety limit)
-MAX_DELETE_PER_RUN="${EXECUTION_MAX_DELETE_PER_RUN:-1000}"
+# Retention: delete executions older than this many hours (default 2)
+RETENTION_HOURS="${N8N_EXECUTION_RETENTION_HOURS:-2}"
+# Max executions to delete per run (safety limit, default 100)
+MAX_DELETE_PER_RUN="${N8N_EXECUTION_MAX_DELETE_PER_RUN:-100}"
 
 if [ ! -f "$ENV_FILE" ]; then
   die ".env не найден: ${ENV_FILE}"

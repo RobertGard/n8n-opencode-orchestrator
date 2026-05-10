@@ -870,7 +870,7 @@
             {
               "keyName": "task_key",
               "condition": "eq",
-              "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
+              "keyValue": "={{ $('Выбираем активную задачу').first().json.task.task_key }}"
             }
           ]
         },
@@ -879,7 +879,7 @@
           "value": {
             "status": "={{ $('Завершение задачи').first().json.questionText ? 'needs_input' : $('Завершение задачи').first().json.resultStatus }}",
             "pending_question": "={{ $('Завершение задачи').first().json.questionText || '' }}",
-            "pending_options_json": "={{ $('Завершение задачи').first().json.optionsJson || '[]' }}"
+            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.task.status !== 'needs_input' ? $('Завершение задачи').first().json.optionsJson : undefined }}"
           }
         },
         "options": {
@@ -982,8 +982,8 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "pending_question": "={{ $('Обработка интеракций').item.json.pendingQuestionText || '' }}",
-            "pending_options_json": "={{ $('Обработка интеракций').item.json.pendingOptionsJson || '[]' }}"
+            "pending_question": "={{ $('Обработка интеракций').first().json.pendingQuestionText || '' }}",
+            "pending_options_json": "={{ $('Обработка интеракций').first().json.pendingOptionsJson || '[]' }}"
           }
         },
         "options": {

@@ -128,7 +128,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Разбираем pendingOptionsJson из таблицы задач.\n// Определяем: есть ли готовый ответ для отправки в OpenCode API (hasAnswerPayload)\n//              или вопрос ещё нужно доставить пользователю (shouldSendQuestion).\n\nconst input = $('Разбираем входные данные').item.json\nlet pendingMeta = {}\ntry {\n  pendingMeta = JSON.parse(String(input.pendingOptionsJson || '{}'))\n} catch {}\n\nconst requestId = String(pendingMeta.requestId || '').trim()\nconst deliveredAt = String(pendingMeta.deliveredAt || '').trim()\nconst interactionType = Array.isArray(pendingMeta.questions)\n  ? 'question'\n  : String(pendingMeta.type || '').trim()\n\nconst answers = Array.isArray(pendingMeta.answers) ? pendingMeta.answers : []\nconst rejectRequested = pendingMeta.rejectRequested === true\nconst permissionReply = String(pendingMeta.reply || '').trim()\nconst permissionMessage = String(pendingMeta.message || '').trim()\n\n// Готов ли ответ для отправки в OpenCode?\n//   question:   есть requestId И (отклонён ИЛИ есть выбранные варианты)\n//   permission: есть requestId И выбран тип ответа (once/always/reject)\n//   иначе:      false (неизвестный тип интеракции — не ломаемся)\nconst hasAnswerPayload = !!(\n  interactionType === 'question'\n    ? Boolean(requestId) && (rejectRequested || answers.length > 0)\n    : interactionType === 'permission'\n      ? Boolean(requestId) && Boolean(permissionReply)\n      : false)\n\n// Нужно ли отправить вопрос пользователю? (ещё не доставлен и нет готового ответа)\nconst shouldSendQuestion = !!(\n  Boolean(requestId) &&\n  !hasAnswerPayload &&\n  !deliveredAt &&\n  String(input.pendingQuestion || '').trim())\n\n// Строим reply keyboard\nlet formFieldsJson = '[]'\nif (interactionType === 'question') {\n  const qs = Array.isArray(pendingMeta.questions) ? pendingMeta.questions : []\n  const allLabels = qs.flatMap((q) => Array.isArray(q.options) ? q.options.map((o) => String(o.label || '').trim()).filter(Boolean) : [])\n  formFieldsJson = JSON.stringify(\n    allLabels.map((label, index) => ({\n      fieldLabel: String(label),\n      fieldType: 'text',\n      placeholder: 'Нажмите или введите значение',\n    }))\n  )\n}\n\nreturn {\n  json: {\n    taskKey: input.taskKey,\n    sessionId: input.sessionId,\n    chatId: input.chatId,\n    hasAnswerPayload,\n    shouldSendQuestion,\n    interactionType,\n    requestId,\n    requestAction: rejectRequested ? 'reject' : 'reply',\n    answers,\n    permissionReply,\n    permissionMessage,\n    formFieldsJson,\n  },\n}"
+        "jsCode": "// Разбираем pendingOptionsJson из таблицы задач.\n// Определяем: есть ли готовый ответ для отправки в OpenCode API (hasAnswerPayload)\n//              или вопрос ещё нужно доставить пользователю (shouldSendQuestion).\n\nconst input = $('Разбираем входные данные').item.json\nlet pendingMeta = {}\ntry {\n  pendingMeta = JSON.parse(String(input.pendingOptionsJson || '{}'))\n} catch {}\n\nconst requestId = String(pendingMeta.requestId || '').trim()\nconst deliveredAt = String(pendingMeta.deliveredAt || '').trim()\nconst interactionType = Array.isArray(pendingMeta.questions)\n  ? 'question'\n  : String(pendingMeta.type || '').trim()\n\nconst answers = Array.isArray(pendingMeta.answers) ? pendingMeta.answers : []\nconst rejectRequested = pendingMeta.rejectRequested === true\nconst permissionReply = String(pendingMeta.reply || '').trim()\nconst permissionMessage = String(pendingMeta.message || '').trim()\n\n// Готов ли ответ для отправки в OpenCode?\n//   question:   есть requestId И (отклонён ИЛИ есть выбранные варианты)\n//   permission: есть requestId И выбран тип ответа (once/always/reject)\n//   иначе:      false (неизвестный тип интеракции — не ломаемся)\nconst hasAnswerPayload = !!(\n  interactionType === 'question'\n    ? Boolean(requestId) && (rejectRequested || answers.length > 0)\n    : interactionType === 'permission'\n      ? Boolean(requestId) && Boolean(permissionReply)\n      : false)\n\n// Нужно ли отправить вопрос пользователю? (ещё не доставлен и нет готового ответа)\nconst shouldSendQuestion = !!(\n  Boolean(requestId) &&\n  !hasAnswerPayload &&\n  !deliveredAt &&\n  String(input.pendingQuestion || '').trim())\n\n// Строим reply keyboard\nlet formFieldsJson = '[]'\nif (interactionType === 'question') {\n  const qs = Array.isArray(pendingMeta.questions) ? pendingMeta.questions : []\n  const allLabels = qs.flatMap((q) => Array.isArray(q.options) ? q.options.map((o) => String(o.label || '').trim()).filter(Boolean) : [])\n  formFieldsJson = JSON.stringify(\n    allLabels.map((label, index) => ({\n      fieldLabel: String(label),\n      fieldType: 'text',\n      placeholder: 'Нажмите или введите значение',\n    }))\n  )\n}\n\nreturn {\n  json: {\n    taskKey: input.taskKey,\n    sessionId: input.sessionId,\n    chatId: input.chatId,\n    hasAnswerPayload,\n    shouldSendQuestion,\n    interactionType,\n    requestId,\n    requestAction: rejectRequested ? 'reject' : 'reply',\n    answers,\n    permissionReply,\n    permissionMessage,\n    formFieldsJson,\n    // Для send-answer: если requestId call_ → prompt_async, иначе questionReply\n    replyUrl: requestId && !requestId.startsWith('call_')\n      ? (interactionType === 'permission'\n          ? input.workerBaseUrl + input.permissionReplyPath.replace(':requestID', requestId)\n          : requestAction === 'reject'\n            ? input.workerBaseUrl + input.questionRejectPath.replace(':requestID', requestId)\n            : input.workerBaseUrl + input.questionReplyPath.replace(':requestID', requestId))\n      : (input.workerBaseUrl + '/session/' + input.sessionId + '/prompt_async'),\n    replyBody: requestId && !requestId.startsWith('call_')\n      ? (interactionType === 'permission'\n          ? { reply: permissionReply, ...(permissionMessage ? { message: permissionMessage } : {}) }\n          : requestAction === 'reject' ? {} : { answers })\n      : { agent: 'build', parts: [{ type: 'text', text: String(answers[0] || '').trim() }] },\n  },\n}"
       },
       "id": "prepare-answer",
       "name": "Готовим ответ пользователю",
@@ -175,7 +175,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ String($('Готовим ответ пользователю').item.json.requestId || '').startsWith('call_') ? $('Разбираем входные данные').item.json.workerBaseUrl + '/session/' + $('Разбираем входные данные').item.json.sessionId + '/prompt_async' : ($('Готовим ответ пользователю').item.json.interactionType === 'permission' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.permissionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionRejectPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId))) }}",
+        "url": "={{ $('Готовим ответ пользователю').item.json.replyUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -191,7 +191,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ String($('Готовим ответ пользователю').item.json.requestId || '').startsWith('call_') ? { agent: 'build', parts: [{ type: 'text', text: String(($('Отправляем ожидающую интеракцию').first().json.text || '').trim()) }] } : ($('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: $('Готовим ответ пользователю').item.json.answers }) }}",
+        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.replyBody }}",
         "options": {
           "response": {
             "response": {
@@ -246,16 +246,12 @@
     },
     {
       "parameters": {
-        "resource": "message",
-        "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
-        "responseType": "freeText",
+        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
-        },
-        "options": {}
+        }
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",
@@ -837,7 +833,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем на вопрос OpenCode",
+            "node": "Обогащаем: вопрос отправлен",
             "type": "main",
             "index": 0
           }

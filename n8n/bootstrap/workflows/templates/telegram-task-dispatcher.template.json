@@ -7,7 +7,7 @@
           "interval": [
             {
               "field": "seconds",
-              "secondsInterval": 5
+              "secondsInterval": 30
             }
           ]
         }

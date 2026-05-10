@@ -10,10 +10,10 @@ log_ok()    { printf '[ OK ] %s\n' "$1"; }
 log_warn()  { printf '[WARN] %s\n' "$1" >&2; }
 die()       { printf '[ERR ] %s\n' "$1" >&2; exit 1; }
 
-# Retention: delete executions older than this many hours (default 2)
-RETENTION_HOURS="${N8N_EXECUTION_RETENTION_HOURS:-2}"
-# Max executions to delete per run (safety limit, default 100)
-MAX_DELETE_PER_RUN="${N8N_EXECUTION_MAX_DELETE_PER_RUN:-100}"
+# Retention: delete executions older than this many hours (default 1)
+RETENTION_HOURS="${N8N_EXECUTION_RETENTION_HOURS:-1}"
+# Max executions to delete per run (safety limit, default 500)
+MAX_DELETE_PER_RUN="${N8N_EXECUTION_MAX_DELETE_PER_RUN:-500}"
 
 if [ ! -f "$ENV_FILE" ]; then
   die ".env не найден: ${ENV_FILE}"
@@ -45,6 +45,6 @@ while IFS= read -r exec_id; do
   fi
   curl -fsS -X DELETE -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/executions/${exec_id}" >/dev/null 2>&1 || true
   deleted=$((deleted + 1))
-done < <(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/executions?limit=250" 2>/dev/null | jq -r --arg cutoff "$CUTOFF_DATE" '.data[]? | select(.stoppedAt != null and .stoppedAt < $cutoff) | .id')
+done < <(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/executions?limit=500" 2>/dev/null | jq -r --arg cutoff "$CUTOFF_DATE" '.data[]? | select(.stoppedAt != null and .stoppedAt < $cutoff) | .id')
 
 log_ok "Удалено execution: ${deleted}"

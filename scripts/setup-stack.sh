@@ -597,8 +597,8 @@ recover_existing_configuration() {
   ensure_env_default N8N_WORKER_CONCURRENCY 2
   ensure_env_default N8N_EXECUTIONS_TIMEOUT 604800
   ensure_env_default N8N_EXECUTIONS_TIMEOUT_MAX 604800
-  ensure_env_default N8N_EXECUTION_RETENTION_HOURS 2
-  ensure_env_default N8N_EXECUTION_MAX_DELETE_PER_RUN 100
+  ensure_env_default N8N_EXECUTION_RETENTION_HOURS 1
+  ensure_env_default N8N_EXECUTION_MAX_DELETE_PER_RUN 500
   ensure_env_default POSTGRES_DB n8n
   ensure_env_default POSTGRES_USER n8n
   ensure_env_default N8N_BASIC_AUTH_ACTIVE true
@@ -1276,8 +1276,8 @@ step_start 'Записываю .env'
   write_env_line N8N_WORKER_CONCURRENCY "$N8N_WORKER_CONCURRENCY"
   write_env_line N8N_EXECUTIONS_TIMEOUT "$N8N_EXECUTIONS_TIMEOUT"
   write_env_line N8N_EXECUTIONS_TIMEOUT_MAX "$N8N_EXECUTIONS_TIMEOUT_MAX"
-  write_env_line N8N_EXECUTION_RETENTION_HOURS '2'
-  write_env_line N8N_EXECUTION_MAX_DELETE_PER_RUN '100'
+  write_env_line N8N_EXECUTION_RETENTION_HOURS '1'
+  write_env_line N8N_EXECUTION_MAX_DELETE_PER_RUN '500'
   printf '\n'
   write_env_line POSTGRES_DB 'n8n'
   write_env_line POSTGRES_USER 'n8n'

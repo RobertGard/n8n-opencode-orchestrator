@@ -30,10 +30,6 @@
               "type": "string"
             },
             {
-              "name": "claimToken",
-              "type": "string"
-            },
-            {
               "name": "sessionId",
               "type": "string"
             },
@@ -69,7 +65,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Нормализуем входные данные от диспетчера и собираем тело запроса к OpenCode API.\n// Добавляем модель, если передана (формат provider/model → { providerID, modelID }).\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nconst requestBody = {\n  prompt: String(input.promptText || '').trim(),\n  agent: String(input.opencodeAgent || '').trim(),\n  outputFormat: 'json',\n  parts: [],\n}\nif (input.opencodeModelProviderID) {\n  requestBody.model = {\n    id: '/',\n    modelID: String(input.opencodeModelModelID || '').trim(),\n    providerID: String(input.opencodeModelProviderID || '').trim(),\n  }\n}\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    claimToken: String(input.claimToken || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    launchError: String(input.launchError || '').trim(),\n    promptAsyncPath: String(input.promptAsyncPath || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    requestBody: JSON.stringify(requestBody),\n  },\n}"
+        "jsCode": "// Нормализуем входные данные от диспетчера и собираем тело запроса к OpenCode API.\n// Добавляем модель, если передана (формат provider/model → { providerID, modelID }).\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nconst requestBody = {\n  prompt: String(input.promptText || '').trim(),\n  agent: String(input.opencodeAgent || '').trim(),\n  outputFormat: 'json',\n  parts: [],\n}\nif (input.opencodeModelProviderID) {\n  requestBody.model = {\n    id: '/',\n    modelID: String(input.opencodeModelModelID || '').trim(),\n    providerID: String(input.opencodeModelProviderID || '').trim(),\n  }\n}\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    launchError: String(input.launchError || '').trim(),\n    promptAsyncPath: String(input.promptAsyncPath || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    requestBody: JSON.stringify(requestBody),\n  },\n}"
       },
       "id": "parse-input",
       "name": "Разбираем входные данные",
@@ -107,7 +103,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "status": "running",
-            "session_id": "={{ $('Разбираем входные данные').item.json.claimToken }}",
+            "session_id": "={{ $('Разбираем входные данные').item.json.sessionId }}",
             "pending_question": "",
             "pending_options_json": "[]"
           }
@@ -122,45 +118,6 @@
       "typeVersion": 1.1,
       "position": [
         700,
-        320
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "resource": "row",
-        "operation": "rowExists",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "task_key",
-              "condition": "eq",
-              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
-            },
-            {
-              "keyName": "status",
-              "condition": "eq",
-              "keyValue": "running"
-            },
-            {
-              "keyName": "session_id",
-              "condition": "eq",
-              "keyValue": "={{ $('Разбираем входные данные').item.json.claimToken }}"
-            }
-          ]
-        }
-      },
-      "id": "verify-claim",
-      "name": "Проверяем: задача захвачена",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        940,
         320
       ],
       "alwaysOutputData": true
@@ -238,52 +195,9 @@
     },
     {
       "parameters": {
-        "resource": "row",
-        "operation": "update",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "task_key",
-              "condition": "eq",
-              "keyValue": "={{ $('Разбираем входные данные').item.json.taskKey }}"
-            },
-            {
-              "keyName": "status",
-              "condition": "eq",
-              "keyValue": "running"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "session_id": "={{ $('Разбираем входные данные').item.json.sessionId }}"
-          }
-        },
-        "options": {
-          "dryRun": false
-        }
-      },
-      "id": "save-session-id",
-      "name": "Сохраняем идентификатор сессии",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        1660,
-        320
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Собираем итоговый результат запуска задачи в OpenCode.\n// Успех: launchError пустой, сессия запущена.\n// Ошибка сессии: launchError = текст ошибки от менеджера сессий.\n// Ошибка захвата не проверяется — paired-item баг в DataTable фильтре даёт ложный rowExists=false;\n// Ошибка HTTP: launchError = текст ошибки из ответа API prompt_async.\n// Ошибка сохранения: save-session-id обновил 0 строк (claimToken остался в БД).\n// Очистка от HTML-тегов: Telegram-нода по умолчанию шлёт parse_mode=HTML.\n// ВНИМАНИЕ: $('node').all() тоже кидает ошибку для невыполненных нод (n8n 2.x).\n//          Поэтому ВСЕ обращения к другим нодам обёрнуты в try-catch.\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst input = $('Разбираем входные данные').item.json\nlet launchError = stripHtml(input.launchError || '')\n\n\n// Проверка ошибки HTTP-вызова prompt_async (если нода выполнялась)\ntry {\n  const promptResults = $('Запускаем задачу в OpenCode').all()\n  if (promptResults.length > 0) {\n    const promptError = promptResults[0].json.error\n    if (promptError) launchError = stripHtml(String(promptError.message || promptError))\n  }\n} catch (_) {}\n\n// save-session-id НЕ проверяем по count — DataTable 2.x может вернуть 0 даже при успехе.\n\nreturn {\n  json: {\n    sessionId: input.sessionId,\n    launchError,\n    taskKey: input.taskKey,\n  },\n}"
+        "jsCode": "// Собираем итоговый результат запуска задачи в OpenCode.\n// Успех: launchError пустой, сессия запущена.\n// Ошибка сессии: launchError = текст ошибки от менеджера сессий.\n// Ошибка HTTP: launchError = текст ошибки из ответа API prompt_async.\n// Очистка от HTML-тегов: Telegram-нода по умолчанию шлёт parse_mode=HTML.\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst input = $('Разбираем входные данные').item.json\nlet launchError = stripHtml(input.launchError || '')\n\n// Проверка ошибки HTTP-вызова prompt_async (если нода выполнялась)\ntry {\n  const promptResults = $('Запускаем задачу в OpenCode').all()\n  if (promptResults.length > 0) {\n    const promptError = promptResults[0].json.error\n    if (promptError) launchError = stripHtml(String(promptError.message || promptError))\n  }\n} catch (_) {}\n\nreturn {\n  json: {\n    sessionId: input.sessionId,\n    launchError,\n    taskKey: input.taskKey,\n  },\n}"
       },
       "id": "normalize-result",
       "name": "Нормализуем результат",
@@ -322,17 +236,6 @@
       "main": [
         [
           {
-            "node": "Проверяем: задача захвачена",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Проверяем: задача захвачена": {
-      "main": [
-        [
-          {
             "node": "Сессия готова?",
             "type": "main",
             "index": 0
@@ -359,17 +262,6 @@
       ]
     },
     "Запускаем задачу в OpenCode": {
-      "main": [
-        [
-          {
-            "node": "Сохраняем идентификатор сессии",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Сохраняем идентификатор сессии": {
       "main": [
         [
           {

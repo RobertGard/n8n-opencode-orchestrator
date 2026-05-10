@@ -118,7 +118,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Берём пакет данных текущего worker-а, который уже содержит только queued задачи\n// и количество активных задач этого worker-а.\nconst workerPackage = $('Готовим пакеты обработчиков').item.json\nconst queuedTasks = Array.isArray(workerPackage.queuedTasks) ? workerPackage.queuedTasks : []\nconst workerTasks = Array.isArray(workerPackage.workerTasks) ? workerPackage.workerTasks : []\n\n// Приоритет всегда у зависимых задач.\n// Если зависимых задач нет, берём самую раннюю обычную queued-задачу.\nconst dependentTasks = queuedTasks.filter((task) => String(task.parent_task_key || '').trim())\nconst regularTasks = queuedTasks.filter((task) => !String(task.parent_task_key || '').trim())\nconst selectedTask = dependentTasks[0] || regularTasks[0] || null\n\nlet context = {}\ntry {\n  context = JSON.parse(String(selectedTask?.context_json || '{}'))\n} catch {\n  context = {}\n}\n\nconst chatId = String(selectedTask?.chat_id || '').trim()\nconst sessionHistory = workerTasks\n  .filter((task) => String(task.chat_id || '').trim() === chatId)\n  .filter((task) => String(task.session_id || '').trim())\n  .filter((task) => !String(task.session_id || '').startsWith('claim-'))\n  .filter((task) => ['running', 'needs_input'].includes(String(task.status || '').trim()))\n\nconst latestSessionTask = sessionHistory[sessionHistory.length - 1] || null\nconst latestSessionId = String(latestSessionTask?.session_id || '').trim()\nconst newSessionRequested = Boolean(\n  context.newSessionRequested ||\n  context.flags?.['new-session'] ||\n  context.flags?.['new_session'] ||\n  context.flags?.['fresh-session'] ||\n  context.flags?.['fresh_session']\n)\nconst claimToken = `claim-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`\n\nreturn {\n  json: {\n    task: selectedTask,\n    parentTaskKey: String(selectedTask?.parent_task_key || '').trim(),\n    parentMatchText: String(selectedTask?.parent_match_text || '').trim(),\n    promptText: String(selectedTask?.prompt || '').trim(),\n    latestSessionId,\n    createNewSession: newSessionRequested || !latestSessionId,\n    claimToken,\n  },\n}"
+        "jsCode": "// Берём пакет данных текущего worker-а, который уже содержит только queued задачи\n// и количество активных задач этого worker-а.\nconst workerPackage = $('Готовим пакеты обработчиков').item.json\nconst queuedTasks = Array.isArray(workerPackage.queuedTasks) ? workerPackage.queuedTasks : []\nconst workerTasks = Array.isArray(workerPackage.workerTasks) ? workerPackage.workerTasks : []\n\n// Приоритет всегда у зависимых задач.\n// Если зависимых задач нет, берём самую раннюю обычную queued-задачу.\nconst dependentTasks = queuedTasks.filter((task) => String(task.parent_task_key || '').trim())\nconst regularTasks = queuedTasks.filter((task) => !String(task.parent_task_key || '').trim())\nconst selectedTask = dependentTasks[0] || regularTasks[0] || null\n\nlet context = {}\ntry {\n  context = JSON.parse(String(selectedTask?.context_json || '{}'))\n} catch {\n  context = {}\n}\n\nconst chatId = String(selectedTask?.chat_id || '').trim()\nconst sessionHistory = workerTasks\n  .filter((task) => String(task.chat_id || '').trim() === chatId)\n  .filter((task) => String(task.session_id || '').trim())\n  .filter((task) => ['running', 'needs_input'].includes(String(task.status || '').trim()))\n\nconst latestSessionTask = sessionHistory[sessionHistory.length - 1] || null\nconst latestSessionId = String(latestSessionTask?.session_id || '').trim()\nconst newSessionRequested = Boolean(\n  context.newSessionRequested ||\n  context.flags?.['new-session'] ||\n  context.flags?.['new_session'] ||\n  context.flags?.['fresh-session'] ||\n  context.flags?.['fresh_session']\n)\n\nreturn {\n  json: {\n    task: selectedTask,\n    parentTaskKey: String(selectedTask?.parent_task_key || '').trim(),\n    parentMatchText: String(selectedTask?.parent_match_text || '').trim(),\n    promptText: String(selectedTask?.prompt || '').trim(),\n    latestSessionId,\n    createNewSession: newSessionRequested || !latestSessionId,\n  },\n}"
       },
       "id": "pick-task",
       "name": "Выбираем кандидатную задачу",
@@ -473,52 +473,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
-        "operation": "update",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "task_key",
-              "condition": "eq",
-              "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}"
-            },
-            {
-              "keyName": "status",
-              "condition": "eq",
-              "keyValue": "queued"
-            }
-          ]
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "status": "failed",
-            "result_text": "={{ `Ошибка запуска: ${$('Запуск задачи').item.json.launchError || 'неизвестная ошибка'}` }}",
-            "pending_question": "",
-            "pending_options_json": "[]"
-          }
-        },
-        "options": {
-          "dryRun": false
-        }
-      },
-      "id": "mark-launch-failed",
-      "name": "Помечаем задачу проваленной при ошибке запуска",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5260,
-        560
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
         "text": "={{ `Ответ на вопрос по задаче ${$('Выбираем активную задачу').first().json.task.task_key} не отправлен: ${String($('Обработка интеракций').item.json.error || 'OpenCode не вернул корректный ответ.')}` }}",
         "additionalFields": {
@@ -714,7 +668,6 @@
             "authorizationHeader": "={{ $('Готовим пакеты обработчиков').item.json.authorizationHeader }}",
             "taskKey": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}",
             "taskStatus": "={{ $('Выбираем кандидатную задачу').item.json.task.status }}",
-            "claimToken": "={{ $('Выбираем кандидатную задачу').item.json.claimToken }}",
             "promptText": "={{ $('Выбираем кандидатную задачу').item.json.promptText }}",
             "sessionId": "={{ $('Фиксируем результат менеджера сессий').item.json.sessionId }}",
             "launchError": "={{ $('Фиксируем результат менеджера сессий').item.json.launchError }}",
@@ -1270,13 +1223,7 @@
     },
     "Сообщаем: ошибка асинхронного запуска": {
       "main": [
-        [
-          {
-            "node": "Помечаем задачу проваленной при ошибке запуска",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Сообщаем: ошибка запуска": {

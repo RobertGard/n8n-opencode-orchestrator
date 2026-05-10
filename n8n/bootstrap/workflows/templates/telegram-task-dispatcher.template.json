@@ -879,7 +879,7 @@
           "value": {
             "status": "={{ $json.questionText ? 'needs_input' : $json.resultStatus }}",
             "pending_question": "={{ $json.questionText || '' }}",
-            "pending_options_json": "={{ $json.optionsJson || '[]' }}"
+            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.task.pending_options_json ? undefined : ($json.optionsJson || '[]') }}"
           }
         },
         "options": {
@@ -1266,7 +1266,7 @@
       "main": [
         [
           {
-            "node": "Сохраняем pending данные в БД",
+            "node": "Есть ошибка ответа?",
             "type": "main",
             "index": 0
           }

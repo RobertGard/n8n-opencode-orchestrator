@@ -175,7 +175,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.permissionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionRejectPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) : $('Готовим ответ пользователю').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.questionReplyPath.replace(':requestID', $('Готовим ответ пользователю').item.json.requestId) }}",
+        "url": "={{ $('Готовим ответ пользователю').item.json.replyUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -191,7 +191,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.interactionType === 'permission' ? { reply: $('Готовим ответ пользователю').item.json.permissionReply, ...( $('Готовим ответ пользователю').item.json.permissionMessage ? { message: $('Готовим ответ пользователю').item.json.permissionMessage } : {} ) } : $('Готовим ответ пользователю').item.json.requestAction === 'reject' ? {} : { answers: $('Готовим ответ пользователю').item.json.answers }) }}",
+        "jsonBody": "={{ $('Готовим ответ пользователю').item.json.replyBody }}",
         "options": {
           "response": {
             "response": {

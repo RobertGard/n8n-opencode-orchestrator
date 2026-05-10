@@ -246,21 +246,18 @@
     },
     {
       "parameters": {
-        "resource": "message",
-        "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "messageType": "freeText",
-        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
+        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
         },
-        "options": {}
+        "operation": "sendMessage"
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",
       "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.3,
+      "typeVersion": 1.2,
       "position": [
         1420,
         200
@@ -557,7 +554,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Определяем итоговый resultType по приоритету:\n//   abort > pending_sent > interaction_processed > interaction_found > no_action\n// taskKey/sessionId/chatId берём из data, с fallback на контекст вызова —\n// иначе ветка «нет вопроса» потеряет все три поля и сломает paired-item цепочку диспетчера.\n\nconst data = $input.item.json\nconst context = $('Разбираем входные данные').item.json\n\nconst resultType = data.taskCancelled ? 'abort'\n  : data.questionSent ? 'pending_sent'\n  : data.hasAnswerPayload ? 'interaction_processed'\n  : data.hasInteraction ? 'interaction_found'\n  : 'no_action'\n\nreturn {\n  json: {\n    taskKey: data.taskKey || context.taskKey || '',\n    sessionId: data.sessionId || context.sessionId || '',\n    chatId: data.chatId || context.chatId || '',\n    resultType,\n    interactionType: data.interactionType || '',\n    hasInteraction: data.hasInteraction || false,\n    questionSent: data.questionSent || false,\n    taskCancelled: data.taskCancelled || false,\n    error: data.replyError || data.error || '',\n    pendingQuestionText: data.pendingQuestionText || '',\n    pendingOptionsJson: data.pendingOptionsJson || '',\n    userAnswer: data.userAnswer || '',\n  },\n}"
+        "jsCode": "// Определяем итоговый resultType по приоритету:\n//   abort > pending_sent > interaction_processed > interaction_found > no_action\n// taskKey/sessionId/chatId берём из data, с fallback на контекст вызова —\n// иначе ветка «нет вопроса» потеряет все три поля и сломает paired-item цепочку диспетчера.\n\nconst data = $input.item.json\nconst context = $('Разбираем входные данные').item.json\n\nconst resultType = data.taskCancelled ? 'abort'\n  : data.questionSent ? 'pending_sent'\n  : data.hasAnswerPayload ? 'interaction_processed'\n  : data.hasInteraction ? 'interaction_found'\n  : 'no_action'\n\nreturn {\n  json: {\n    taskKey: data.taskKey || context.taskKey || '',\n    sessionId: data.sessionId || context.sessionId || '',\n    chatId: data.chatId || context.chatId || '',\n    resultType,\n    interactionType: data.interactionType || '',\n    hasInteraction: data.hasInteraction || false,\n    questionSent: data.questionSent || false,\n    taskCancelled: data.taskCancelled || false,\n    error: data.replyError || data.error || '',\n    pendingQuestionText: data.pendingQuestionText || '',\n    pendingOptionsJson: data.pendingOptionsJson || data.updatedPendingOptionsJson || '',\n  },\n}"
       },
       "id": "merge-result",
       "name": "Собираем итог интеракции",
@@ -579,7 +576,7 @@
       ],
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// После Send and Wait for Response получаем ответ пользователя напрямую.\n// Отправляем его в OpenCode API questionReply.\n\nconst context = $('Разбираем входные данные').item.json\nconst waitResponse = $input.item.json\nconst userAnswer = String(waitResponse.text || waitResponse.message?.text || '').trim()\n\nconst answer = $('Готовим ответ пользователю').item.json\n\n// Определяем rejectRequested\nconst isReject = /^\\/?(reject|skip|cancel)\\b/i.test(userAnswer)\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\n\nconst answers = isReject ? [] : [userAnswer]\nconst updatedPendingMeta = {\n  ...pendingMeta,\n  answers: isReject ? null : answers,\n  rejectRequested: isReject,\n  answeredAt: new Date().toISOString(),\n}\n\nreturn {\n  json: {\n    taskKey: answer.taskKey || context.taskKey,\n    sessionId: answer.sessionId || context.sessionId,\n    chatId: answer.chatId || context.chatId,\n    resultType: 'interaction_processed',\n    interactionType: 'question',\n    hasInteraction: true,\n    hasAnswerPayload: true,\n    pendingOptionsJson: JSON.stringify(updatedPendingMeta),\n    replyError: '',\n  },\n}",
+        "jsCode": "// Маркируем: вопрос отправлен пользователю в Telegram.\n// Возвращаем updatedPendingOptionsJson с deliveredAt чтобы не слать повторно.\n\nconst context = $('Разбираем входные данные').item.json\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\npendingMeta.deliveredAt = new Date().toISOString()\n\nreturn {\n  json: {\n    taskKey: context.taskKey,\n    sessionId: context.sessionId,\n    chatId: context.chatId,\n    resultType: 'pending_sent',\n    questionSent: true,\n    updatedPendingOptionsJson: JSON.stringify(pendingMeta),\n  },\n}",
         "language": "javaScript"
       }
     },

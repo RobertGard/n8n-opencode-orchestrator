@@ -962,6 +962,45 @@
       ]
     },
     {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $('Выбираем активную задачу').first().json.task.task_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_question": "={{ $('Обработка интеракций').item.json.pendingQuestionText || '' }}",
+            "pending_options_json": "={{ $('Обработка интеракций').item.json.pendingOptionsJson || '[]' }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "save-pending-data",
+      "name": "Сохраняем pending данные в БД",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2140,
+        620
+      ],
+      "alwaysOutputData": true
+    },
+    {
       "id": "if-reply-error",
       "name": "Есть ошибка ответа?",
       "type": "n8n-nodes-base.if",
@@ -1227,7 +1266,7 @@
       "main": [
         [
           {
-            "node": "Есть ошибка ответа?",
+            "node": "Сохраняем pending данные в БД",
             "type": "main",
             "index": 0
           }
@@ -1370,6 +1409,17 @@
         [
           {
             "node": "Задача завершена?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сохраняем pending данные в БД": {
+      "main": [
+        [
+          {
+            "node": "Есть ошибка ответа?",
             "type": "main",
             "index": 0
           }

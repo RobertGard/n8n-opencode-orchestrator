@@ -509,17 +509,17 @@
             {
               "keyName": "task_key",
               "condition": "eq",
-              "keyValue": "={{ $('Завершение задачи').item.json.taskKey }}"
+              "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "status": "={{ $('Завершение задачи').item.json.resultStatus }}",
+            "status": "={{ $('Завершение задачи').first().json.resultStatus }}",
             "pending_question": "",
             "pending_options_json": "[]",
-            "result_text": "={{ $('Завершение задачи').item.json.replyText }}"
+            "result_text": "={{ $('Завершение задачи').first().json.replyText }}"
           }
         },
         "options": {
@@ -539,7 +539,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-        "text": "={{ $('Завершение задачи').item.json.replyText }}",
+        "text": "={{ $('Завершение задачи').first().json.replyText }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -765,7 +765,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-        "text": "={{ $('Завершение задачи').item.json.streamProgressText }}",
+        "text": "={{ $('Завершение задачи').first().json.streamProgressText }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -800,14 +800,14 @@
             {
               "keyName": "task_key",
               "condition": "eq",
-              "keyValue": "={{ $('Завершение задачи').item.json.taskKey }}"
+              "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "context_json": "={{ JSON.stringify({ latestSentId: String($('Завершение задачи').item.json.latestSentId || '').trim() }) }}"
+            "context_json": "={{ JSON.stringify({ latestSentId: String($('Завершение задачи').first().json.latestSentId || '').trim() }) }}"
           }
         },
         "options": {
@@ -907,7 +907,7 @@
           },
           "conditions": [
             {
-              "leftValue": "={{ $('Завершение задачи').item.json.taskCompleted }}",
+              "leftValue": "={{ $('Завершение задачи').first().json.taskCompleted }}",
               "rightValue": true,
               "operator": {
                 "type": "boolean",
@@ -940,7 +940,7 @@
           },
           "conditions": [
             {
-              "leftValue": "={{ $('Завершение задачи').item.json.streamProgressText }}",
+              "leftValue": "={{ $('Завершение задачи').first().json.streamProgressText }}",
               "rightValue": "",
               "operator": {
                 "type": "string",

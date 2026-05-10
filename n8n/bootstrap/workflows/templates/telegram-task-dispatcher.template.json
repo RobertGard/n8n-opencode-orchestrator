@@ -519,7 +519,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Выбираем активную задачу').item.json.task.chat_id }}",
+        "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
         "text": "={{ `Ответ на вопрос по задаче ${$('Выбираем активную задачу').item.json.task.task_key} не отправлен: ${String($('Обработка интеракций').item.json.error || 'OpenCode не вернул корректный ответ.')}` }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -585,7 +585,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Выбираем активную задачу').item.json.task.chat_id }}",
+        "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
         "text": "={{ $('Завершение задачи').item.json.replyText }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -750,7 +750,7 @@
           "value": {
             "taskKey": "={{ $('Выбираем активную задачу').item.json.task.task_key }}",
             "sessionId": "={{ $('Выбираем активную задачу').item.json.sessionId }}",
-            "chatId": "={{ $('Выбираем активную задачу').item.json.task.chat_id }}",
+            "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
             "taskStatus": "={{ $('Выбираем активную задачу').item.json.taskStatus }}",
             "pendingQuestion": "={{ $('Выбираем активную задачу').item.json.pendingQuestion }}",
             "pendingOptionsJson": "={{ $('Выбираем активную задачу').item.json.pendingOptionsJson }}",
@@ -790,7 +790,7 @@
           "value": {
             "taskKey": "={{ $('Выбираем активную задачу').item.json.task.task_key }}",
             "sessionId": "={{ $('Выбираем активную задачу').item.json.sessionId }}",
-            "chatId": "={{ $('Выбираем активную задачу').item.json.task.chat_id }}",
+            "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
             "workerBaseUrl": "={{ $('Готовим пакеты обработчиков').item.json.workerBaseUrl }}",
             "authorizationHeader": "={{ $('Готовим пакеты обработчиков').item.json.authorizationHeader }}",
             "sessionStatusPath": "={{ $('Готовим пакеты обработчиков').item.json.sessionStatusPath }}",
@@ -812,7 +812,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Выбираем активную задачу').item.json.task.chat_id }}",
+        "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
         "text": "={{ $('Завершение задачи').item.json.streamProgressText }}",
         "additionalFields": {
           "appendAttribution": false,

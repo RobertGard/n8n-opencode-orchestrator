@@ -176,15 +176,6 @@
           },
           "conditions": [
             {
-              "leftValue": "={{ $('Проверяем: задача захвачена').item.json.rowExists }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            },
-            {
               "leftValue": "={{ $('Разбираем входные данные').item.json.sessionId }}",
               "rightValue": "",
               "operator": {

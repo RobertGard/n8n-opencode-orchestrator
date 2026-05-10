@@ -249,7 +249,6 @@
         "resource": "message",
         "operation": "sendAndWait",
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
-        "text": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}",
         "responseType": "customForm",
         "defineForm": "json",
         "jsonForm": "={{ $('Готовим ответ пользователю').item.json.formFieldsJson || '[]' }}",
@@ -257,7 +256,8 @@
           "appendAttribution": false,
           "parse_mode": "HTML"
         },
-        "options": {}
+        "options": {},
+        "message": "={{ $('Разбираем входные данные').item.json.pendingQuestion }}"
       },
       "id": "send-pending-question",
       "name": "Отправляем ожидающую интеракцию",

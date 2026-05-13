@@ -205,14 +205,38 @@ EOF
 fi
 
 if [ ! -f "${STATE_FILE}" ] && [ "${OPENCODE_AUTO_INSTALL_TOOLING:-1}" = "1" ]; then
-  npx -y get-shit-done-cc@latest --opencode --global || printf 'warn: GSD install failed (network or npm issue). Run manually: npx get-shit-done-cc@latest --opencode --global\n'
-  npm install -g ctx7 @upstash/context7-mcp \
-    @modelcontextprotocol/server-filesystem \
-    @modelcontextprotocol/server-git \
-    @modelcontextprotocol/server-github \
-    @modelcontextprotocol/server-memory \
-    @modelcontextprotocol/server-postgres || true
-  uv tool install -p 3.13 serena-agent@latest --prerelease=allow || true
-  serena init || true
+  TOOLING_CFG="/opt/opencode-shared/tooling.json"
+  
+  if [ -f "${TOOLING_CFG}" ]; then
+    # Global npx packages
+    for row in $(jq -r '.global.npx[]? | @base64' "${TOOLING_CFG}" 2>/dev/null); do
+      _pkg() { echo "${row}" | base64 -d | jq -r "${1}"; }
+      pkg="$(_pkg '.package')"; args="$(_pkg '.args // empty')"
+      echo "→ installing npx: ${pkg} ${args}"
+      npx -y "${pkg}" ${args} || printf 'warn: npx %s failed\n' "${pkg}"
+    done
+    # Global npm packages
+    for row in $(jq -r '.global.npm[]? | @base64' "${TOOLING_CFG}" 2>/dev/null); do
+      pkg="$(echo "${row}" | base64 -d | jq -r '.')"
+      echo "→ installing npm: ${pkg}"
+      npm install -g "${pkg}" || printf 'warn: npm install -g %s failed\n' "${pkg}"
+    done
+    # Global uv tools
+    for row in $(jq -r '.global.uv[]? | @base64' "${TOOLING_CFG}" 2>/dev/null); do
+      _pkg() { echo "${row}" | base64 -d | jq -r "${1}"; }
+      pkg="$(_pkg '.package')"; py="$(_pkg '.python // "3.13"')"; args="$(_pkg '.args // empty')"
+      echo "→ installing uv: ${pkg} (python=${py})"
+      uv tool install -p "${py}" "${pkg}" ${args} || printf 'warn: uv tool install %s failed\n' "${pkg}"
+    done
+    # Post-install commands
+    for row in $(jq -r '.global.post_install[]? | @base64' "${TOOLING_CFG}" 2>/dev/null); do
+      cmd="$(echo "${row}" | base64 -d | jq -r '.')"
+      echo "→ post-install: ${cmd}"
+      eval "${cmd}" || printf 'warn: %s failed\n' "${cmd}"
+    done
+  else
+    printf 'warn: tooling config not found at %s, skipping auto-install\n' "${TOOLING_CFG}"
+  fi
+
   touch "${STATE_FILE}"
 fi

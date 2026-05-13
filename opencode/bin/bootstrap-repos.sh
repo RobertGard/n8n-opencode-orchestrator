@@ -166,7 +166,7 @@ while IFS= read -r repo; do
   install_deps="$(printf '%s' "${repo}" | jq -r '.install_dependencies // true')"
   turbo_smoke="$(printf '%s' "${repo}" | jq -r '.turbo_smoke // false')"
   turbo_tasks="$(printf '%s' "${repo}" | jq -r '(.turbo_tasks // ["build","test"]) | join(",")')"
-  gsd_local="$(printf '%s' "${repo}" | jq -r '.install_gsd_local // false')"
+  # install_gsd_local replaced by opencode/tooling.json per_repo.npx
   post_bootstrap="$(printf '%s' "${repo}" | jq -r '.post_bootstrap // empty')"
   auto_start_docker="$(printf '%s' "${repo}" | jq -r '.auto_start_docker // false')"
   docker_file="$(printf '%s' "${repo}" | jq -r '.docker_file // empty')"
@@ -193,8 +193,13 @@ while IFS= read -r repo; do
     run_turbo_smoke "${repo_dir}" "${turbo_tasks}"
   fi
 
-  if [ "${gsd_local}" = "true" ]; then
-    (cd "${repo_dir}" && npx -y get-shit-done-cc@latest --opencode --local) || printf 'warn: GSD local install failed for %s\n' "${slug}"
+  TOOLING_CFG="/opt/opencode-shared/tooling.json"
+  if [ -f "${TOOLING_CFG}" ]; then
+    for row in $(jq -r '.per_repo.npx[]? | @base64' "${TOOLING_CFG}" 2>/dev/null); do
+      _pkg() { echo "${row}" | base64 -d | jq -r "${1}"; }
+      pkg="$(_pkg '.package')"; args="$(_pkg '.args // empty')"
+      (cd "${repo_dir}" && npx -y "${pkg}" ${args}) || printf 'warn: per-repo npx %s failed for %s\n' "${pkg}" "${slug}"
+    done
   fi
 
   if [ -n "${post_bootstrap}" ]; then

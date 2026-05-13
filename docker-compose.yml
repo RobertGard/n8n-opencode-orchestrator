@@ -192,6 +192,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./opencode/shared:/opt/opencode-shared
+      - ./opencode/tooling.json:/opt/opencode-shared/tooling.json:ro
       - ./workers/worker-1:/workspace-config
       - opencode_worker_1_config:/home/agent/.config/opencode
       - opencode_worker_1_local:/home/agent/.local/share/opencode

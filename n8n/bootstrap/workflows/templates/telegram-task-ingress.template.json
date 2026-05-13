@@ -13,8 +13,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        112,
-        424
+        -4448,
+        248
       ],
       "credentials": {
         "telegramApi": {
@@ -51,8 +51,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        784,
-        424
+        -3776,
+        248
       ],
       "id": "if-chat-allowed",
       "name": "Чат разрешён?"
@@ -80,8 +80,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        336,
-        424
+        -4224,
+        248
       ],
       "id": "set-vars",
       "name": "Задаём переменные"
@@ -97,8 +97,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        560,
-        424
+        -4000,
+        248
       ]
     },
     {
@@ -115,8 +115,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2800,
-        448
+        -1312,
+        32
       ],
       "credentials": {
         "telegramApi": {
@@ -139,8 +139,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1008,
-        328
+        -3552,
+        152
       ],
       "credentials": {
         "telegramApi": {
@@ -160,8 +160,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1456,
-        520
+        -3104,
+        344
       ]
     },
     {
@@ -178,8 +178,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2800,
-        664
+        -1536,
+        512
       ],
       "credentials": {
         "telegramApi": {
@@ -405,8 +405,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2576,
-        664
+        -1760,
+        512
       ],
       "alwaysOutputData": true
     },
@@ -429,8 +429,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
       "position": [
-        1008,
-        520
+        -3552,
+        344
       ]
     },
     {
@@ -466,8 +466,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1232,
-        520
+        -3328,
+        344
       ],
       "alwaysOutputData": true
     },
@@ -509,8 +509,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2800,
-        208
+        -1312,
+        416
       ],
       "alwaysOutputData": true
     },
@@ -548,8 +548,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        3024,
-        208
+        -1088,
+        416
       ],
       "alwaysOutputData": true
     },
@@ -567,8 +567,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3248,
-        208
+        -864,
+        416
       ],
       "credentials": {
         "telegramApi": {
@@ -588,8 +588,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1904,
-        256
+        -2208,
+        224
       ]
     },
     {
@@ -620,8 +620,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2576,
-        256
+        -1536,
+        224
       ]
     },
     {
@@ -635,8 +635,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2352,
-        664
+        -1984,
+        512
       ]
     },
     {
@@ -667,8 +667,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2800,
-        592
+        -2208,
+        608
       ]
     },
     {
@@ -682,8 +682,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2128,
-        856
+        -1984,
+        704
       ]
     },
     {
@@ -719,8 +719,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2352,
-        856
+        -1760,
+        704
       ],
       "alwaysOutputData": true
     },
@@ -735,8 +735,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2576,
-        856
+        -1536,
+        704
       ]
     },
     {
@@ -777,8 +777,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2800,
-        856
+        -1312,
+        704
       ],
       "alwaysOutputData": true
     },
@@ -796,8 +796,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3024,
-        856
+        -1088,
+        704
       ],
       "credentials": {
         "telegramApi": {
@@ -834,8 +834,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2128,
-        256
+        -1984,
+        224
       ]
     },
     {
@@ -849,8 +849,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2352,
-        160
+        -1760,
+        128
       ]
     },
     {
@@ -864,8 +864,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2352,
-        352
+        -1760,
+        320
       ]
     },
     {
@@ -879,8 +879,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2352,
-        592
+        -2880,
+        344
       ]
     },
     {
@@ -911,8 +911,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2576,
-        592
+        -2656,
+        344
       ]
     },
     {
@@ -943,8 +943,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2800,
-        592
+        -2432,
+        416
       ]
     }
   ],
@@ -1023,11 +1023,6 @@
         ]
       ]
     },
-    "Отправляем: Задача будет прервана": {
-      "main": [
-        []
-      ]
-    },
     "Чат разрешён?": {
       "main": [
         [
@@ -1099,16 +1094,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Отправляем: Ответ принят": {
-      "main": [
-        []
-      ]
-    },
-    "Отправляем: Задача поставлена в работу": {
-      "main": [
-        []
       ]
     },
     "Вставляем задачу": {

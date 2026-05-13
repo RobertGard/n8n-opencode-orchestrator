@@ -99,6 +99,12 @@
               "name": "telegram_chat_id",
               "value": "__TELEGRAM_CHAT_ID__",
               "type": "string"
+            },
+            {
+              "id": "allowed-commands",
+              "name": "allowed_commands",
+              "value": "[\"task\"]",
+              "type": "json"
             }
           ]
         },
@@ -931,7 +937,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Проверяет допустимость команды перед созданием задачи.\n// Разрешена только /task. /abort обрабатывается выше по потоку.\n// /task требует --prompt или --answer (для ответа на pending-вопрос).\n\nconst input = $('Это новая команда?').item.json\nconst commandType = String(input.commandType || '').trim()\nconst flags = input.flags || {}\nconst prompt = String(flags.prompt || '').trim()\nconst hasAnswer = String(flags.answer || '').trim() !== ''\n\n// /abort здесь уже не должен оказаться (отфильтрован ранее),\n// но на всякий случай пропускаем\nif (!commandType || commandType === 'abort') {\n  return { json: { ...input, mode: 'parse_error', replyText: 'Неверный формат. Использование: /abort [task-key]' } }\n}\n\n// Whitelist: только /task\nif (commandType !== 'task') {\n  return { json: { ...input, mode: 'parse_error', replyText: `Неизвестная команда /${commandType || '?'}. Доступные команды: /task, /abort.` } }\n}\n\n// /task с --answer уже преобразован парсером в answer_candidate (не доходит сюда).\n// Здесь проверяем только --prompt.\nif (!prompt && !hasAnswer) {\n  return { json: { ...input, mode: 'parse_error', replyText: 'Команда /task требует флаг --prompt с описанием задачи.\\nПример: /task --prompt \"описание задачи\"' } }\n}\n\n// Всё OK — пропускаем как command_candidate\nreturn { json: input }"
+        "jsCode": "// Проверяет допустимость команды перед созданием задачи.\n// Разрешённые команды задаются в ноде «Задаём переменные» (allowed_commands).\n// /abort обрабатывается выше по потоку.\n// /task требует --prompt (или --answer для ответа на pending-вопрос).\n\nconst vars = $('Задаём переменные').first().json\nconst allowedCommands = Array.isArray(vars.allowed_commands) ? vars.allowed_commands : ['task']\nconst input = $('Это новая команда?').item.json\nconst commandType = String(input.commandType || '').trim()\nconst flags = input.flags || {}\nconst prompt = String(flags.prompt || '').trim()\nconst hasAnswer = String(flags.answer || '').trim() !== ''\n\n// Список разрешённых команд для сообщения об ошибке\nconst allowedList = allowedCommands.map((cmd) => `/${cmd}`).join(', ')\n\n// /abort здесь уже не должен оказаться (отфильтрован ранее),\n// но на всякий случай обрабатываем\nif (!commandType || commandType === 'abort') {\n  return { json: { ...input, mode: 'parse_error', replyText: 'Неверный формат. Использование: /abort [task-key]' } }\n}\n\n// Whitelist\nif (!allowedCommands.includes(commandType)) {\n  return { json: { ...input, mode: 'parse_error', replyText: `Неизвестная команда /${commandType || '?'}. Доступные команды: ${allowedList}, /abort.` } }\n}\n\n// /task с --answer уже преобразован парсером в answer_candidate (не доходит сюда).\n// Здесь проверяем только --prompt.\nif (!prompt && !hasAnswer) {\n  return { json: { ...input, mode: 'parse_error', replyText: 'Команда /task требует флаг --prompt с описанием задачи.\\nПример: /task --prompt \"описание задачи\"' } }\n}\n\n// Всё OK — пропускаем как command_candidate\nreturn { json: input }"
       },
       "id": "validate-command",
       "name": "Проверяем допустимость команды",

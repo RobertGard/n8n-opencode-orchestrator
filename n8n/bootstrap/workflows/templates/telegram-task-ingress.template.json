@@ -35,10 +35,10 @@
           "conditions": [
             {
               "id": "chat-id-allowed",
-              "leftValue": "={{ $('Триггер Telegram').first().json.message.chat.id.toString() }}",
-              "rightValue": "={{ $('Задаём переменные').first().json.telegram_chat_id }}",
+              "leftValue": "={{ $('Триггер Telegram').first().json.message.chat.id }}",
+              "rightValue": "={{ Number($('Задаём переменные').first().json.telegram_chat_id) }}",
               "operator": {
-                "type": "string",
+                "type": "number",
                 "operation": "equals"
               }
             }

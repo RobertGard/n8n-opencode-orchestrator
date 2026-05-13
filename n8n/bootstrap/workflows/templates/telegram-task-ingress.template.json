@@ -473,38 +473,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $('Разбираем базовое сообщение Telegram').first().json.mode }}",
-              "rightValue": "command_candidate",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "if-command-mode",
-      "name": "Это команда?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        2128,
-        592
-      ]
-    },
-    {
-      "parameters": {
         "resource": "row",
         "operation": "update",
         "dataTableId": {
@@ -904,7 +872,7 @@
       "parameters": {
         "mode": "runOnceForEachItem",
         "language": "javaScript",
-        "jsCode": "// Проверяет допустимость команды по декларативному списку из «Задаём переменные».\n// Каждый элемент allowed_commands: { command, require: [...] }\n// usage для ошибок генерируется автоматически из command + require.\n\nconst vars = $('Задаём переменные').first().json\nconst allowedCommands = Array.isArray(vars.allowed_commands) ? vars.allowed_commands : []\nconst input = $input.item.json\nconst commandType = String(input.commandType || '').trim()\nconst flags = input.flags || {}\n\nconst flagFilled = (val) =>\n  val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'true'\n\nconst patterns = allowedCommands.filter((p) => p.command === commandType)\n\nif (patterns.length === 0) {\n  const known = [...new Set(allowedCommands.map((p) => `/${p.command}`))].join(', ')\n  return { json: { ...input, mode: 'parse_error', replyText: `Неизвестная команда /${commandType || '?'}. Доступные команды: ${known}.` } }\n}\n\nconst satisfied = patterns.find((p) => {\n  const rf = Array.isArray(p.require) ? p.require : [p.require]\n  return rf.every((flag) => flagFilled(flags[flag]))\n})\n\nif (satisfied) {\n  return { json: input }\n}\n\n// Генерируем usage на лету: /command --flag1 --flag2\nconst usages = patterns\n  .map((p) => `/${p.command} ` + (Array.isArray(p.require) ? p.require : [p.require]).map((f) => `--${f} <...>`).join(' '))\n  .join('\\n  или ')\n\nreturn { json: { ...input, mode: 'parse_error', replyText: `Команда /${commandType} требует обязательные флаги:\\n  ${usages}` } }"
+        "jsCode": "// Проверяет допустимость команды по декларативному списку из «Задаём переменные».\n// Каждый элемент allowed_commands: { command, require: [...] }\n// usage для ошибок генерируется автоматически из command + require.\n\nconst vars = $('Задаём переменные').first().json\nconst allowedCommands = Array.isArray(vars.allowed_commands) ? vars.allowed_commands : []\nconst input = $input.item.json\n// Пропускаем не-команды (parse_error и т.д.) насквозь\nif (input.mode !== 'command_candidate') return { json: input }\n\nconst commandType = String(input.commandType || '').trim()\nconst flags = input.flags || {}\n\nconst flagFilled = (val) =>\n  val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'true'\n\nconst patterns = allowedCommands.filter((p) => p.command === commandType)\n\nif (patterns.length === 0) {\n  const known = [...new Set(allowedCommands.map((p) => `/${p.command}`))].join(', ')\n  return { json: { ...input, mode: 'parse_error', replyText: `Неизвестная команда /${commandType || '?'}. Доступные команды: ${known}.` } }\n}\n\nconst satisfied = patterns.find((p) => {\n  const rf = Array.isArray(p.require) ? p.require : [p.require]\n  return rf.every((flag) => flagFilled(flags[flag]))\n})\n\nif (satisfied) {\n  return { json: input }\n}\n\n// Генерируем usage на лету: /command --flag1 --flag2\nconst usages = patterns\n  .map((p) => `/${p.command} ` + (Array.isArray(p.require) ? p.require : [p.require]).map((f) => `--${f} <...>`).join(' '))\n  .join('\\n  или ')\n\nreturn { json: { ...input, mode: 'parse_error', replyText: `Команда /${commandType} требует обязательные флаги:\\n  ${usages}` } }"
       },
       "id": "validate-command",
       "name": "Проверяем допустимость команды",
@@ -1158,7 +1126,7 @@
       "main": [
         [
           {
-            "node": "Это команда?",
+            "node": "Проверяем допустимость команды",
             "type": "main",
             "index": 0
           }
@@ -1297,24 +1265,6 @@
         [
           {
             "node": "Это запрос на прерывание?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Это команда?": {
-      "main": [
-        [
-          {
-            "node": "Проверяем допустимость команды",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Отправляем: Команда распарсена с ошибкой",
             "type": "main",
             "index": 0
           }

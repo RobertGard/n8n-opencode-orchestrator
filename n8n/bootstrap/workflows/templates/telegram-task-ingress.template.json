@@ -70,7 +70,7 @@
             {
               "id": "allowed-commands",
               "name": "allowed_commands",
-              "value": "[{\"command\": \"task\", \"require\": [\"prompt\"]}, {\"command\": \"task\", \"require\": [\"answer\"]}, {\"command\": \"task\", \"require\": [\"parent_task_key\", \"parent_match_text\"]}, {\"command\": \"abort\", \"require\": [\"task_key\"]}]",
+              "value": "[\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"answer\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"parent_task_key\",\n      \"parent_match_text\"\n    ]\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": [\n      \"task_key\"\n    ]\n  }\n]",
               "type": "array"
             }
           ]

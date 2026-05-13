@@ -103,7 +103,7 @@
             {
               "id": "allowed-commands",
               "name": "allowed_commands",
-              "value": "[{\"command\": \"task\", \"require\": [\"prompt\"]}, {\"command\": \"task\", \"require\": [\"answer\"]}, {\"command\": \"abort\", \"require\": [\"task_key\"]}]",
+              "value": "[{\"command\": \"task\", \"require\": [\"prompt\"]}, {\"command\": \"task\", \"require\": [\"answer\"]}, {\"command\": \"task\", \"require\": [\"parent_task_key\", \"parent_match_text\"]}, {\"command\": \"abort\", \"require\": [\"task_key\"]}]",
               "type": "json"
             }
           ]

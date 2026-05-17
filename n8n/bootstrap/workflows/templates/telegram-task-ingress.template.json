@@ -1,5 +1,6 @@
 {
   "name": "Постановка задач через Telegram",
+  "id": "900010",
   "nodes": [
     {
       "parameters": {
@@ -14,7 +15,7 @@
       "typeVersion": 1.2,
       "position": [
         -4448,
-        248
+        256
       ],
       "credentials": {
         "telegramApi": {
@@ -52,7 +53,7 @@
       "typeVersion": 2.3,
       "position": [
         -3776,
-        248
+        256
       ],
       "id": "if-chat-allowed",
       "name": "Чат разрешён?"
@@ -70,7 +71,7 @@
             {
               "id": "allowed-commands",
               "name": "allowed_commands",
-              "value": "[\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"answer\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"parent_task_key\",\n      \"parent_match_text\"\n    ]\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": [\n      \"task_key\"\n    ]\n  }\n]",
+              "value": "[\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"answer\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"parent_task_key\",\n      \"parent_match_text\"\n    ]\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": [\n      \"task_key\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"auto_mode\"\n    ]\n  }\n]",
               "type": "array"
             }
           ]
@@ -81,7 +82,7 @@
       "typeVersion": 3.4,
       "position": [
         -4224,
-        248
+        256
       ],
       "id": "set-vars",
       "name": "Задаём переменные"
@@ -98,7 +99,7 @@
       "typeVersion": 3.4,
       "position": [
         -4000,
-        248
+        256
       ]
     },
     {
@@ -140,7 +141,7 @@
       "typeVersion": 1.2,
       "position": [
         -3552,
-        152
+        160
       ],
       "credentials": {
         "telegramApi": {
@@ -151,8 +152,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Главный парсер входящих Telegram-сообщений.\n// Все ответы на вопросы — через /task --answer=\"...\"\n// Все команды — через /command --flags=\"...\"\n\nconst input = $('Триггер Telegram').first().json\nconst msg = input.message || {}\nconst rawText = String(msg.text || '').trim()\n\nfunction parseCommand(text) {\n  const match = text.match(/^\\/([a-zA-Z0-9_]+)(?:@\\w+)?(?:\\s+|$)/)\n  if (!match) return { type: null, textAfterCommand: text }\n  return { type: match[1], textAfterCommand: text.slice(match[0].length).trim() }\n}\n\nfunction parseTokens(text) {\n  const flags = {}\n  const args = []\n  const regex = /\"([^\"]*)\"|'([^']*)'|--([a-zA-Z0-9_-]+)(?:=(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"']+)))?|([^\\s]+)/g\n  let match\n  while ((match = regex.exec(text)) !== null) {\n    if (match[3]) {\n      flags[match[3]] = match[4] ?? match[5] ?? match[6] ?? true\n      continue\n    }\n    const value = match[1] ?? match[2] ?? match[7]\n    if (value !== undefined) args.push(value)\n  }\n  return { flags, args }\n}\n\nif (!rawText.startsWith('/')) {\n  return [{ json: {\n    mode: 'parse_error',\n    rawText,\n    replyText: 'Не удалось распознать команду. Используйте /task --prompt=\"...\" или /task --answer=\"...\".'\n  }}]\n}\n\nconst command = parseCommand(rawText)\nif (!command.type) {\n  return [{ json: {\n    mode: 'parse_error',\n    rawText,\n    replyText: 'Команда не распознана. Используйте /task или /abort с флагами --flag=\"...\".'\n  }}]\n}\n\nconst parsed = parseTokens(command.textAfterCommand)\n\nreturn [{ json: {\n  mode: 'command_candidate',\n  rawText,\n  commandType: command.type,\n  flags: parsed.flags,\n  args: parsed.args,\n  prompt: String(parsed.flags.prompt || '').trim(),\n  answerText: String(parsed.flags.answer || '').trim(),\n  parentTaskId: String(parsed.flags.parent_task_key || '').trim(),\n  parentMatchText: String(parsed.flags.parent_match_text || '').trim(),\n  newSessionRequested: Boolean(\n    parsed.flags['new_session'] || parsed.flags['new-session'] ||\n    parsed.flags['fresh_session'] || parsed.flags['fresh-session']\n  )\n}}]"
       },
       "id": "parse-command",
@@ -161,7 +160,7 @@
       "typeVersion": 2,
       "position": [
         -3104,
-        344
+        352
       ]
     },
     {
@@ -430,12 +429,11 @@
       "typeVersion": 3.3,
       "position": [
         -3552,
-        344
+        352
       ]
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "get",
         "dataTableId": {
           "mode": "id",
@@ -446,12 +444,10 @@
           "conditions": [
             {
               "keyName": "chat_id",
-              "condition": "eq",
               "keyValue": "={{ $json.chatId }}"
             },
             {
               "keyName": "status",
-              "condition": "eq",
               "keyValue": "needs_input"
             }
           ]
@@ -467,13 +463,12 @@
       "typeVersion": 1.1,
       "position": [
         -3328,
-        344
+        352
       ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "update",
         "dataTableId": {
           "mode": "id",
@@ -484,12 +479,10 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Ответ распознан?').first().json.targetTaskKey }}"
             },
             {
               "keyName": "status",
-              "condition": "eq",
               "keyValue": "needs_input"
             }
           ]
@@ -498,7 +491,172 @@
           "mappingMode": "defineBelow",
           "value": {
             "pending_options_json": "={{ $('Ответ распознан?').first().json.updatedPendingOptionsJson }}"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "task_key",
+              "displayName": "task_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "context_json",
+              "displayName": "context_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "worker_alias",
+              "displayName": "worker_alias",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "command_name",
+              "displayName": "command_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "parent_task_key",
+              "displayName": "parent_task_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "parent_match_text",
+              "displayName": "parent_match_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "queued_at",
+              "displayName": "queued_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_question",
+              "displayName": "pending_question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_options_json",
+              "displayName": "pending_options_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "result_text",
+              "displayName": "result_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {
           "dryRun": false
@@ -516,7 +674,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "rowExists",
         "dataTableId": {
           "mode": "id",
@@ -527,17 +684,14 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Ответ распознан?').first().json.targetTaskKey }}"
             },
             {
               "keyName": "status",
-              "condition": "eq",
               "keyValue": "needs_input"
             },
             {
               "keyName": "pending_options_json",
-              "condition": "eq",
               "keyValue": "={{ $('Ответ распознан?').first().json.updatedPendingOptionsJson }}"
             }
           ]
@@ -579,8 +733,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Связывает answer_candidate с pending-задачей.\n// Ответ приходит только в формате /task --answer=\"...\" или /task --task_key=\"xxx\" --answer=\"...\"\n\nconst candidate = $('Разбираем базовое сообщение Telegram').first().json\nconst pendingTasks = $('Получаем задачи с ожиданием ответа').all().map((item) => item.json)\n\nfunction parsePendingMeta(task) {\n  try { return JSON.parse(String(task.pending_options_json || '{}')) } catch { return {} }\n}\n\n// Определяем какую задачу: --task_key или авто-выбор если одна\nconst flags = candidate.flags || {}\nconst specifiedTaskKey = String(flags.task_key || '').trim()\nlet targetTaskKey = specifiedTaskKey\n\nif (!targetTaskKey && pendingTasks.length === 1) {\n  targetTaskKey = String(pendingTasks[0].task_key || '').trim()\n}\n\nif (!targetTaskKey) {\n  const taskList = pendingTasks.map((task) => `- <code>${task.task_key || 'неизвестно'}</code>`).join('\\n')\n  return [{ json: { mode: 'parse_error', replyText: `Несколько задач ожидают ответа:\\n${taskList}\\n\\nУкажите задачу: /task --task_key=\"task-key\" --answer=\"ваш ответ\"` } }]\n}\n\nconst task = pendingTasks.find((item) => String(item.task_key || '').trim() === targetTaskKey)\nif (!task) {\n  return [{ json: { mode: 'parse_error', replyText: `Не удалось найти задачу <code>${targetTaskKey}</code> среди ожидающих ответа.` } }]\n}\n\nconst pendingMeta = parsePendingMeta(task)\nconst requestId = String(pendingMeta.requestId || '').trim()\nconst interactionType = Array.isArray(pendingMeta.questions) ? 'question' : String(pendingMeta.type || 'permission').trim()\n\nif (!requestId) {\n  return [{ json: { mode: 'parse_error', replyText: `У задачи <code>${targetTaskKey}</code> повреждены данные pending интеракции.` } }]\n}\n\nreturn [{\n  json: {\n    mode: interactionType + '_candidate',\n    rawText: candidate.rawText,\n    targetTaskKey,\n    answerText: candidate.answerText,\n    rejectRequested: String(candidate.answerText || '').trim().toLowerCase() === '/reject',\n    interactionType,\n    pendingMeta,\n  }\n}]"
       },
       "id": "resolve-answer",
@@ -626,8 +778,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Создаём новую задачу: генерируем taskKey, сохраняем контекст.\n\nconst parsed = $('Разбираем базовое сообщение Telegram').first().json\nconst taskKey = `task-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`\nconst contextJson = JSON.stringify({\n  rawText: parsed.rawText,\n  commandType: parsed.commandType,\n  flags: parsed.flags,\n  args: parsed.args,\n  parentTaskId: parsed.parentTaskId,\n  parentMatchText: parsed.parentMatchText,\n  prompt: parsed.prompt,\n  newSessionRequested: parsed.newSessionRequested,\n})\n\nreturn [{\n  json: {\n    mode: 'command',\n    rawText: parsed.rawText,\n    commandType: parsed.commandType,\n    flags: parsed.flags,\n    args: parsed.args,\n    taskKey,\n    queuedAt: new Date().toISOString(),\n    parentTaskId: parsed.parentTaskId,\n    parentMatchText: parsed.parentMatchText,\n    prompt: parsed.prompt,\n    contextJson,\n    replyText: `Задача поставлена в очередь: <code>${taskKey}</code>`,\n  },\n}]"
       },
       "id": "prepare-command",
@@ -673,8 +823,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Готовим запрос на прерывание задачи.\n// task_key извлекается из флага --task_key.\n\nconst parsed = $('Разбираем базовое сообщение Telegram').first().json\nconst flags = parsed.flags || {}\nconst inputTaskKey = String(flags.task_key || '').trim()\n\nreturn [{ json: { mode: 'abort_request', rawText: parsed.rawText, targetTaskKey: inputTaskKey } }]"
       },
       "id": "prepare-abort-request",
@@ -688,7 +836,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "get",
         "dataTableId": {
           "mode": "id",
@@ -699,12 +846,10 @@
           "conditions": [
             {
               "keyName": "chat_id",
-              "condition": "eq",
               "keyValue": "={{ $('Задаём переменные').first().json.telegram_chat_id }}"
             },
             {
               "keyName": "status",
-              "condition": "eq",
               "keyValue": "running"
             }
           ]
@@ -726,8 +871,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Определяем какую задачу прерывать.\n//   явный task-key      → указанная задача\n//   без task-key         → если одна — авто-выбор, несколько — уточнение у пользователя\n\nconst abortRequest = $('Готовим запрос прерывания').first().json\nconst activeRunning = $('Получаем работающие задачи').all().map((item) => item.json)\nconst inputTaskKey = String(abortRequest.targetTaskKey || '').trim()\n\nif (activeRunning.length === 0) {\n  return [{ json: { mode: 'parse_error', replyText: 'Нет работающих задач, которые можно прервать.' } }]\n}\n\nif (inputTaskKey) {\n  const task = activeRunning.find((item) => String(item.task_key || '').trim() === inputTaskKey)\n  if (!task) {\n    return [{ json: { mode: 'parse_error', replyText: `Не удалось найти работающую задачу <code>${inputTaskKey || 'неизвестно'}</code>.` } }]\n  }\n  return [{ json: { mode: 'answer', targetTaskKey: inputTaskKey, replyText: `Задача <code>${inputTaskKey}</code> будет прервана.` } }]\n}\n\nif (activeRunning.length === 1) {\n  const taskKey = String(activeRunning[0].task_key || '').trim()\n  return [{ json: { mode: 'answer', targetTaskKey: taskKey, replyText: `Задача <code>${taskKey}</code> будет прервана.` } }]\n}\n\nconst taskList = activeRunning.map((item) => `- <code>${item.task_key || 'неизвестно'}</code>`).join('\\n')\nreturn [{ json: { mode: 'parse_error', replyText: `Работает несколько задач:\\n${taskList}\\n\\nУточните: /abort --task_key=\"task-key\"` } }]"
       },
       "id": "resolve-abort-target",
@@ -741,7 +884,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "update",
         "dataTableId": {
           "mode": "id",
@@ -752,12 +894,10 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Определяем цель прерывания').first().json.targetTaskKey }}"
             },
             {
               "keyName": "status",
-              "condition": "eq",
               "keyValue": "running"
             }
           ]
@@ -840,8 +980,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Парсим ответ пользователя на question-интеракцию OpenCode.\n// Поддерживает:\n//   - один вопрос → простой ответ (номер/текст варианта)\n//   - несколько вопросов → ответы через перенос строки\n//   - /reject → отклонение вопроса\n//   - множественный выбор → варианты через запятую\n\nconst parsed = $('Готовим ожидающую интеракцию').first().json\nconst pendingMeta = parsed.pendingMeta || {}\nconst normalized = String(parsed.answerText || '').trim()\n\n// Отклонение вопроса\nif (parsed.rejectRequested) {\n  const updatedPendingMeta = {\n    ...pendingMeta,\n    answers: null,\n    rejectRequested: true,\n    answeredAt: new Date().toISOString(),\n    rawAnswer: parsed.rawText,\n  }\n  return [{ json: { mode: 'answer', targetTaskKey: parsed.targetTaskKey, updatedPendingOptionsJson: JSON.stringify(updatedPendingMeta), replyText: `Вопрос по задаче <code>${parsed.targetTaskKey || 'неизвестно'}</code> отклонён.` } }]\n}\n\n// Разбирает один токен ответа: число → номер варианта, текст → поиск по label\nfunction parseAnswerToken(token, question) {\n  const value = String(token || '').trim()\n  if (!value) return null\n  const options = Array.isArray(question.options) ? question.options : []\n  if (options.length === 0) return value\n  if (/^\\d+$/.test(value)) {\n    const option = options[Number(value) - 1]\n    return option ? String(option.label || '').trim() : null\n  }\n  const matched = options.find((option) => String(option.label || '').trim().toLowerCase() === value.toLowerCase())\n  if (matched) return String(matched.label || '').trim()\n  return question.custom !== false ? value : null\n}\n\n// Разбирает ответ на один вопрос: возвращает { answers } или { error }\nfunction parseQuestionAnswer(text, question) {\n  const value = String(text || '').trim()\n  if (!value) return { error: 'Ответ не должен быть пустым.' }\n  const options = Array.isArray(question.options) ? question.options : []\n  if (options.length === 0) return { answers: [value] }\n  const tokens = question.multiple ? value.split(/\\s*,\\s*/).filter(Boolean) : [value]\n  const answers = []\n  for (const token of tokens) {\n    const parsedToken = parseAnswerToken(token, question)\n    if (!parsedToken) return { error: `Не удалось распознать вариант ответа: ${token}` }\n    if (!answers.includes(parsedToken)) answers.push(parsedToken)\n  }\n  if (!question.multiple && answers.length !== 1) {\n    return { error: 'Нужно выбрать ровно один вариант ответа.' }\n  }\n  return { answers }\n}\n\nconst questions = Array.isArray(pendingMeta.questions) ? pendingMeta.questions : []\nif (questions.length === 0) {\n  return [{ json: { mode: 'parse_error', replyText: `У задачи <code>${parsed.targetTaskKey || 'неизвестно'}</code> повреждены данные pending вопроса.` } }]\n}\n\n// Один вопрос или несколько (через перенос строки)\nlet answersResult\nif (questions.length === 1) {\n  answersResult = parseQuestionAnswer(normalized, questions[0])\n} else {\n  const lines = normalized.split(/\\r?\\n/).map((line) => line.trim()).filter(Boolean)\n  if (lines.length !== questions.length) {\n    answersResult = { error: `Нужно прислать ${questions.length} непустых строк ответа в том же порядке, что и вопросы.` }\n  } else {\n    const answers = []\n    for (let index = 0; index < questions.length; index += 1) {\n      const parsedLine = parseQuestionAnswer(lines[index], questions[index])\n      if (parsedLine.error) { answersResult = parsedLine; break }\n      answers.push(parsedLine.answers)\n    }\n    answersResult = answersResult || { answers }\n  }\n}\n\nif (answersResult.error) {\n  return [{ json: { mode: 'parse_error', replyText: `Не удалось разобрать ответ для задачи <code>${parsed.targetTaskKey || 'неизвестно'}</code>: ${answersResult.error}` } }]\n}\n\nconst updatedPendingMeta = {\n  ...pendingMeta,\n  answers: answersResult.answers,\n  rejectRequested: false,\n  answeredAt: new Date().toISOString(),\n  rawAnswer: parsed.rawText,\n}\n\nreturn [{ json: { mode: 'answer', targetTaskKey: parsed.targetTaskKey, updatedPendingOptionsJson: JSON.stringify(updatedPendingMeta), replyText: `Ответ по задаче <code>${parsed.targetTaskKey || 'неизвестно'}</code> сохранён. Продолжаю выполнение.` } }]"
       },
       "id": "parse-question-answer",
@@ -855,8 +993,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Парсим ответ пользователя на permission-интеракцию OpenCode.\n// Варианты: 1/once, 2/always, 3/reject (с опциональным комментарием).\n\nconst parsed = $('Готовим ожидающую интеракцию').first().json\nconst pendingMeta = parsed.pendingMeta || {}\nconst normalized = String(parsed.answerText || '').trim()\n\nif (!normalized) {\n  return [{ json: { mode: 'parse_error', replyText: 'Ответ не должен быть пустым.' } }]\n}\n\nconst lower = normalized.replace(/^\\//, '').toLowerCase()\nlet reply = ''\nlet message = ''\n\nif (/^(1|once|allow once|раз|один раз|разрешить один раз)(?:\\b|$)/i.test(lower)) {\n  reply = 'once'\n} else if (/^(2|always|remember|always allow|всегда|запомнить|разрешить всегда)(?:\\b|$)/i.test(lower)) {\n  reply = 'always'\n} else {\n  const rejectMatch = lower.match(/^(3|reject|deny|no|отклонить|запретить)(?:[\\s:,-]+([\\s\\S]*))?$/i)\n  if (rejectMatch) {\n    reply = 'reject'\n    message = String(rejectMatch[2] || '').trim()\n  }\n}\n\nif (!reply) {\n  return [{ json: { mode: 'parse_error', replyText: `Не удалось разобрать permission-ответ для задачи <code>${parsed.targetTaskKey || 'неизвестно'}</code>: Для permission используйте один из вариантов: 1/once, 2/always, 3/reject.` } }]\n}\n\nconst updatedPendingMeta = {\n  ...pendingMeta,\n  type: 'permission',\n  reply,\n  message,\n  answeredAt: new Date().toISOString(),\n  rawAnswer: parsed.rawText,\n}\n\nreturn [{ json: { mode: 'answer', targetTaskKey: parsed.targetTaskKey, updatedPendingOptionsJson: JSON.stringify(updatedPendingMeta), replyText: `Permission-ответ по задаче <code>${parsed.targetTaskKey || 'неизвестно'}</code> сохранён. Продолжаю выполнение.` } }]"
       },
       "id": "parse-permission-answer",
@@ -871,7 +1007,6 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "language": "javaScript",
         "jsCode": "// Проверяет допустимость команды по декларативному списку из «Задаём переменные».\n// Каждый элемент allowed_commands: { command, require: [...] }\n// usage для ошибок генерируется автоматически из command + require.\n\nconst vars = $('Задаём переменные').first().json\nconst allowedCommands = Array.isArray(vars.allowed_commands) ? vars.allowed_commands : []\nconst input = $input.item.json\n// Пропускаем не-команды (parse_error и т.д.) насквозь\nif (input.mode !== 'command_candidate') return { json: input }\n\nconst commandType = String(input.commandType || '').trim()\nconst flags = input.flags || {}\n\nconst flagFilled = (val) =>\n  val !== undefined && val !== null && String(val).trim() !== '' && String(val).trim() !== 'true'\n\nconst patterns = allowedCommands.filter((p) => p.command === commandType)\n\nif (patterns.length === 0) {\n  const known = [...new Set(allowedCommands.map((p) => `/${p.command}`))].join(', ')\n  return { json: { ...input, mode: 'parse_error', replyText: `Неизвестная команда${commandType ? ' /' + commandType : ''}. Доступные команды: ${known}.` } }\n}\n\nconst satisfied = patterns.find((p) => {\n  const rf = Array.isArray(p.require) ? p.require : [p.require]\n  return rf.every((flag) => flagFilled(flags[flag]))\n})\n\nif (satisfied) {\n  return { json: input }\n}\n\n// Генерируем usage на лету: /command --flag1 --flag2\nconst usages = patterns\n  .map((p) => `/${p.command} ` + (Array.isArray(p.require) ? p.require : [p.require]).map((f) => `--${f}=\"...\"`).join(' '))\n  .join('\\n  или ')\n\nreturn { json: { ...input, mode: 'parse_error', replyText: `Команда /${commandType} требует обязательные флаги:\\n  ${usages}` } }"
       },
       "id": "validate-command",
@@ -880,7 +1015,7 @@
       "typeVersion": 2,
       "position": [
         -2880,
-        344
+        352
       ]
     },
     {
@@ -912,7 +1047,7 @@
       "typeVersion": 2.2,
       "position": [
         -2656,
-        344
+        352
       ]
     },
     {
@@ -946,9 +1081,97 @@
         -2432,
         416
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.flags.auto_mode }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-auto-mode",
+      "name": "Это команда авто-режима?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3200,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__CHAT_SETTINGS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $('Фиксируем chat_id').item.json.chat_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Фиксируем chat_id').item.json.chat_id }}",
+            "auto_mode": "={{ String($json.flags.auto_mode).toLowerCase() === 'true' }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "upsert-auto-mode",
+      "name": "Обновляем режим авто-задач",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3424,
+        1024
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Фиксируем chat_id').item.json.chat_id }}",
+        "text": "={{ $json.flags.auto_mode === 'true' ? 'Автономный режим включён. Агент будет сам создавать следующие задачи.' : 'Автономный режим выключен.' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "notify-auto-mode",
+      "name": "Уведомляем о смене режима",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3648,
+        1024
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     }
   ],
-  "pinData": {},
   "connections": {
     "Триггер Telegram": {
       "main": [
@@ -972,7 +1195,7 @@
         ],
         [
           {
-            "node": "Готовим новую задачу",
+            "node": "Это команда авто-режима?",
             "type": "main",
             "index": 0
           }
@@ -1270,13 +1493,41 @@
           }
         ]
       ]
+    },
+    "Это команда авто-режима?": {
+      "main": [
+        [
+          {
+            "node": "Обновляем режим авто-задач",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Готовим новую задачу",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обновляем режим авто-задач": {
+      "main": [
+        [
+          {
+            "node": "Уведомляем о смене режима",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": true
   },
-  "id": "900010",
-  "tags": []
+  "active": false
 }

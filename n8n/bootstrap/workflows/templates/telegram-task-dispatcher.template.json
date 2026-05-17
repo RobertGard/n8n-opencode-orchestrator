@@ -1,13 +1,13 @@
 {
   "name": "Диспетчер задач Telegram",
+  "id": "900011",
   "nodes": [
     {
       "parameters": {
         "rule": {
           "interval": [
             {
-              "field": "seconds",
-              "secondsInterval": 30
+              "field": "seconds"
             }
           ]
         }
@@ -18,7 +18,7 @@
       "typeVersion": 1.2,
       "position": [
         224,
-        792
+        800
       ]
     },
     {
@@ -33,12 +33,11 @@
       "typeVersion": 3.4,
       "position": [
         448,
-        792
+        800
       ]
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "get",
         "dataTableId": {
           "mode": "id",
@@ -55,14 +54,12 @@
       "typeVersion": 1.1,
       "position": [
         672,
-        792
+        800
       ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "language": "javaScript",
         "jsCode": "// Готовим по одному пакету данных на каждого worker-а:\n// — список всех задач этого worker-а (отсортирован по queued_at)\n// — отдельно queued и active задачи с их количеством (для numeric-условий в IF-нодах)\n// — все endpoint-ы OpenCode из routing-конфигурации\n// — модель OpenCode (разбираем из формата \"provider/model\", например \"deepseek/deepseek-v4-pro\")\n\nconst routing = $('Задаём конфигурацию OpenCode').first().json\nconst allTasks = $('Получаем все задачи').all().map((item) => item.json)\n\n// Сортировка задач: более ранние (queued_at меньше) — выше\nfunction sortByQueuedAt(left, right) {\n  return String(left.queued_at || '').localeCompare(String(right.queued_at || ''))\n}\n\n// Разбор строки \"provider/model\" → { providerID, modelID }\n// Возвращает null если формат невалидный (пусто, нет /, / в начале или конце)\nfunction parseModel(modelRef) {\n  const normalized = String(modelRef || '').trim()\n  const separatorIndex = normalized.indexOf('/')\n\n  if (!normalized || separatorIndex <= 0 || separatorIndex === normalized.length - 1) {\n    return null\n  }\n\n  return {\n    providerID: normalized.slice(0, separatorIndex),\n    modelID: normalized.slice(separatorIndex + 1),\n  }\n}\n\nreturn Object.entries(routing.workers || {}).map(([workerAlias, workerConfig]) => {\n  const workerTasks = allTasks\n    .filter((task) => String(task.worker_alias || '').trim() === workerAlias)\n    .sort(sortByQueuedAt)\n\n  const queuedTasks = workerTasks.filter((task) => String(task.status || '').trim() === 'queued')\n  const activeTasks = workerTasks.filter((task) =>\n    ['running', 'needs_input'].includes(String(task.status || '').trim())\n  )\n\n  return {\n    json: {\n      workerAlias,\n      workerBaseUrl: String(workerConfig.baseUrl || '').trim(),\n      authorizationHeader: String(workerConfig.authorizationHeader || '').trim(),\n      sessionCreatePath: String(routing.endpoints?.sessionCreate || '').trim(),\n      messageListPath: String(routing.endpoints?.messageList || '').trim(),\n      questionListPath: String(routing.endpoints?.questionList || '').trim(),\n      questionReplyPath: String(routing.endpoints?.questionReply || '').trim(),\n      questionRejectPath: String(routing.endpoints?.questionReject || '').trim(),\n      permissionListPath: String(routing.endpoints?.permissionList || '').trim(),\n      permissionReplyPath: String(routing.endpoints?.permissionReply || '').trim(),\n      sessionStatusPath: String(routing.endpoints?.sessionStatus || '').trim(),\n      promptAsyncPath: String(routing.endpoints?.promptAsync || '').trim(),\n      opencodeAgent: String(routing.defaultAgent || 'build').trim(),\n      opencodeModel: parseModel(routing.defaultModel),\n      workerTasks,\n      queuedTasks,\n      queuedTasksCount: queuedTasks.length,\n      activeTasks,\n      activeTasksCount: activeTasks.length,\n    },\n  }\n})"
       },
       "id": "prepare-workers",
@@ -71,7 +68,7 @@
       "typeVersion": 2,
       "position": [
         896,
-        792
+        800
       ]
     },
     {
@@ -117,7 +114,6 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "language": "javaScript",
         "jsCode": "// Берём пакет данных текущего worker-а, который уже содержит только queued задачи\n// и количество активных задач этого worker-а.\nconst workerPackage = $('Готовим пакеты обработчиков').item.json\nconst queuedTasks = Array.isArray(workerPackage.queuedTasks) ? workerPackage.queuedTasks : []\nconst workerTasks = Array.isArray(workerPackage.workerTasks) ? workerPackage.workerTasks : []\n\n// Приоритет всегда у зависимых задач.\n// Если зависимых задач нет, берём самую раннюю обычную queued-задачу.\n// Зависимые задачи — только если родитель УЖЕ не в очереди (запущен/завершён)\nconst dependentTasks = queuedTasks.filter((task) => {\n  const parentKey = String(task.parent_task_key || '').trim()\n  if (!parentKey) return false\n  return !queuedTasks.some((t) => String(t.task_key || '').trim() === parentKey)\n})\nconst regularTasks = queuedTasks.filter((task) => !String(task.parent_task_key || '').trim())\nconst selectedTask = dependentTasks[0] || regularTasks[0] || null\n\nlet context = {}\ntry {\n  context = JSON.parse(String(selectedTask?.context_json || '{}'))\n} catch {\n  context = {}\n}\n\nconst chatId = String(selectedTask?.chat_id || '').trim()\nconst sessionHistory = workerTasks\n  .filter((task) => String(task.chat_id || '').trim() === chatId)\n  .filter((task) => String(task.session_id || '').trim())\n  .filter((task) => ['running', 'needs_input', 'done'].includes(String(task.status || '').trim()))\n\nconst latestSessionTask = sessionHistory[sessionHistory.length - 1] || null\nconst latestSessionId = String(latestSessionTask?.session_id || '').trim()\nconst newSessionRequested = Boolean(\n  context.newSessionRequested ||\n  context.flags?.['new-session'] ||\n  context.flags?.['new_session'] ||\n  context.flags?.['fresh-session'] ||\n  context.flags?.['fresh_session']\n)\n\nreturn {\n  json: {\n    task: selectedTask,\n    parentTaskKey: String(selectedTask?.parent_task_key || '').trim(),\n    parentMatchText: String(selectedTask?.parent_match_text || '').trim(),\n    promptText: String(selectedTask?.prompt || '').trim(),\n    latestSessionId,\n    createNewSession: newSessionRequested || !latestSessionId,\n  },\n}"
       },
       "id": "pick-task",
@@ -163,7 +159,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "rowExists",
         "dataTableId": {
           "mode": "id",
@@ -174,7 +169,6 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.parentTaskKey }}"
             }
           ]
@@ -186,13 +180,12 @@
       "typeVersion": 1.1,
       "position": [
         2016,
-        360
+        368
       ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "get",
         "dataTableId": {
           "mode": "id",
@@ -203,12 +196,10 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.parentTaskKey }}"
             }
           ]
         },
-        "returnAll": false,
         "limit": 1
       },
       "id": "get-parent-task",
@@ -217,7 +208,7 @@
       "typeVersion": 1.1,
       "position": [
         2240,
-        360
+        368
       ],
       "alwaysOutputData": true
     },
@@ -250,12 +241,11 @@
       "typeVersion": 2.2,
       "position": [
         2464,
-        360
+        368
       ]
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "update",
         "dataTableId": {
           "mode": "id",
@@ -266,7 +256,6 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}"
             }
           ]
@@ -289,7 +278,7 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2688,
+        2912,
         672
       ],
       "alwaysOutputData": true
@@ -308,7 +297,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2912,
+        3136,
         672
       ],
       "credentials": {
@@ -360,7 +349,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "update",
         "dataTableId": {
           "mode": "id",
@@ -371,7 +359,6 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}"
             }
           ]
@@ -497,7 +484,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "update",
         "dataTableId": {
           "mode": "id",
@@ -508,7 +494,6 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
             }
           ]
@@ -517,10 +502,174 @@
           "mappingMode": "defineBelow",
           "value": {
             "status": "={{ $('Завершение задачи').first().json.resultStatus }}",
-            "pending_question": "",
             "pending_options_json": "[]",
             "result_text": "={{ $('Завершение задачи').first().json.replyText }}"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "task_key",
+              "displayName": "task_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "context_json",
+              "displayName": "context_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "worker_alias",
+              "displayName": "worker_alias",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "command_name",
+              "displayName": "command_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "parent_task_key",
+              "displayName": "parent_task_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "parent_match_text",
+              "displayName": "parent_match_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "queued_at",
+              "displayName": "queued_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_question",
+              "displayName": "pending_question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_options_json",
+              "displayName": "pending_options_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "result_text",
+              "displayName": "result_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {
           "dryRun": false
@@ -589,13 +738,12 @@
       "typeVersion": 2.2,
       "position": [
         1120,
-        792
+        800
       ]
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "language": "javaScript",
         "jsCode": "// Выбираем первую активную задачу для текущего worker-а.\n// Из её context_json извлекаем:\n//   abortRequested — пользователь запросил прерывание\n//   latestSentId   — id последнего отправленного в Telegram сообщения (для дельты)\n\nconst workerPackage = $('Готовим пакеты обработчиков').item.json\nconst activeTasks = Array.isArray(workerPackage.activeTasks) ? workerPackage.activeTasks : []\nconst selectedTask = activeTasks[0] || null\n\nlet contextJson = {}\nlet abortRequested = false\nlet latestSentId = ''\nif (selectedTask) {\n  try {\n    contextJson = JSON.parse(String(selectedTask.context_json || '{}'))\n  } catch {}\n  abortRequested = contextJson.abortRequested === true\n  latestSentId = String(contextJson.latestSentId || '').trim()\n}\n\nreturn {\n  json: {\n    task: selectedTask,\n    taskStatus: String(selectedTask?.status || '').trim(),\n    sessionId: String(selectedTask?.session_id || '').trim(),\n    pendingQuestion: String(selectedTask?.pending_question || '').trim(),\n    pendingOptionsJson: String(selectedTask?.pending_options_json || '[]'),\n    abortRequested,\n    contextJson,\n    latestSentId,\n  },\n}"
       },
       "id": "pick-active-task",
@@ -604,7 +752,7 @@
       "typeVersion": 2,
       "position": [
         1344,
-        1128
+        1136
       ]
     },
     {
@@ -614,7 +762,6 @@
           "value": "900012",
           "mode": "id"
         },
-        "mode": "runOnceForEachItem",
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -626,6 +773,7 @@
             "taskKey": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}"
           }
         },
+        "mode": "runOnceForEachItem",
         "options": {}
       },
       "id": "exec-session",
@@ -641,7 +789,6 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "language": "javaScript",
         "jsCode": "// Копируем sessionId и launchError от менеджера сессий в отдельные поля,\n// чтобы exec-launch мог ссылаться на них без проблем paired-item цепочки.\n\nconst sessionOutput = $('Управление сессией').first().json\n\nreturn {\n  json: {\n    sessionId: String(sessionOutput.sessionId || '').trim(),\n    launchError: String(sessionOutput.launchError || '').trim(),\n  },\n}"
       },
       "id": "capture-session-result",
@@ -660,7 +807,6 @@
           "value": "900013",
           "mode": "id"
         },
-        "mode": "runOnceForEachItem",
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -677,6 +823,7 @@
             "opencodeModelModelID": "={{ $('Готовим пакеты обработчиков').item.json.opencodeModel?.modelID }}"
           }
         },
+        "mode": "runOnceForEachItem",
         "options": {}
       },
       "id": "exec-launch",
@@ -696,7 +843,6 @@
           "value": "900014",
           "mode": "id"
         },
-        "mode": "runOnceForEachItem",
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -715,8 +861,149 @@
             "permissionReplyPath": "={{ $('Готовим пакеты обработчиков').item.json.permissionReplyPath }}",
             "abortRequested": "={{ $('Выбираем активную задачу').first().json.abortRequested }}",
             "contextJson": "={{ JSON.stringify($('Выбираем активную задачу').first().json.contextJson) }}"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "taskKey",
+              "displayName": "taskKey",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "taskStatus",
+              "displayName": "taskStatus",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "pendingQuestion",
+              "displayName": "pendingQuestion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "pendingOptionsJson",
+              "displayName": "pendingOptionsJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "workerBaseUrl",
+              "displayName": "workerBaseUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "authorizationHeader",
+              "displayName": "authorizationHeader",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "questionListPath",
+              "displayName": "questionListPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "questionReplyPath",
+              "displayName": "questionReplyPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "questionRejectPath",
+              "displayName": "questionRejectPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "permissionListPath",
+              "displayName": "permissionListPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "permissionReplyPath",
+              "displayName": "permissionReplyPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "abortRequested",
+              "displayName": "abortRequested",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "contextJson",
+              "displayName": "contextJson",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
         },
+        "mode": "runOnceForEachItem",
         "options": {}
       },
       "id": "exec-interaction",
@@ -725,7 +1012,7 @@
       "typeVersion": 1.3,
       "position": [
         1568,
-        1128
+        1136
       ],
       "alwaysOutputData": true
     },
@@ -736,7 +1023,6 @@
           "value": "900015",
           "mode": "id"
         },
-        "mode": "runOnceForEachItem",
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
@@ -748,7 +1034,84 @@
             "sessionStatusPath": "={{ $('Готовим пакеты обработчиков').item.json.sessionStatusPath }}",
             "messageListPath": "={{ $('Готовим пакеты обработчиков').item.json.messageListPath }}",
             "latestSentId": "={{ $('Выбираем активную задачу').first().json.latestSentId }}"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "taskKey",
+              "displayName": "taskKey",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "workerBaseUrl",
+              "displayName": "workerBaseUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "authorizationHeader",
+              "displayName": "authorizationHeader",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "sessionStatusPath",
+              "displayName": "sessionStatusPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "messageListPath",
+              "displayName": "messageListPath",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "latestSentId",
+              "displayName": "latestSentId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
         },
         "options": {}
       },
@@ -758,7 +1121,7 @@
       "typeVersion": 1.3,
       "position": [
         2240,
-        1128
+        1136
       ],
       "alwaysOutputData": true
     },
@@ -788,7 +1151,6 @@
     },
     {
       "parameters": {
-        "resource": "row",
         "operation": "update",
         "dataTableId": {
           "mode": "id",
@@ -799,7 +1161,6 @@
           "conditions": [
             {
               "keyName": "task_key",
-              "condition": "eq",
               "keyValue": "={{ $('Завершение задачи').first().json.taskKey }}"
             }
           ]
@@ -808,7 +1169,172 @@
           "mappingMode": "defineBelow",
           "value": {
             "context_json": "={{ JSON.stringify({ latestSentId: String($('Завершение задачи').first().json.latestSentId || '').trim() }) }}"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "task_key",
+              "displayName": "task_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "context_json",
+              "displayName": "context_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "username",
+              "displayName": "username",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "worker_alias",
+              "displayName": "worker_alias",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "command_name",
+              "displayName": "command_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "parent_task_key",
+              "displayName": "parent_task_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "parent_match_text",
+              "displayName": "parent_match_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "queued_at",
+              "displayName": "queued_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_question",
+              "displayName": "pending_question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pending_options_json",
+              "displayName": "pending_options_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "result_text",
+              "displayName": "result_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {
           "dryRun": false
@@ -820,7 +1346,7 @@
       "typeVersion": 1.1,
       "position": [
         3136,
-        1224
+        1232
       ],
       "alwaysOutputData": true
     },
@@ -886,7 +1412,7 @@
       "typeVersion": 2.2,
       "position": [
         2464,
-        1128
+        1136
       ]
     },
     {
@@ -918,18 +1444,10 @@
       "typeVersion": 2.2,
       "position": [
         2688,
-        1224
+        1232
       ]
     },
     {
-      "id": "if-reply-error",
-      "name": "Есть ошибка ответа?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1792,
-        1128
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -951,7 +1469,15 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "if-reply-error",
+      "name": "Есть ошибка ответа?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        1136
+      ]
     },
     {
       "parameters": {
@@ -983,12 +1509,203 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2764,
-        460
+        2688,
+        672
       ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__CHAT_SETTINGS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "get-chat-settings-1",
+      "name": "Читаем настройки чата",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3136,
+        1040
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.auto_mode }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-auto-mode-1",
+      "name": "Авто-режим включён?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3360,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "__AUTO_GENERATOR_WORKFLOW_ID__",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
+            "completed_task_key": "={{ $('Выбираем активную задачу').first().json.task.task_key }}",
+            "completed_prompt": "={{ $('Выбираем активную задачу').first().json.task.prompt }}",
+            "completed_result": "={{ $('Завершение задачи').first().json.replyText }}"
+          }
+        },
+        "mode": "runOnceForEachItem"
+      },
+      "id": "exec-auto-generator-1",
+      "name": "Авто-генератор задач",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3584,
+        1040
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__CHAT_SETTINGS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "get-chat-settings-2",
+      "name": "Читаем настройки для авто-режима",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        1136
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Читаем настройки для авто-режима').first().json.auto_mode }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "leftValue": "={{ $('Выбираем активную задачу').first().json.taskStatus }}",
+              "rightValue": "needs_input",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}",
+              "rightValue": "[]",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-auto-mode-needs-input",
+      "name": "Авто-режим AND нужен ответ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        1136
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "__AUTO_GENERATOR_WORKFLOW_ID__",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
+            "completed_task_key": "={{ $('Выбираем активную задачу').first().json.task.task_key }}",
+            "completed_prompt": "={{ $('Выбираем активную задачу').first().json.task.prompt }}",
+            "pending_question": "={{ $('Выбираем активную задачу').first().json.pendingQuestion }}",
+            "is_needs_input": true,
+            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}"
+          }
+        },
+        "mode": "runOnceForEachItem"
+      },
+      "id": "exec-auto-generator-2",
+      "name": "Авто-генератор ответа",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2016,
+        1136
+      ],
+      "alwaysOutputData": true
     }
   ],
-  "pinData": {},
   "connections": {
     "Триггер по расписанию": {
       "main": [
@@ -1079,7 +1796,7 @@
       "main": [
         [
           {
-            "node": "Обработка интеракций",
+            "node": "Читаем настройки для авто-режима",
             "type": "main",
             "index": 0
           }
@@ -1370,13 +2087,74 @@
       "main": [
         []
       ]
+    },
+    "Отправляем результат в Telegram": {
+      "main": [
+        [
+          {
+            "node": "Читаем настройки чата",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Читаем настройки чата": {
+      "main": [
+        [
+          {
+            "node": "Авто-режим включён?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Авто-режим включён?": {
+      "main": [
+        [
+          {
+            "node": "Авто-генератор задач",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Читаем настройки для авто-режима": {
+      "main": [
+        [
+          {
+            "node": "Авто-режим AND нужен ответ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Авто-режим AND нужен ответ?": {
+      "main": [
+        [
+          {
+            "node": "Авто-генератор ответа",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Обработка интеракций",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate"
+    "binaryMode": "separate",
+    "availableInMCP": true
   },
-  "id": "900011",
-  "tags": []
+  "active": false
 }

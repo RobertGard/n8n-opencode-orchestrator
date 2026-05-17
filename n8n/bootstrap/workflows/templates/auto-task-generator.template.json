@@ -1,0 +1,284 @@
+{
+  "name": "Авто-генератор задач",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trig",
+      "name": "Триггер: вызов из диспетчера",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [320, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "max-tasks", "name": "maxTasksToFetch", "value": 5, "type": "number"},
+            {"id": "max-result", "name": "maxResultLength", "value": 500, "type": "number"},
+            {"id": "max-context", "name": "maxContextItems", "value": 6, "type": "number"},
+            {"id": "min-prompt", "name": "minPromptLength", "value": 5, "type": "number"},
+            {"id": "answer-prompt", "name": "promptAnswerSystem", "value": "Ты — автономный агент, отвечающий на вопросы OpenCode. Ты не решаешь задачи — ты фасилитируешь диалог.\n\nПравила:\n1. Внимательно прочитай вопрос и контекст задачи\n2. Если OpenCode запрашивает конкретную команду или действие (например gsd, docker, bash) — отправь эту команду как ответ\n3. Если OpenCode ждёт ответ с выбором из вариантов — выбери наиболее подходящий. Не задавай встречных вопросов — OpenCode уже ждёт решения\n4. Если OpenCode сообщает о проблеме — спроси уточнения, а не предлагай решение\n5. Не давай готовых решений. Твоя роль — направить OpenCode, а не сделать работу за него\n6. Будь дотошным: переспрашивай, уточняй, не принимай поверхностных ответов\n\nОтвечай ТОЛЬКО валидным JSON, без markdown-разметки:\n{\"answer\": \"твой уточняющий вопрос, выбранный вариант или команда\"}", "type": "string"},
+            {"id": "planner-prompt", "name": "promptPlannerSystem", "value": "Ты — дотошный агент планирования. Твоя задача — проанализировать историю выполненных задач и предложить следующую.\n\nПравила:\n1. Внимательно изучи последнюю выполненную задачу и её результат\n2. Отнесись критически: всё ли сделано правильно? Не упущены ли детали?\n3. Если видишь потенциальные проблемы — предложи задачу на их исправление\n4. Если работа завершена — предложи улучшение: тесты, документация, рефакторинг, оптимизация\n5. Будь дотошным: перепроверяй, задавай уточняющие вопросы через формулировку задачи\n6. Формулируй задачу конкретно и выполнимо за один шаг\n7. Не переусердствуй: если всё действительно хорошо — предложи логичное продолжение, а не искусственные доработки\n\nОтвечай ТОЛЬКО валидным JSON, без markdown-разметки:\n{\"prompt\": \"конкретное описание следующей задачи\"}", "type": "string"},
+            {"id": "worker", "name": "workerAlias", "value": "primary", "type": "string"}
+          ]
+        },
+        "options": {}
+      },
+      "id": "config",
+      "name": "Конфигурация авто-генератора",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [560, 400]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "returnAll": false,
+        "limit": "={{ $('Конфигурация авто-генератора').first().json.maxTasksToFetch }}",
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {"keyName": "chat_id", "keyValue": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}"},
+            {"keyName": "status", "keyValue": "done"}
+          ]
+        },
+        "orderBy": true,
+        "orderByColumn": "queued_at",
+        "orderByDirection": "DESC"
+      },
+      "id": "get-tasks",
+      "name": "Получаем историю задач",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [800, 400],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Защита: если Set-нода недоступна — используем defaults\nconst config = (() => {\n  try { return $('Конфигурация авто-генератора').first().json; } catch (_) {\n    return { maxResultLength: 500, maxContextItems: 6, minPromptLength: 5,\n             promptAnswerSystem: 'Отвечай JSON: {\"answer\": \"...\"}',\n             promptPlannerSystem: 'Отвечай JSON: {\"prompt\": \"...\"}' };\n  }\n})();\n\nconst toText = (v) => String(v ?? '').trim();\nconst cleanText = (v, max) => toText(v).replace(/\\s+/g, ' ').slice(0, max ?? config.maxResultLength);\n\n// Данные из диспетчера (защита от null)\nconst input = (() => {\n  try { return $('Получаем историю задач').first().json; } catch (_) { return {}; }\n})();\n\n// История задач: может быть пустой при первом запуске\nlet recentTasks = [];\ntry { recentTasks = $('Получаем историю задач').all().map(({ json }) => json); } catch (_) {}\n\nconst completedKey = input.completed_task_key || '';\nconst context = [\n  { prompt: cleanText(input.completed_prompt), result: cleanText(input.completed_result), status: 'done' },\n  ...recentTasks\n    .filter((t) => String(t.task_key ?? '') !== completedKey)\n    .map((t) => ({\n      prompt: cleanText(t.prompt),\n      result: cleanText(t.result_text),\n      status: toText(t.status),\n    })),\n].slice(0, config.maxContextItems);\n\n// is_needs_input приходит из диспетчера: true = отвечаем на вопрос, false = предлагаем задачу\nconst needsInput = input.is_needs_input === true || input.is_needs_input === 'true';\n\nconst PROMPTS = {\n  true: {\n    system: config.promptAnswerSystem || 'Отвечай JSON: {\"answer\": \"...\"}',\n    user: `Вопрос: ${cleanText(input.pending_question)}\\n\\nКонтекст: ${cleanText(input.completed_prompt)}`,\n  },\n  false: {\n    system: config.promptPlannerSystem || 'Отвечай JSON: {\"prompt\": \"...\"}',\n    user: `История задач:\\n\\n${context.map((t, i) => `${i + 1}. ${t.prompt}\\n   Результат: ${t.result}`).join('\\n\\n') || 'Нет истории'}\\n\\nПредложи следующую задачу.`,\n  },\n};\n\nconst prompt = PROMPTS[String(needsInput)] || PROMPTS.false;\n\nreturn {\n  json: {\n    is_needs_input: needsInput,\n    lastTaskKey: input.completed_task_key,\n    chatId: input.chat_id,\n    pendingOptionsJson: input.pending_options_json || '{}',\n    systemPrompt: prompt.system,\n    userPrompt: prompt.user,\n  },\n};"
+      },
+      "id": "build-ctx",
+      "name": "Формируем контекст для агента",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1040, 400]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Формируем контекст для агента').first().json.userPrompt }}",
+        "options": {"systemMessage": "={{ $('Формируем контекст для агента').first().json.systemPrompt }}"}
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [1280, 400]
+    },
+    {
+      "parameters": {"options": {}},
+      "id": "ds-model",
+      "name": "DeepSeek Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [1280, 560],
+      "credentials": {
+        "deepSeekApi": {
+          "id": "__DEEPSEEK_CREDENTIAL_ID__",
+          "name": "__DEEPSEEK_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const toText = (v) => String(v ?? '').trim();\n\n// Защита: AI Agent может не вернуть данных\nlet rawOutput = {};\ntry { rawOutput = $('AI Agent').first().json; } catch (_) {}\nconst content = toText(rawOutput.output ?? rawOutput.text ?? '');\n\nif (!content) {\n  return { json: { error: 'AI вернул пустой ответ' } };\n}\n\n// Извлекаем JSON из ответа AI с учётом вложенных скобок и строк\nfunction extractJson(text) {\n  // 1. Строгий парсинг после удаления markdown-обёртки\n  const stripped = text.replace(/```(?:json)?\\n?/g, '').replace(/```/g, '').trim();\n  try { return JSON.parse(stripped); } catch (_) {}\n\n  // 2. Ищем top-level { ... } — посимвольно, с учётом строк и escape\n  const start = text.indexOf('{');\n  if (start === -1) return null;\n  let depth = 0, inString = false, escape = false;\n  for (let i = start; i < text.length; i++) {\n    const ch = text[i];\n    if (escape) { escape = false; continue; }\n    if (ch === '\\\\') { escape = true; continue; }\n    if (ch === '\"') { inString = !inString; continue; }\n    if (inString) continue;\n    if (ch === '{') depth++;\n    if (ch === '}') {\n      depth--;\n      if (depth === 0) {\n        try { return JSON.parse(text.slice(start, i + 1)); } catch (_) { return null; }\n      }\n    }\n  }\n  return null;\n}\n\nconst parsed = extractJson(content);\nif (!parsed) {\n  return { json: { error: 'Не удалось извлечь JSON из ответа AI', content: content.slice(0, 200) } };\n}\n\nreturn { json: { parsed } };"
+      },
+      "id": "extract-json",
+      "name": "Извлекаем JSON из ответа",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Защита: fallback-конфиг если Set-нода недоступна\nconst config = (() => {\n  try { return $('Конфигурация авто-генератора').first().json; } catch (_) {\n    return { minPromptLength: 5 };\n  }\n})();\n\nconst toText = (v) => String(v ?? '').trim();\n\nconst ctxInput = (() => {\n  try { return $('Формируем контекст для агента').first().json; } catch (_) { return {}; }\n})();\n\n// is_needs_input приходит из диспетчера: true = отвечаем, false = предлагаем задачу\nconst needsInput = ctxInput.is_needs_input === true;\n\nlet data = null;\ntry { data = $('Извлекаем JSON из ответа').first().json.parsed; } catch (_) {}\n\nif (!data) {\n  return { json: { error: 'Нет данных для валидации' } };\n}\n\nif (needsInput) {\n  // Ответ на вопрос — ожидаем поле answer\n  const answer = toText(data.answer);\n  if (!answer) {\n    return { json: { error: 'AI вернул пустой ответ на вопрос' } };\n  }\n  let opts = {};\n  try { opts = JSON.parse(ctxInput.pendingOptionsJson || '{}'); } catch (_) {}\n  opts.answers = [answer];\n  return {\n    json: {\n      is_needs_input: true,\n      answer,\n      pendingOptionsJson: JSON.stringify(opts),\n      taskKey: ctxInput.lastTaskKey || '',\n      chatId: ctxInput.chatId || '',\n    },\n  };\n}\n\n// Новая задача — ожидаем поле prompt\nconst prompt = toText(data.prompt);\nif (typeof data.prompt !== 'string' || prompt.length < (config.minPromptLength || 5)) {\n  return { json: { error: prompt ? 'AI вернул слишком короткий prompt' : 'AI вернул пустой prompt' } };\n}\nreturn {\n  json: {\n    is_needs_input: false,\n    prompt,\n    lastTaskKey: ctxInput.lastTaskKey || '',\n    chatId: ctxInput.chatId || '',\n  },\n};"
+      },
+      "id": "validate",
+      "name": "Валидируем ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1760, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "typeValidation": "strict", "version": 2},
+          "conditions": [
+            {"leftValue": "={{ $('Валидируем ответ').first().json.error }}", "rightValue": "", "operator": {"type": "string", "operation": "notEmpty"}}
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-err",
+      "name": "Есть ошибка?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {"caseSensitive": true, "typeValidation": "strict", "version": 2},
+          "conditions": [
+            {"leftValue": "={{ $('Валидируем ответ').first().json.is_needs_input }}", "rightValue": true, "operator": {"type": "boolean", "operation": "true", "singleValue": true}}
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-answer",
+      "name": "Это ответ или задача?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2240, 400]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {"keyName": "task_key", "keyValue": "={{ $('Валидируем ответ').first().json.taskKey }}"},
+            {"keyName": "status", "keyValue": "needs_input"}
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_options_json": "={{ $('Валидируем ответ').first().json.pendingOptionsJson }}"
+          }
+        }
+      },
+      "id": "upd-answer",
+      "name": "Сохраняем ответ в ожидающую задачу",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [2480, 240],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "task_key": "={{ 'auto-' + new Date().getTime().toString(36) + '-' + Math.random().toString(36).substring(2, 8) }}",
+            "source": "auto",
+            "chat_id": "={{ $('Валидируем ответ').first().json.chatId }}",
+            "worker_alias": "={{ $('Конфигурация авто-генератора').first().json.workerAlias }}",
+            "command_name": "task",
+            "prompt": "={{ $('Валидируем ответ').first().json.prompt }}",
+            "status": "queued",
+            "parent_task_key": "={{ $('Валидируем ответ').first().json.lastTaskKey }}",
+            "context_json": "={{ JSON.stringify({ autoGenerated: true, source: 'auto-generator', parentTaskKey: $('Валидируем ответ').first().json.lastTaskKey, schemaVersion: 1 }) }}",
+            "queued_at": "={{ new Date().toISOString() }}"
+          }
+        }
+      },
+      "id": "ins-task",
+      "name": "Записываем задачу в БД",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [2480, 480],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
+        "text": "=🤖 Авто-задача: {{ $('Валидируем ответ').first().json.prompt }}\n\n/task --auto_mode=\"false\" — выключить авто-режим",
+        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+      },
+      "id": "notify-task",
+      "name": "Уведомляем о новой задаче",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2720, 480],
+      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
+        "text": "=🤖 Авто-ответ: {{ $('Валидируем ответ').first().json.answer }}",
+        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+      },
+      "id": "notify-answer",
+      "name": "Уведомляем об ответе",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2720, 240],
+      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
+        "text": "=⚠️ Ошибка авто-генератора: {{ $('Валидируем ответ').first().json.error }}",
+        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+      },
+      "id": "notify-err",
+      "name": "Сообщаем об ошибке генерации",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2240, 640],
+      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+    }
+  ],
+  "connections": {
+    "Триггер: вызов из диспетчера": {
+      "main": [[{"node": "Конфигурация авто-генератора", "type": "main", "index": 0}]]
+    },
+    "Конфигурация авто-генератора": {
+      "main": [[{"node": "Получаем историю задач", "type": "main", "index": 0}]]
+    },
+    "Получаем историю задач": {
+      "main": [[{"node": "Формируем контекст для агента", "type": "main", "index": 0}]]
+    },
+    "Формируем контекст для агента": {
+      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+    },
+    "AI Agent": {
+      "main": [[{"node": "Извлекаем JSON из ответа", "type": "main", "index": 0}]]
+    },
+    "Извлекаем JSON из ответа": {
+      "main": [[{"node": "Валидируем ответ", "type": "main", "index": 0}]]
+    },
+    "Валидируем ответ": {
+      "main": [[{"node": "Есть ошибка?", "type": "main", "index": 0}]]
+    },
+    "Есть ошибка?": {
+      "main": [
+        [{"node": "Сообщаем об ошибке генерации", "type": "main", "index": 0}],
+        [{"node": "Это ответ или задача?", "type": "main", "index": 0}]
+      ]
+    },
+    "Это ответ или задача?": {
+      "main": [
+        [{"node": "Сохраняем ответ в ожидающую задачу", "type": "main", "index": 0}],
+        [{"node": "Записываем задачу в БД", "type": "main", "index": 0}]
+      ]
+    },
+    "Сохраняем ответ в ожидающую задачу": {
+      "main": [[{"node": "Уведомляем об ответе", "type": "main", "index": 0}]]
+    },
+    "Записываем задачу в БД": {
+      "main": [[{"node": "Уведомляем о новой задаче", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "id": "900016",
+  "active": false
+}

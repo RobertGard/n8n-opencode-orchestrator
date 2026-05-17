@@ -10,8 +10,10 @@ SESSION_MGR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/session-mana
 TASK_LAUNCHER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-launcher.template.json"
 PENDING_INTERACTION_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/pending-interaction.template.json"
 TASK_FINALIZER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-finalizer.template.json"
+AUTO_GENERATOR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/auto-task-generator.template.json"
 ROUTING_FILE="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
 TASKS_TABLE_NAME="agent_tasks"
+CHAT_SETTINGS_TABLE_NAME="chat_settings"
 STATE_FILE="${ROOT_DIR}/.n8n-bootstrap-state.json"
 INGRESS_WORKFLOW_NAME="Постановка задач через Telegram"
 DISPATCH_WORKFLOW_NAME="Диспетчер задач Telegram"
@@ -19,6 +21,9 @@ SESSION_MGR_WORKFLOW_NAME="Менеджер сессий"
 TASK_LAUNCHER_WORKFLOW_NAME="Запуск задачи"
 PENDING_INTERACTION_WORKFLOW_NAME="Обработка интеракций"
 TASK_FINALIZER_WORKFLOW_NAME="Завершение задачи"
+AUTO_GENERATOR_WORKFLOW_NAME="Авто-генератор задач"
+TELEGRAM_CREDENTIAL_NAME="Telegram Bot"
+DEEPSEEK_CREDENTIAL_NAME="DeepSeek API"
 INGRESS_WORKFLOW_TEMP=""
 DISPATCH_WORKFLOW_TEMP=""
 
@@ -125,17 +130,27 @@ render_template() {
   local cred_name="$4"
   local table_id="$5"
   local opencode_routing_json_escaped="$6"
+  local auto_generator_wf_id="${7:-900016}"
+  local chat_settings_table_id="${8:-}"
+  local deepseek_cred_id="${9:-}"
   local cred_id_escaped="${cred_id//|/\\|}"
   local cred_name_escaped="${cred_name//|/\\|}"
   local table_id_escaped="${table_id//|/\\|}"
   local telegram_chat_id_escaped="${TELEGRAM_CHAT_ID//|/\\|}"
+  local auto_gen_id_escaped="${auto_generator_wf_id//|/\\|}"
+  local chat_settings_table_escaped="${chat_settings_table_id//|/\\|}"
+  local deepseek_cred_escaped="${deepseek_cred_id//|/\\|}"
   local opencode_routing_json_sed_escaped="${opencode_routing_json_escaped//\\/\\\\}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//&/\\&}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//|/\\|}"
   sed \
     -e "s|__TELEGRAM_CREDENTIAL_ID__|${cred_id_escaped}|g" \
     -e "s|__TELEGRAM_CREDENTIAL_NAME__|${cred_name_escaped}|g" \
+    -e "s|__DEEPSEEK_CREDENTIAL_ID__|${deepseek_cred_escaped}|g" \
+    -e "s|__DEEPSEEK_CREDENTIAL_NAME__|${DEEPSEEK_CREDENTIAL_NAME}|g" \
     -e "s|__TASKS_TABLE_ID__|${table_id_escaped}|g" \
+    -e "s|__CHAT_SETTINGS_TABLE_ID__|${chat_settings_table_escaped}|g" \
+    -e "s|__AUTO_GENERATOR_WORKFLOW_ID__|${auto_gen_id_escaped}|g" \
     -e "s|__TELEGRAM_CHAT_ID__|${telegram_chat_id_escaped}|g" \
     -e "s|__OPENCODE_ROUTING_JSON__|${opencode_routing_json_sed_escaped}|g" \
     "$input" > "$output"
@@ -254,6 +269,36 @@ fi
 
 log_ok "Telegram credential готов: ${credential_id}"
 
+# DeepSeek credential (для AI Agent)
+deepseek_credential_id=""
+if [ -f "$STATE_FILE" ]; then
+  deepseek_credential_id="$(jq -r '.deepseekCredentialId // empty' "$STATE_FILE" 2>/dev/null || true)"
+  if [ -n "$deepseek_credential_id" ]; then
+    if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials/${deepseek_credential_id}" >/dev/null 2>&1; then
+      log_warn "DeepSeek credential ${deepseek_credential_id} не найден в n8n. Создам новый."
+      deepseek_credential_id=""
+    fi
+  fi
+fi
+
+if [ -z "$deepseek_credential_id" ]; then
+  if [ -n "${DEEPSEEK_API_KEY:-}" ]; then
+    log_info 'Создаю DeepSeek credential в n8n.'
+    if ! deepseek_credential_id="$(curl -fsS \
+      -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
+      -H 'Content-Type: application/json' \
+      -X POST \
+      -d "{\"name\":\"${DEEPSEEK_CREDENTIAL_NAME}\",\"type\":\"deepSeekApi\",\"nodesAccess\":[{\"nodeType\":\"@n8n/n8n-nodes-langchain.lmChatDeepSeek\"}],\"data\":{\"apiKey\":\"${DEEPSEEK_API_KEY}\"}}" \
+      "${N8N_URL}/api/v1/credentials" | jq -r '.data.id // .id')"; then
+      log_warn 'Не удалось создать DeepSeek credential в n8n — AI Agent не будет работать.'
+    else
+      log_ok "DeepSeek credential готов: ${deepseek_credential_id}"
+    fi
+  else
+    log_warn 'DEEPSEEK_API_KEY не задан — AI Agent не будет работать.'
+  fi
+fi
+
 step_start 'Сохраняю bootstrap state и рендерю workflow'
 
 opencode_routing_json="$(render_opencode_routing_json)"
@@ -264,15 +309,38 @@ SESSION_MGR_WORKFLOW_TEMP="$(mktemp)"
 TASK_LAUNCHER_WORKFLOW_TEMP="$(mktemp)"
 PENDING_INTERACTION_WORKFLOW_TEMP="$(mktemp)"
 TASK_FINALIZER_WORKFLOW_TEMP="$(mktemp)"
+AUTO_GENERATOR_WORKFLOW_TEMP="$(mktemp)"
 
-printf '{"telegramCredentialId":"%s","tasksTableId":"%s"}\n' "$credential_id" "$tasks_table_id" > "$STATE_FILE"
+# Создаём таблицу chat_settings если ещё нет
+chat_settings_table_id=""
+if [ -n "${N8N_API_KEY:-}" ] && [ -n "${N8N_URL:-}" ]; then
+  existing_table="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/data-tables" 2>/dev/null | jq -r --arg name "$CHAT_SETTINGS_TABLE_NAME" '.data // . // [] | map(select(.name == $name)) | first | .id // empty')"
+  if [ -z "$existing_table" ]; then
+    log_info "Создаю data table: ${CHAT_SETTINGS_TABLE_NAME}"
+    chat_settings_table_id="$(curl -fsS -X POST \
+      -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
+      -H "Content-Type: application/json" \
+      -d "{\"name\":\"${CHAT_SETTINGS_TABLE_NAME}\",\"columns\":[{\"name\":\"chat_id\",\"type\":\"string\"},{\"name\":\"auto_mode\",\"type\":\"boolean\",\"default\":false}]}" \
+      "${N8N_URL}/api/v1/data-tables" 2>/dev/null | jq -r '.id')"
+    log_ok "Data table ${CHAT_SETTINGS_TABLE_NAME} создана: ${chat_settings_table_id}"
+  else
+    chat_settings_table_id="$existing_table"
+    log_info "Data table ${CHAT_SETTINGS_TABLE_NAME} уже существует: ${chat_settings_table_id}"
+  fi
+fi
 
-render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
-render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+printf '{"telegramCredentialId":"%s","deepseekCredentialId":"%s","tasksTableId":"%s","chatSettingsTableId":"%s"}\n' \
+  "$credential_id" "${deepseek_credential_id:-}" "$tasks_table_id" "${chat_settings_table_id:-}" > "$STATE_FILE"
+
+auto_generator_workflow_id="900016"
+
+render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id"
+render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id"
 render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
 render_template "$TASK_LAUNCHER_TEMPLATE" "$TASK_LAUNCHER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
 render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
 render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}"
 
 log_ok 'Временные workflow-файлы подготовлены.'
 
@@ -281,7 +349,8 @@ step_start 'Импортирую workflow в n8n'
 # Удаляем существующие workflow с теми же именами перед импортом, чтобы избежать дубликатов
 for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
                "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
-               "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME"; do
+               "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
+               "$AUTO_GENERATOR_WORKFLOW_NAME"; do
   existing_ids="$(curl -fsS \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     "${N8N_URL}/api/v1/workflows" | jq -r --arg name "$wf_name" '.data // . // [] | map(select(.name == $name)) | .[].id')"
@@ -299,6 +368,7 @@ import_workflow_from_host_file "$SESSION_MGR_WORKFLOW_TEMP" 'session-manager.jso
 import_workflow_from_host_file "$TASK_LAUNCHER_WORKFLOW_TEMP" 'task-launcher.json'
 import_workflow_from_host_file "$PENDING_INTERACTION_WORKFLOW_TEMP" 'pending-interaction.json'
 import_workflow_from_host_file "$TASK_FINALIZER_WORKFLOW_TEMP" 'task-finalizer.json'
+import_workflow_from_host_file "$AUTO_GENERATOR_WORKFLOW_TEMP" 'auto-task-generator.json'
 
 ingress_workflow_id="$(workflow_id_by_name "$INGRESS_WORKFLOW_NAME")"
 dispatch_workflow_id="$(workflow_id_by_name "$DISPATCH_WORKFLOW_NAME")"
@@ -347,10 +417,15 @@ fi
 # Активируем sub-workflow ПЕРВЫМИ — n8n 2.x требует чтобы все зависимые workflow были активны
 log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
 for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
-               "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME"; do
+               "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
+               "$AUTO_GENERATOR_WORKFLOW_NAME"; do
   sub_wf_id="$(workflow_id_by_name "$wf_name")"
   if [ -z "$sub_wf_id" ]; then
     die "Не удалось найти sub-workflow по имени: ${wf_name}"
+  fi
+  if [ "$wf_name" = "$AUTO_GENERATOR_WORKFLOW_NAME" ] && [ -z "${deepseek_credential_id:-}" ]; then
+    log_warn "Авто-генератор задач импортирован, но не активирован — нет DeepSeek кредов. Добавь креды в n8n UI и активируй вручную."
+    continue
   fi
   activate_and_verify "$sub_wf_id" "$wf_name"
 done

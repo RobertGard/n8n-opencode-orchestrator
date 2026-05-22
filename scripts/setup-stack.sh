@@ -342,7 +342,7 @@ prompt_for_n8n_api_key_if_needed() {
 
   # N8N_API_KEY задан — проверяем, не протух ли он после docker compose down -v
   local http_code
-  http_code="$(curl -fsS -o /dev/null -w '%{http_code}' --connect-timeout 5 -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${n8n_api_url}/api/v1/credentials" 2>/dev/null)" || http_code="000"
+  http_code="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${n8n_api_url}/api/v1/credentials" 2>/dev/null)" || http_code="000"
 
   case "$http_code" in
     200)
@@ -361,7 +361,7 @@ prompt_for_n8n_api_key_if_needed() {
           break
         fi
         local recheck_code
-        recheck_code="$(curl -fsS -o /dev/null -w '%{http_code}' --connect-timeout 5 -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${n8n_api_url}/api/v1/credentials" 2>/dev/null)" || recheck_code="000"
+        recheck_code="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${n8n_api_url}/api/v1/credentials" 2>/dev/null)" || recheck_code="000"
         if [ "$recheck_code" = "200" ]; then
           upsert_env_value N8N_API_KEY "$N8N_API_KEY"
           log_ok 'N8N_API_KEY обновлён и подтверждён.'

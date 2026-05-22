@@ -26,6 +26,11 @@ TELEGRAM_CREDENTIAL_NAME="Telegram Bot"
 DEEPSEEK_CREDENTIAL_NAME="DeepSeek API"
 INGRESS_WORKFLOW_TEMP=""
 DISPATCH_WORKFLOW_TEMP=""
+SESSION_MGR_WORKFLOW_TEMP=""
+TASK_LAUNCHER_WORKFLOW_TEMP=""
+PENDING_INTERACTION_WORKFLOW_TEMP=""
+TASK_FINALIZER_WORKFLOW_TEMP=""
+AUTO_GENERATOR_WORKFLOW_TEMP=""
 
 log_info() {
   printf '[INFO] %s\n' "$1"
@@ -257,7 +262,7 @@ fi
 
 log_info 'Проверяю актуальность N8N_API_KEY...'
 while true; do
-  validate_http_code="$(curl -fsS -o /dev/null -w '%{http_code}' -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" 2>/dev/null)" || validate_http_code="000"
+  validate_http_code="$(curl -sS -o /dev/null -w '%{http_code}' -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" 2>/dev/null)" || validate_http_code="000"
   case "$validate_http_code" in
     200)
       log_ok 'N8N_API_KEY актуален'

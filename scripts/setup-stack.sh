@@ -780,9 +780,12 @@ recover_existing_configuration() {
       repo_ref="$(read_example_repo_value "$example_src" '.repos[0].ref' 'main')"
       repo_path="$(read_example_repo_value "$example_src" '.repos[0].path' '')"
 
-      if [ -z "$repo_slug" ] || [ "$repo_slug" = "example-project" ] || [ -z "$repo_url" ] || [ "$repo_url" = "https://github.com/example/example"* ]; then
-        repo_slug="$(ask_required "Slug репозитория для ${worker_name}" "${repo_slug:-}")" 
-        repo_url="$(ask_required "Git URL репозитория для ${worker_name}" "${repo_url:-}")"
+      if is_placeholder_repo_value "$repo_slug" || is_placeholder_repo_value "$repo_url"; then
+        repo_slug="$(ask_required "Slug репозитория для ${worker_name}" "")"
+        repo_url="$(ask_required "Git URL репозитория для ${worker_name}" "")"
+      else
+        repo_slug="$(ask "Slug репозитория" "$repo_slug")"
+        repo_url="$(ask "Git URL репозитория" "$repo_url")"
       fi
       repo_ref="$(ask "Ветка / ref" "${repo_ref:-main}")"
       repo_path="$(ask "Папка внутри workspace" "${repo_path:-${repo_slug}}")"
@@ -1008,18 +1011,24 @@ jq_tooling_from_example() {
 }
 
 resolve_example_config() {
-  local preferred="$1"
-  if [ -f "$preferred" ]; then
-    printf '%s' "$preferred"
+  local worker_example="$1"
+  if [ -f "$worker_example" ]; then
+    printf '%s' "$worker_example"
     return 0
   fi
-  local found
-  shopt -s nullglob
-  for found in "${ROOT_DIR}"/workers/*/config.json.example; do
-    printf '%s' "$found"
+  local default_cfg="${ROOT_DIR}/workers/config.json.default"
+  if [ -f "$default_cfg" ]; then
+    printf '%s' "$default_cfg"
     return 0
-  done
-  shopt -u nullglob
+  fi
+  return 1
+}
+
+is_placeholder_repo_value() {
+  local value="$1"
+  [ -z "$value" ] && return 0
+  [ "$value" = "example-project" ] && return 0
+  [[ "$value" == "https://github.com/example/example"* ]] && return 0
   return 1
 }
 
@@ -1346,8 +1355,13 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
   post_bootstrap=""
 
   if ask_yes_no "Настроить реальный репозиторий для worker ${i} прямо сейчас?" y; then
-    repo_slug="$(ask_required "Slug репозитория для worker ${i}" "$repo_slug")"
-    repo_url="$(ask_required "Git URL репозитория для worker ${i}" "$repo_url")"
+    local slug_default url_default
+    slug_default="$repo_slug"
+    url_default="$repo_url"
+    is_placeholder_repo_value "$repo_slug" && slug_default=""
+    is_placeholder_repo_value "$repo_url" && url_default=""
+    repo_slug="$(ask_required "Slug репозитория для worker ${i}" "$slug_default")"
+    repo_url="$(ask_required "Git URL репозитория для worker ${i}" "$url_default")"
     repo_ref="$(ask_required "Ветка / ref для worker ${i}" "$repo_ref")"
     repo_path="$(ask_required "Папка внутри workspace worker ${i}" "$repo_path")"
 

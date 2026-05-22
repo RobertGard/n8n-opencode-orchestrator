@@ -1,0 +1,46 @@
+{
+  // Дефолтный шаблон для всех worker-ов без своего config.json.example
+  // Репозитории для авто-клонирования: замени example на реальный проект
+  "repos": [
+    {
+      "slug": "example-project",
+      "url": "https://github.com/example/example-project.git",
+      "ref": "main",
+      "path": "example-project",
+      "install_dependencies": true,
+      "package_manager": "auto",
+      "turbo_smoke": false,
+      "turbo_tasks": ["build", "test"],
+      "install_gsd_local": true,
+      "auto_start_docker": true
+    }
+  ],
+
+  "tooling": {
+    // npm install -g. mcp = зарегистрировать как MCP-сервер в OpenCode
+    "npm": [
+      { "package": "get-shit-done-cc@latest", "args": "--opencode --global" },
+      { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"] } },
+      { "package": "@modelcontextprotocol/server-git", "mcp": { "name": "git", "args": ["/workspace"] } },
+      { "package": "@modelcontextprotocol/server-github", "mcp": { "name": "github" } },
+      { "package": "@modelcontextprotocol/server-memory", "mcp": { "name": "memory" } },
+      { "package": "@upstash/context7-mcp", "mcp": { "name": "context7", "type": "remote", "url": "https://mcp.context7.com/mcp" } },
+      { "package": "@modelcontextprotocol/server-brave-search", "mcp": { "name": "brave-search" } },
+      { "package": "@modelcontextprotocol/server-sequential-thinking", "mcp": { "name": "sequential-thinking" } },
+      { "package": "@playwright/mcp", "mcp": { "name": "playwright" } },
+      { "package": "@modelcontextprotocol/server-postgres", "mcp": { "name": "postgres", "args": ["{env:DATABASE_URL}"] } }
+    ],
+
+    // uv tool install. mcp = зарегистрировать как MCP-сервер в OpenCode
+    "uv": [
+      { "package": "serena-agent@latest", "python": "3.13", "args": "--prerelease=allow", "mcp": { "name": "serena", "command": ["serena", "start-mcp-server", "--context", "ide", "--project-from-cwd"], "enabled": true } },
+      { "package": "browser-use", "python": "3.13" }
+    ],
+
+    // после установки всех пакетов
+    "post_install": [
+      "serena init",
+      "playwright install chromium"
+    ]
+  }
+}

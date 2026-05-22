@@ -1011,9 +1011,9 @@ jq_tooling_from_template() {
 }
 
 resolve_template_config() {
-  local worker_example="$1"
-  if [ -f "$worker_example" ]; then
-    printf '%s' "$worker_example"
+  local worker_template="$1"
+  if [ -f "$worker_template" ]; then
+    printf '%s' "$worker_template"
     return 0
   fi
   local default_cfg="${ROOT_DIR}/workers/config.json.default"

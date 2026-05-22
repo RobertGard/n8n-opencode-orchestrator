@@ -17,15 +17,15 @@
     // npm install -g. mcp = зарегистрировать как MCP-сервер в OpenCode
     "npm": [
       { "package": "get-shit-done-cc@latest", "args": "--opencode --global" },
-      { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"] } },
-      { "package": "@modelcontextprotocol/server-git", "mcp": { "name": "git", "args": ["/workspace"] } },
-      { "package": "@modelcontextprotocol/server-github", "mcp": { "name": "github" } },
-      { "package": "@modelcontextprotocol/server-memory", "mcp": { "name": "memory" } },
-      { "package": "@upstash/context7-mcp", "mcp": { "name": "context7", "type": "remote", "url": "https://mcp.context7.com/mcp" } },
-      { "package": "@modelcontextprotocol/server-brave-search", "mcp": { "name": "brave-search" } },
-      { "package": "@modelcontextprotocol/server-sequential-thinking", "mcp": { "name": "sequential-thinking" } },
-      { "package": "@playwright/mcp", "mcp": { "name": "playwright" } },
-      { "package": "@modelcontextprotocol/server-postgres", "mcp": { "name": "postgres", "args": ["{env:DATABASE_URL}"] } }
+      { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"], "enabled": true } },
+      { "package": "@modelcontextprotocol/server-git", "mcp": { "name": "git", "args": ["/workspace"], "enabled": true } },
+      { "package": "@modelcontextprotocol/server-github", "mcp": { "name": "github", "enabled": true } },
+      { "package": "@modelcontextprotocol/server-memory", "mcp": { "name": "memory", "enabled": true } },
+      { "package": "@upstash/context7-mcp", "mcp": { "name": "context7", "type": "remote", "url": "https://mcp.context7.com/mcp", "enabled": true } },
+      { "package": "@modelcontextprotocol/server-brave-search", "mcp": { "name": "brave-search", "enabled": true } },
+      { "package": "@modelcontextprotocol/server-sequential-thinking", "mcp": { "name": "sequential-thinking", "enabled": true } },
+      { "package": "@playwright/mcp", "mcp": { "name": "playwright", "enabled": true } },
+      { "package": "@modelcontextprotocol/server-postgres", "mcp": { "name": "postgres", "args": ["{env:DATABASE_URL}"], "enabled": true } }
     ],
 
     // uv tool install. mcp = зарегистрировать как MCP-сервер в OpenCode

@@ -146,7 +146,7 @@ if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
     log_warn 'N8N_API_KEY не задан — пропускаю проверку Telegram креденшелов и workflow'
   else
     # Проверяем существование Telegram credential
-    cred_count="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" | jq -r '[.data // . // [] | map(select(.type == "telegramApi"))] | length')" || cred_count="0"
+    cred_count="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" 2>/dev/null | jq -r '[.data // . // [] | map(select(.type == "telegramApi"))] | length' 2>/dev/null)" || cred_count="0"
     if [ "${cred_count:-0}" -gt 0 ]; then
       log_ok 'Telegram credential существует'
     else
@@ -154,7 +154,7 @@ if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
     fi
 
     # Проверяем существование workflow
-    wf_count="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" | jq -r '[.data // . // [] | length]')" || wf_count="0"
+    wf_count="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" 2>/dev/null | jq -r '[.data // . // [] | length]' 2>/dev/null)" || wf_count="0"
     log_ok "Найдено workflow в n8n: ${wf_count:-0}"
   fi
 fi

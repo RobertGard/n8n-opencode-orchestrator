@@ -317,7 +317,13 @@ append_override_files_to_compose_cmd() {
 }
 
 prompt_for_n8n_api_key_if_needed() {
-  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -z "${N8N_API_KEY:-}" ]; then
+  if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+    return
+  fi
+
+  local n8n_api_url="http://127.0.0.1:${N8N_PORT:-5678}"
+
+  if [ -z "${N8N_API_KEY:-}" ]; then
     log_warn 'Telegram включен, но N8N_API_KEY пока не задан.'
     printf 'Сейчас контейнеры уже подняты. Открой n8n и создай API key:\n'
     printf '1. Открой интерфейс n8n\n'
@@ -331,7 +337,43 @@ prompt_for_n8n_api_key_if_needed() {
     else
       log_warn 'N8N_API_KEY пока не добавлен. Telegram bootstrap может быть пропущен.'
     fi
+    return
   fi
+
+  # N8N_API_KEY задан — проверяем, не протух ли он после docker compose down -v
+  local http_code
+  http_code="$(curl -fsS -o /dev/null -w '%{http_code}' --connect-timeout 5 -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${n8n_api_url}/api/v1/credentials" 2>/dev/null)" || http_code="000"
+
+  case "$http_code" in
+    200)
+      log_ok 'N8N_API_KEY актуален.'
+      ;;
+    401)
+      log_warn 'N8N_API_KEY в .env недействителен — n8n был пересоздан с нуля.'
+      printf 'Открой n8n и создай новый API key:\n'
+      printf '1. Открой интерфейс n8n\n'
+      printf '2. Перейди в Settings -> n8n API\n'
+      printf '3. Создай API key и вставь его ниже\n\n'
+      while true; do
+        N8N_API_KEY="$(ask "Новый N8N_API_KEY (можно оставить пустым и выйти)" "")"
+        if [ -z "$N8N_API_KEY" ]; then
+          log_warn 'N8N_API_KEY не обновлён. Telegram bootstrap будет пропущен.'
+          break
+        fi
+        local recheck_code
+        recheck_code="$(curl -fsS -o /dev/null -w '%{http_code}' --connect-timeout 5 -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${n8n_api_url}/api/v1/credentials" 2>/dev/null)" || recheck_code="000"
+        if [ "$recheck_code" = "200" ]; then
+          upsert_env_value N8N_API_KEY "$N8N_API_KEY"
+          log_ok 'N8N_API_KEY обновлён и подтверждён.'
+          break
+        fi
+        log_warn "Ключ не подошёл (HTTP ${recheck_code}). Попробуй снова или оставь пустым для выхода."
+      done
+      ;;
+    *)
+      log_info "N8N_API_KEY пока не проверен (n8n API ответил HTTP ${http_code}) — ключ не сброшен."
+      ;;
+  esac
 }
 
 install_cleanup_cron() {

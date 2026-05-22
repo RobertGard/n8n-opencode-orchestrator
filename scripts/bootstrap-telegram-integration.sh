@@ -123,6 +123,21 @@ wait_for_n8n() {
   return 1
 }
 
+wait_for_n8n_api() {
+  local attempt=1
+  local max_attempts=60
+  while [ "$attempt" -le "$max_attempts" ]; do
+    if curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" 2>/dev/null | jq . >/dev/null 2>&1; then
+      log_ok "n8n REST API готов"
+      return 0
+    fi
+    log_info "n8n REST API еще не готов: попытка ${attempt}/${max_attempts}, повтор через 5 секунд"
+    sleep 5
+    attempt=$((attempt + 1))
+  done
+  return 1
+}
+
 render_template() {
   local input="$1"
   local output="$2"
@@ -154,6 +169,27 @@ render_template() {
     -e "s|__TELEGRAM_CHAT_ID__|${telegram_chat_id_escaped}|g" \
     -e "s|__OPENCODE_ROUTING_JSON__|${opencode_routing_json_sed_escaped}|g" \
     "$input" > "$output"
+}
+
+upsert_env_value() {
+  local key="$1"
+  local value="$2"
+  local tmp_file found="false"
+  tmp_file="$(mktemp "${ENV_FILE}.tmp.XXXXXX")"
+  while IFS= read -r line || [ -n "$line" ]; do
+    if [[ "$line" == "${key}="* ]]; then
+      printf '%s=%s\n' "$key" "$value" >>"$tmp_file"
+      found="true"
+    else
+      printf '%s\n' "$line" >>"$tmp_file"
+    fi
+  done <"$ENV_FILE"
+  if [ "$found" = "false" ]; then
+    printf '%s=%s\n' "$key" "$value" >>"$tmp_file"
+  fi
+  mv "$tmp_file" "$ENV_FILE"
+  printf -v "$key" '%s' "$value"
+  export "$key"
 }
 
 render_opencode_routing_json() {
@@ -209,6 +245,38 @@ step_start 'Ожидаю готовность n8n'
 if ! wait_for_n8n; then
   die 'n8n не поднялся вовремя.'
 fi
+
+if ! wait_for_n8n_api; then
+  die 'n8n REST API не поднялся вовремя.'
+fi
+
+log_info 'Проверяю актуальность N8N_API_KEY...'
+while true; do
+  validate_http_code="$(curl -fsS -o /dev/null -w '%{http_code}' -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials" 2>/dev/null)" || validate_http_code="000"
+  case "$validate_http_code" in
+    200)
+      log_ok 'N8N_API_KEY актуален'
+      break
+      ;;
+    401)
+      log_warn 'N8N_API_KEY в .env недействителен — n8n был пересоздан с нуля (docker compose down -v).'
+      printf '\nОткрой n8n, перейди в Settings -> n8n API, создай новый ключ и вставь его ниже.\n'
+      printf '(оставь пустым чтобы выйти)\n\n'
+      IFS= read -r new_key
+      new_key="$(printf '%s' "$new_key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+      if [ -z "$new_key" ]; then
+        die 'N8N_API_KEY не обновлён. Прерываю.'
+      fi
+      N8N_API_KEY="$new_key"
+      upsert_env_value N8N_API_KEY "$N8N_API_KEY"
+      log_info 'Ключ записан в .env, проверяю...'
+      ;;
+    *)
+      log_warn "Не удалось проверить N8N_API_KEY (HTTP ${validate_http_code}), продолжаю с текущим ключом."
+      break
+      ;;
+  esac
+done
 
 step_start 'Проверяю Data Table agent_tasks'
 

@@ -769,8 +769,31 @@ recover_existing_configuration() {
     mkdir -p "$worker_dir_abs"
     ensure_worker_dir_writable "$worker_dir_abs"
     if [ ! -f "${worker_dir_abs}/config.json" ]; then
-      write_disabled_placeholder_repo "${worker_dir_abs}/config.json"
-      log_warn "Не найден ${worker_dir_rel}/config.json. Создан placeholder-файл."
+      local repo_slug_env="OPENCODE_WORKER_${index}_REPO_SLUG"
+      local repo_url_env="OPENCODE_WORKER_${index}_REPO_URL"
+      if [ -n "${!repo_slug_env:-}" ] && [ -n "${!repo_url_env:-}" ]; then
+        local repo_ref_env="OPENCODE_WORKER_${index}_REPO_REF"
+        local repo_path_env="OPENCODE_WORKER_${index}_REPO_PATH"
+        local recovered_slug="${!repo_slug_env}"
+        local recovered_url="${!repo_url_env}"
+        local recovered_ref="${!repo_ref_env:-main}"
+        local recovered_path="${!repo_path_env:-${recovered_slug}}"
+        local default_pkg="auto"
+        local default_turbo="false"
+        local default_tasks="build,test"
+        local default_deps="true"
+        local default_gsd="true"
+        local default_docker="true"
+        local default_post=""
+        write_repos_file \
+          "${worker_dir_abs}/config.json" \
+          "$recovered_slug" "$recovered_url" "$recovered_ref" "$recovered_path" \
+          "$default_pkg" "$default_turbo" "$default_tasks" "$default_deps" "$default_gsd" "$default_docker" "$default_post"
+        log_ok "Восстановлен config.json из .env: ${worker_dir_rel}/config.json"
+      else
+        write_disabled_placeholder_repo "${worker_dir_abs}/config.json"
+        log_warn "Не найден ${worker_dir_rel}/config.json и нет данных репозитория в .env. Создан placeholder-файл."
+      fi
     fi
 
     WORKER_NAMES+=("$worker_name")
@@ -927,6 +950,14 @@ repo_json_block() {
   printf '\n    }'
 }
 
+jq_tooling_from_example() {
+  local example_file="$1"
+  if [ ! -f "$example_file" ]; then
+    return 1
+  fi
+  grep -v '^\s*//' "$example_file" | jq -c '.tooling' 2>/dev/null
+}
+
 write_repos_file() {
   local file="$1"
   local repo_slug="$2"
@@ -977,7 +1008,7 @@ write_repos_file() {
       tooling_src="${fallback_cfg}"
     fi
     if [ -f "${tooling_src}" ]; then
-      printf '  "tooling": %s\n' "$(jq -c '.tooling' "${tooling_src}")"
+      printf '  "tooling": %s\n' "$(jq_tooling_from_example "${tooling_src}")"
     fi
     printf '}\n'
   } >"$file"
@@ -1021,7 +1052,7 @@ write_disabled_placeholder_repo() {
     printf '    }\n'
     printf '  ],\n'
     if [ -f "${tooling_src}" ]; then
-      printf '  "tooling": %s\n' "$(jq -c '.tooling' "${tooling_src}")"
+      printf '  "tooling": %s\n' "$(jq_tooling_from_example "${tooling_src}")"
     fi
     printf '}\n'
   } >"$file"
@@ -1289,6 +1320,10 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
       "$auto_start_docker" \
       "$post_bootstrap"
     log_ok "worker ${i}/${WORKER_COUNT}: config.json создан"
+    upsert_env_value "OPENCODE_WORKER_${i}_REPO_SLUG" "$repo_slug"
+    upsert_env_value "OPENCODE_WORKER_${i}_REPO_URL" "$repo_url"
+    upsert_env_value "OPENCODE_WORKER_${i}_REPO_REF" "$repo_ref"
+    upsert_env_value "OPENCODE_WORKER_${i}_REPO_PATH" "$repo_path"
   else
     write_disabled_placeholder_repo "${worker_dir_abs}/config.json"
     log_warn "worker ${i}/${WORKER_COUNT}: записан отключенный placeholder config.json"

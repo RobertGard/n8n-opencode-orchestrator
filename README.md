@@ -1,39 +1,14 @@
 # OpenCode + n8n
 
-## Что это
+Self-hosted стек для автоматизации инженерных задач: n8n оркестрирует, OpenCode worker-ы исполняют, Telegram — интерфейс.
 
-Self-hosted стек, в котором:
+## Что делает
 
-- `n8n` оркестрирует выполнение задач
-- `OpenCode worker`-ы исполняют инженерную работу
-- Telegram используется как основной интерфейс команд и ответов
-- очередь задач и уточнения `needs_input` живут внутри `n8n`
-
-## Что нужно для запуска
-
-Обязательно:
-
-- Docker Engine
-- Docker Compose
-- Telegram bot token, если нужен Telegram-режим
-
-Для полной автоматизации Telegram внутри `n8n` дополнительно нужен:
-
-- `N8N_API_KEY`
-
-Важно:
-
-- `N8N_API_KEY` нельзя взять до первого запуска `n8n`
-- сначала подними `n8n`
-- потом открой `Settings -> n8n API`
-- создай API key
-- после этого заверши Telegram bootstrap
-
-Для внешнего доступа к `n8n` по HTTPS дополнительно нужны:
-
-- публичный домен
-- открытые порты `80` и `443`
-- рабочий DNS на сервер
+- Принимает задачи через Telegram-бота или напрямую через n8n
+- Распределяет задачи по OpenCode worker-ам (любое количество)
+- Worker-ы клонируют репозитории, ставят зависимости, выполняют задачи, поднимают Docker-инфраструктуру
+- Поддерживает уточнения: если OpenCode нужен ввод — n8n запрашивает через Telegram и возвращает ответ
+- Авто-генератор задач на базе AI Agent анализирует историю и предлагает следующие шаги
 
 ## Быстрый старт
 
@@ -41,305 +16,270 @@ Self-hosted стек, в котором:
 bash ./scripts/setup-stack.sh
 ```
 
-Скрипт:
+Скрипт проведёт через настройку: создаст `.env`, сконфигурирует worker-ов, запишет `config.json`, поднимет контейнеры, настроит Telegram (если указан токен), проверит стек.
 
-- создаст `.env`
-- настроит worker-ов
-- создаст `workers/*/config.json`
-- при необходимости включит внешний HTTPS для `n8n`
-- поднимет контейнеры, если ты это подтвердил
-- если `N8N_API_KEY` уже есть, создаст Telegram credential и Telegram workflow
-- если `N8N_API_KEY` еще нет, предложит ввести его после первого запуска `n8n`
-- запустит базовую проверку
+### Переустановка (сброс до чистого состояния)
 
-## Что спросит установщик
+```bash
+docker compose down -v --rmi all --remove-orphans
+docker builder prune -af
+bash ./scripts/setup-stack.sh
+```
 
-В стандартном режиме:
+После `down -v` база n8n удалена — скрипт сам определит, что старый `N8N_API_KEY` недействителен, и запросит новый в интерактивном режиме.
 
-- нужен ли внешний HTTPS-доступ к `n8n`
-- публичный домен и email для `Let's Encrypt`, если внешний доступ включен
-- секреты `postgres` и `n8n`
-- API ключи, если хочешь указать их сразу
-- `TELEGRAM_BOT_TOKEN`, если нужен Telegram
-- `TELEGRAM_CHAT_ID`, чтобы бот работал только в одном чате
-- `N8N_API_KEY`, если он уже есть; иначе его можно добавить после первого запуска `n8n`
-- сколько worker-ов нужно
-- конфигурацию каждого worker-а
-- запускать ли контейнеры сразу
+## Требования
 
-В расширенном режиме дополнительно:
+- Docker Engine + Docker Compose
+- Telegram bot token (для Telegram-режима)
+- Публичный домен, порты 80/443 и DNS (для HTTPS)
 
-- имя compose-проекта
-- порты
-- alias worker-ов
-- timeout-ы OpenCode
-- дополнительные repo bootstrap настройки
+## Архитектура
 
-## Что будет работать после установки
+### Сервисы (docker compose)
 
-Если включен Telegram:
+| Сервис | Назначение |
+|--------|-----------|
+| `postgres` | База n8n |
+| `redis` | Очередь задач n8n (queue mode) |
+| `n8n` | Оркестратор + редактор workflow |
+| `n8n-worker` | Исполнитель workflow (queue mode) |
+| `opencode-worker-1` | Основной OpenCode worker |
+| `caddy` | Reverse proxy + авто-HTTP/S (опционально, профиль `proxy`) |
 
-1. пользователь пишет боту
-2. `Telegram Trigger` подписан на все апдейты (`*`) и принимает входящее сообщение
-3. `Постановка задач через Telegram` кладет задачу в `n8n Data Table` `agent_tasks`
-4. ingress сразу запускает `Telegram Task Dispatcher`
-5. dispatcher берет следующую задачу и отправляет ее в нужный OpenCode worker
-6. если OpenCode просит уточнение, `n8n` использует `Telegram sendAndWait`
-7. после завершения результат отправляется в Telegram
-8. dispatcher сразу запускает следующий проход очереди
+Дополнительные worker-ы добавляются через `compose.overrides/opencode-<name>.yml`.
 
-## Ограничение Telegram по одному чату
+### Поток задачи
 
-Используется `TELEGRAM_CHAT_ID`.
+```
+Telegram → n8n (ingress)  →  Data Table agent_tasks
+                                ↓
+                          n8n (dispatcher) → OpenCode worker → n8n (result) → Telegram
+```
 
-Это означает:
+Worker может вернуть `needs_input` — тогда n8n запрашивает уточнение через Telegram и возвращает ответ worker-у.
 
-- команды принимаются только из одного чата
-- сообщения из других чатов не проходят дальше по workflow
-- задачи из чужих чатов не попадают в очередь
-- ответы и уточнения отправляются только в этот чат
+### OpenCode worker
 
-## Внешний доступ к n8n
+Каждый worker в Docker-образе содержит:
 
-Если внешний доступ включен, setup настраивает:
-
-- `Caddy` как reverse proxy
-- `WEBHOOK_URL=https://<домен>/`
-- `N8N_EDITOR_BASE_URL=https://<домен>/`
-- `N8N_HOST=<домен>`
-- `N8N_PROTOCOL=https`
-- `N8N_PROXY_HOPS=1`
-
-Сертификаты выпускает `Caddy` через `Let's Encrypt`.
-
-Чтобы это реально заработало:
-
-1. домен должен указывать на сервер
-2. порты `80` и `443` должны быть открыты
-3. другой сервис не должен занимать `80` и `443`
-
-## Состав стека
-
-Обязательные сервисы:
-
-- `n8n`
-- `n8n-worker`
-- `postgres`
-- `redis`
-- `opencode-worker-1`
-
-Опциональные сервисы:
-
-- `caddy`
-- дополнительные `OpenCode worker`-ы через `compose.overrides/*.yml`
-
-## OpenCode worker
-
-Worker умеет:
-
-- клонировать и обновлять репозитории
-- ставить зависимости
-- запускать lint, typecheck, tests, build
-- поднимать Docker-инфраструктуру проекта
-- выполнять задачи через OpenCode API
-
-Установленные инструменты:
-
-- `opencode`
-- `git`, `gh`, `jq`, `ripgrep`, `fd`, `bat`, `tree`
+- `opencode`, `git`, `gh`, `jq`, `ripgrep`, `fd`, `bat`, `tree`
 - `docker`, `docker compose`
-- `node`, `pnpm`, `bun`, `turbo`, `tsx`, `typescript`
-- `eslint`, `prettier`, `biome`, `vitest`, `jest`, `ts-jest`, `ts-node`, `vite`, `nx`, `nodemon`, `prisma`, `typescript-language-server`, `vscode-langservers-extracted`
-- `python3`, `pip`, `uv`
-- `shellcheck`, `yamllint`, `sqlite3`
+- `node`, `pnpm`, `bun`, `turbo`, `typescript`, `tsx`
+- `python3`, `uv`
+- `eslint`, `prettier`, `biome`, `vitest`, `jest`, `vite`, `prisma`, `shellcheck`, `yamllint`
 
-Agent-расширения:
+Worker при старте:
+1. Инициализирует OpenCode server на порту 4096
+2. Читает `config.json` → клонирует репозитории, ставит зависимости
+3. Читает `tooling` → устанавливает npm-пакеты, uv-инструменты, MCP-сервера, post-install команды
+4. Поднимает Docker-инфраструктуру проекта (если включено)
 
-- `get-shit-done`
-- `superpowers`
-- `Context7`
-- `Serena`
+## Конфигурация worker-а
 
-## Репозитории worker-а
+### config.json
 
-У каждого worker-а есть свой файл:
-
-- `workers/worker-1/config.json` создается установщиком
-- `workers/<worker-name>/config.json` создается установщиком для дополнительных worker-ов
-
-Шаблоны лежат здесь:
-
-- `workers/worker-1/config.json.template`
-- `workers/worker-2/config.json.template`
-
-Пример:
+Файл создаётся скриптом `setup-stack.sh`. Содержит список репозиториев и опциональный блок `tooling`.
 
 ```json
 {
   "repos": [
     {
-      "slug": "example-project",
-      "url": "https://github.com/example/example-project.git",
+      "slug": "my-project",
+      "url": "https://github.com/user/my-project.git",
       "ref": "main",
-      "path": "example-project",
-      "install_dependencies": true,
+      "path": "my-project",
       "package_manager": "auto",
       "turbo_smoke": false,
       "turbo_tasks": ["build", "test"],
-      "install_gsd_local": true,
       "auto_start_docker": true
     }
+  ],
+  "tooling": { ... }
+}
+```
+
+#### Поля repo
+
+| Поле | Значение по умолчанию | Назначение |
+|------|----------------------|------------|
+| `slug` | — | Идентификатор проекта |
+| `url` | — | Git URL репозитория |
+| `ref` | `main` | Ветка |
+| `path` | slug | Папка внутри `/workspace` |
+| `package_manager` | `auto` | `auto`/`pnpm`/`npm`/`npm-ci`/`bun` — чем ставить зависимости |
+| `turbo_smoke` | `false` | Запускать ли `turbo run` после clone |
+| `turbo_tasks` | `["build","test"]` | Какие задачи гонять (только при `turbo_smoke: true`) |
+| `auto_start_docker` | `true` | Поднимать ли `docker compose up -d` в папке проекта |
+
+Зависимости проекта (`pnpm install`/`npm install`/`bun install`) ставятся всегда — без флажка. Если в репо нет файла пакетного менеджера — команда ничего не делает.
+
+### tooling (опционально)
+
+Блок `tooling` в `config.json` управляет установкой глобальных пакетов и MCP-серверов. Берётся из шаблона:
+
+```
+workers/
+├── config.json.default          ← глобальный дефолтный шаблон для всех worker-ов
+├── worker-1/
+│   ├── config.json.template     ← переопределяет глобальный для worker-1
+│   └── config.json              ← рабочий конфиг (создаётся setup'ом)
+└── worker-2/
+    ├── config.json.template     ← переопределяет глобальный для worker-2
+    └── config.json
+```
+
+Приоритет: `worker-N/config.json.template` → `workers/config.json.default`.
+
+Структура tooling:
+
+```json
+"tooling": {
+  "npm": [
+    { "package": "get-shit-done-cc@latest", "args": "--opencode --global" },
+    { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"] } },
+    { "package": "@modelcontextprotocol/server-git", "mcp": { "name": "git", "args": ["/workspace"] } },
+    { "package": "@upstash/context7-mcp", "mcp": { "name": "context7", "type": "remote", "url": "https://mcp.context7.com/mcp" } }
+  ],
+  "uv": [
+    { "package": "serena-agent@latest", "python": "3.13", "mcp": { "name": "serena", "command": ["serena", "start-mcp-server", "--context", "ide", "--project-from-cwd"], "enabled": true } }
+  ],
+  "post_install": [
+    "serena init",
+    "playwright install chromium"
   ]
 }
 ```
 
-Главные поля:
+| Секция | Что делает |
+|--------|-----------|
+| `npm` | `npm install -g`. Если есть `mcp` — регистрирует как MCP-сервер в OpenCode |
+| `uv` | `uv tool install`. Аналогично с `mcp` |
+| `post_install` | Команды после установки всех пакетов |
 
-- `slug`
-- `url`
-- `ref`
-- `path`
-- `install_dependencies`
-- `package_manager`
-- `turbo_smoke`
-- `turbo_tasks`
-- `install_gsd_local`
-- `auto_start_docker`
+### config.json после переустановки
 
-## Очередь задач
+`config.json` лежит на bind-mount (`./workers/worker-N`) и не удаляется при `docker compose down -v`. При переустановке:
 
-Используется встроенная `n8n Data Table`:
+- **config.json существует и `enabled` не `false`** → не трогается
+- **config.json отсутствует или `enabled: false`** → скрипт требует заново ввести slug/url репозитория
 
-- `agent_tasks`
+## n8n: workflow и данные
 
-Ключевые поля:
+### Workflow
 
-- `task_key`
-- `worker_alias`
-- `status`
-- `session_id`
-- `pending_question`
-- `pending_options_json`
-- `result_text`
+После bootstrap в n8n импортируются и активируются:
 
-Поддерживаемые состояния:
+| Workflow | Файл шаблона | Роль |
+|----------|-------------|------|
+| Постановка задач через Telegram | `telegram-task-ingress.template.json` | Приём команд от бота |
+| Диспетчер задач Telegram | `telegram-task-dispatcher.template.json` | Распределение по worker-ам |
+| Менеджер сессий | `session-manager.template.json` | Управление сессиями OpenCode |
+| Запуск задачи | `task-launcher.template.json` | Отправка задачи worker-у |
+| Обработка интеракций | `pending-interaction.template.json` | Обработка `needs_input` |
+| Завершение задачи | `task-finalizer.template.json` | Финализация результатов |
+| Авто-генератор задач | `auto-task-generator.template.json` | AI Agent — предлагает следующие задачи |
 
-- `queued`
-- `running`
-- `needs_input`
-- `done`
-- `failed`
+### Data Tables
 
-## OpenCode API
+| Таблица | Назначение |
+|---------|-----------|
+| `agent_tasks` | Очередь задач: task_key, worker_alias, status, session_id, prompt, result_text |
+| `chat_settings` | Настройки чатов: chat_id, auto_mode |
 
-Каждый worker поднимает OpenCode server API.
+Статусы задач: `queued` → `running` → `done` / `failed` / `needs_input`.
 
-Базовый адрес worker-а хранится в:
+### Credentials
 
-- `n8n/bootstrap/opencode-routing.json`
+| Credential | Тип | Создаётся автоматически |
+|-----------|-----|------------------------|
+| Telegram Bot | `telegramApi` | Да (если задан `TELEGRAM_BOT_TOKEN`) |
+| DeepSeek API | `deepSeekApi` | Да (если задан `DEEPSEEK_API_KEY`) |
 
-Основные реально используемые endpoint-ы:
+## .env — переменные окружения
 
-- `GET /global/health`
-- `POST /session`
-- `POST /session/:id/message`
-- `POST /session/:id/command`
-- `POST /session/:id/shell`
+Создаётся из `.env.example`. Ключевые группы:
 
-В `opencode-routing.json` лежит полный документированный набор endpoint-ов OpenCode server.
+**n8n:** `N8N_HOST`, `N8N_PROTOCOL`, `N8N_PORT`, `N8N_ENCRYPTION_KEY`, `N8N_BASIC_AUTH_*`, `N8N_API_KEY`
+
+**База:** `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+
+**Worker N:** `OPENCODE_WORKER_N_NAME`, `_ALIAS`, `_PORT`, `_PASSWORD`, `_BASE_URL`, `_HEALTH_URL`
+
+**API ключи:** `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_TOKEN`, `NPM_TOKEN`
+
+**Telegram:** `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+
+**OpenCode:** `OPENCODE_AGENT`, `OPENCODE_MODEL`, `OPENCODE_PROVIDER_TIMEOUT_MS`
 
 ## Ручной запуск
 
-Без внешнего proxy:
-
 ```bash
+# Базовый (без внешнего доступа)
 docker compose up -d --build
-```
 
-С внешним proxy:
-
-```bash
+# С HTTPS через Caddy
 docker compose --profile proxy up -d --build
-```
 
-С дополнительными worker-ами:
-
-```bash
+# С дополнительными worker-ами
 docker compose -f docker-compose.yml -f compose.overrides/opencode-worker-2.yml up -d --build
 ```
 
-Если создаешь worker helper-скриптом:
+## Проверка стека
 
 ```bash
-./opencode/bin/add-opencode-worker.sh worker-2 4097 workers/worker-2
-```
-
-## Проверка после установки
-
-Используются скрипты:
-
-```bash
-bash ./scripts/bootstrap-telegram-integration.sh
 bash ./scripts/verify-stack.sh
 ```
 
-Проверяется:
+Проверяет: compose-сервисы, n8n, routing-файл, worker-ы, Telegram-credential и workflow (если Telegram включён).
 
-1. поднялись ли сервисы compose
-2. отвечает ли `n8n`
-3. отвечают ли OpenCode worker-ы из routing-файла
-4. валиден ли `opencode-routing.json`
-5. если включен Telegram, корректно ли созданы Telegram credential и Telegram workflow
+## Telegram: первый запуск
 
-## Если Telegram не донастроился на первом запуске
+1. `bash ./scripts/setup-stack.sh` — укажи `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+2. Открой n8n (`http://<сервер>:5678` или `https://<домен>`)
+3. Settings → n8n API → создай API key
+4. Добавь в `.env`: `N8N_API_KEY=<ключ>`
+5. `bash ./scripts/bootstrap-telegram-integration.sh`
 
-Если `N8N_API_KEY` не был задан заранее, это нормально.
-
-Порядок действий:
-
-1. Подними стек
-2. Открой `n8n`
-3. Перейди в `Settings -> n8n API`
-4. Создай API key
-5. Добавь его в `.env` как `N8N_API_KEY`
-6. Запусти:
-
-```bash
-bash ./scripts/bootstrap-telegram-integration.sh
-```
+Скрипт сам определит протухший ключ после `docker compose down -v` и запросит новый.
 
 ## Основные файлы
 
-Конфигурация:
+```
+├── docker-compose.yml                  # основной compose-файл
+├── compose.overrides/                  # override-файлы для worker-ов 2+
+├── .env.example                        # образец переменных окружения
+├── infra/Caddyfile                     # конфиг reverse proxy
+├── scripts/
+│   ├── setup-stack.sh                  # установка и переустановка
+│   ├── bootstrap-telegram-integration.sh # настройка Telegram
+│   ├── verify-stack.sh                 # проверка стека
+│   ├── cleanup-executions.sh           # очистка старых execution
+│   └── lib/load-env.sh                 # загрузка .env
+├── opencode/
+│   ├── Dockerfile                      # образ OpenCode worker
+│   └── bin/
+│       ├── entrypoint.sh               # точка входа контейнера
+│       ├── bootstrap-opencode.sh       # инициализация OpenCode + tooling
+│       ├── bootstrap-repos.sh          # клонирование репозиториев
+│       └── add-opencode-worker.sh      # создание дополнительного worker-а
+├── n8n/bootstrap/
+│   ├── opencode-routing.json           # routing worker-ов (генерируется)
+│   └── workflows/templates/            # шаблоны workflow
+└── workers/
+    ├── config.json.default             # дефолтный tooling-шаблон
+    ├── worker-1/
+    │   ├── config.json.template        # переопределение tooling для worker-1
+    │   └── config.json                 # рабочий конфиг (генерируется)
+    └── worker-2/                       # аналогично для worker-2+
+```
 
-- `docker-compose.yml`
-- `.env.example`
-- `infra/Caddyfile`
+## Очистка execution
 
-Setup и bootstrap:
+Каждый час (cron) удаляются execution старше 1 часа:
 
-- `scripts/setup-stack.sh`
-- `scripts/bootstrap-telegram-integration.sh`
-- `scripts/verify-stack.sh`
+```bash
+bash ./scripts/cleanup-executions.sh
+```
 
-OpenCode:
-
-- `opencode/Dockerfile`
-- `opencode/bin/bootstrap-opencode.sh`
-- `opencode/bin/bootstrap-repos.sh`
-- `opencode/bin/add-opencode-worker.sh`
-
-n8n:
-
-- `n8n/bootstrap/opencode-routing.json`
-- `n8n/bootstrap/workflows/templates/telegram-task-ingress.template.json`
-- `n8n/bootstrap/workflows/templates/telegram-task-dispatcher.template.json`
-
-## Коротко
-
-- `n8n` оркестрирует
-- OpenCode worker-ы исполняют
-- Telegram встроен в `n8n`
-- очередь задач живет во встроенных `n8n Data Tables`
-- внешний HTTPS для `n8n` делает `Caddy`
-- установка и bootstrap идут через `scripts/setup-stack.sh`
+Настраивается автоматически при `setup-stack.sh`. Требует `N8N_API_KEY` в `.env`.

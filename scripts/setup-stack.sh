@@ -790,11 +790,10 @@ recover_existing_configuration() {
       repo_ref="$(ask "Ветка / ref" "${repo_ref:-main}")"
       repo_path="$(ask "Папка внутри workspace" "${repo_path:-${repo_slug}}")"
 
-      local pkg_mgr turbo_en turbo_tasks inst_deps auto_dock post_boot
+      local pkg_mgr turbo_en turbo_tasks auto_dock post_boot
       pkg_mgr="$(read_template_repo_value "$template_src" '.repos[0].package_manager' 'auto')"
       turbo_en="$(read_template_repo_value "$template_src" '.repos[0].turbo_smoke' 'false')"
       turbo_tasks="$(read_template_repo_value "$template_src" '.repos[0].turbo_tasks | join(",")' 'build,test')"
-      inst_deps="$(read_template_repo_value "$template_src" '.repos[0].install_dependencies' 'true')"
       auto_dock="$(read_template_repo_value "$template_src" '.repos[0].auto_start_docker' 'true')"
       post_boot=""
 
@@ -819,7 +818,7 @@ recover_existing_configuration() {
       write_repos_file \
         "${worker_dir_abs}/config.json" \
         "$repo_slug" "$repo_url" "$repo_ref" "$repo_path" \
-        "$pkg_mgr" "$turbo_en" "$turbo_tasks" "$inst_deps" "$auto_dock" "$post_boot"
+        "$pkg_mgr" "$turbo_en" "$turbo_tasks" "$auto_dock" "$post_boot"
       log_ok "config.json настроен: ${worker_dir_rel}/config.json"
     fi
 
@@ -929,19 +928,17 @@ repo_json_block() {
   local url="$2"
   local ref="$3"
   local path="$4"
-  local install_deps="$5"
-  local package_manager="$6"
-  local turbo_enabled="$7"
-  local turbo_tasks_csv="$8"
-  local auto_start_docker="$9"
-  local post_bootstrap="${10:-}"
+  local package_manager="$5"
+  local turbo_enabled="$6"
+  local turbo_tasks_csv="$7"
+  local auto_start_docker="$8"
+  local post_bootstrap="${9:-}"
 
   printf '    {\n'
   printf '      "slug": "%s",\n' "$(json_escape "$slug")"
   printf '      "url": "%s",\n' "$(json_escape "$url")"
   printf '      "ref": "%s",\n' "$(json_escape "$ref")"
   printf '      "path": "%s",\n' "$(json_escape "$path")"
-  printf '      "install_dependencies": %s,\n' "$install_deps"
   printf '      "package_manager": "%s",\n' "$(json_escape "$package_manager")"
   printf '      "turbo_smoke": %s,\n' "$turbo_enabled"
 
@@ -1038,9 +1035,8 @@ write_repos_file() {
   local package_manager="$6"
   local turbo_enabled="$7"
   local turbo_tasks="$8"
-  local install_deps="$9"
-  local auto_start_docker="${10}"
-  local post_bootstrap="${11:-}"
+  local auto_start_docker="${9}"
+  local post_bootstrap="${10:-}"
   local parent_dir
 
   parent_dir="$(dirname "$file")"
@@ -1062,7 +1058,6 @@ write_repos_file() {
       "$repo_url" \
       "$repo_ref" \
       "$repo_path" \
-      "$install_deps" \
       "$package_manager" \
       "$turbo_enabled" \
       "$turbo_tasks" \
@@ -1107,7 +1102,6 @@ write_disabled_placeholder_repo() {
     printf '      "url": "https://github.com/example/example.git",\n'
     printf '      "ref": "main",\n'
     printf '      "path": "example-project",\n'
-    printf '      "install_dependencies": false,\n'
     printf '      "package_manager": "auto",\n'
     printf '      "auto_start_docker": false,\n'
     printf '      "enabled": false\n'
@@ -1343,7 +1337,6 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
   package_manager="$(read_template_repo_value "$template_src" '.repos[0].package_manager' 'auto')"
   turbo_enabled="$(read_template_repo_value "$template_src" '.repos[0].turbo_smoke' 'false')"
   turbo_tasks="$(read_template_repo_value "$template_src" '.repos[0].turbo_tasks | join(",")' 'build,test')"
-  install_deps="$(read_template_repo_value "$template_src" '.repos[0].install_dependencies' 'true')"
   auto_start_docker="$(read_template_repo_value "$template_src" '.repos[0].auto_start_docker' 'true')"
   post_bootstrap=""
 
@@ -1385,7 +1378,6 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
       "$package_manager" \
       "$turbo_enabled" \
       "$turbo_tasks" \
-      "$install_deps" \
       "$auto_start_docker" \
       "$post_bootstrap"
     log_ok "worker ${i}/${WORKER_COUNT}: config.json создан"

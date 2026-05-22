@@ -163,7 +163,6 @@ while IFS= read -r repo; do
   repo_ref="$(printf '%s' "${repo}" | jq -r '.ref // "main"')"
   repo_path="$(printf '%s' "${repo}" | jq -r '.path // .slug')"
   package_manager="$(printf '%s' "${repo}" | jq -r '.package_manager // "auto"')"
-  install_deps="$(printf '%s' "${repo}" | jq -r '.install_dependencies // true')"
   turbo_smoke="$(printf '%s' "${repo}" | jq -r '.turbo_smoke // false')"
   turbo_tasks="$(printf '%s' "${repo}" | jq -r '(.turbo_tasks // ["build","test"]) | join(",")')"
   # install_gsd_local removed — tooling.npm handles all package installation
@@ -185,9 +184,7 @@ while IFS= read -r repo; do
   git -C "${repo_dir}" checkout "${repo_ref}" || true
   git -C "${repo_dir}" pull --ff-only "${auth_url}" "${repo_ref}" || true
 
-  if [ "${install_deps}" = "true" ]; then
-    install_repo_dependencies "${repo_dir}" "${package_manager}"
-  fi
+  install_repo_dependencies "${repo_dir}" "${package_manager}"
 
   if [ "${turbo_smoke}" = "true" ]; then
     run_turbo_smoke "${repo_dir}" "${turbo_tasks}"

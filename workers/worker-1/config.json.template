@@ -6,7 +6,6 @@
       "url": "https://github.com/example/example-project.git",
       "ref": "main",
       "path": "example-project",
-      "install_dependencies": true,
       "package_manager": "auto",
       "turbo_smoke": false,
       "turbo_tasks": ["build", "test"],

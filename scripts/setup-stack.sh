@@ -521,6 +521,7 @@ ask_model_id() {
 }
 
 write_routing_file() {
+  local i
   {
     printf '{\n'
     printf '  "defaultAgent": "%s",\n' "$(json_escape "$OPENCODE_AGENT")"
@@ -545,81 +546,155 @@ write_routing_file() {
     done
     printf '  },\n'
     printf '  "endpoints": {\n'
-    printf '    "health": "/global/health",\n'
-    printf '    "globalEvent": "/global/event",\n'
-    printf '    "projectList": "/project",\n'
-    printf '    "projectCurrent": "/project/current",\n'
-    printf '    "pathCurrent": "/path",\n'
-    printf '    "vcsInfo": "/vcs",\n'
-    printf '    "instanceDispose": "/instance/dispose",\n'
-    printf '    "configGet": "/config",\n'
-    printf '    "configPatch": "/config",\n'
-    printf '    "configProviders": "/config/providers",\n'
-    printf '    "providerList": "/provider",\n'
-    printf '    "providerAuthMethods": "/provider/auth",\n'
-    printf '    "providerOauthAuthorize": "/provider/{id}/oauth/authorize",\n'
-    printf '    "providerOauthCallback": "/provider/{id}/oauth/callback",\n'
-    printf '    "sessionList": "/session",\n'
-    printf '    "openapi": "/doc",\n'
-    printf '    "sessionCreate": "/session",\n'
-    printf '    "sessionStatus": "/session/status",\n'
-    printf '    "sessionGet": "/session/:id",\n'
-    printf '    "sessionDelete": "/session/:id",\n'
-    printf '    "sessionPatch": "/session/:id",\n'
-    printf '    "sessionChildren": "/session/:id/children",\n'
-    printf '    "sessionTodo": "/session/:id/todo",\n'
-    printf '    "sessionInit": "/session/:id/init",\n'
-    printf '    "sessionFork": "/session/:id/fork",\n'
-    printf '    "sessionAbort": "/session/:id/abort",\n'
-    printf '    "sessionShare": "/session/:id/share",\n'
-    printf '    "sessionUnshare": "/session/:id/share",\n'
-    printf '    "sessionDiff": "/session/:id/diff",\n'
-    printf '    "sessionSummarize": "/session/:id/summarize",\n'
-    printf '    "sessionRevert": "/session/:id/revert",\n'
-    printf '    "sessionUnrevert": "/session/:id/unrevert",\n'
-    printf '    "permissionList": "/permission",\n'
-    printf '    "permissionReply": "/permission/:requestID/reply",\n'
-    printf '    "questionList": "/question",\n'
-    printf '    "questionReply": "/question/:requestID/reply",\n'
-    printf '    "questionReject": "/question/:requestID/reject",\n'
-    printf '    "sessionPermissionReply": "/session/:id/permissions/:permissionID",\n'
-    printf '    "messageList": "/session/:id/message",\n'
-    printf '    "sessionMessage": "/session/:id/message",\n'
-    printf '    "messageGet": "/session/:id/message/:messageID",\n'
-    printf '    "promptAsync": "/session/:id/prompt_async",\n'
-    printf '    "sessionCommand": "/session/:id/command",\n'
-    printf '    "sessionShell": "/session/:id/shell",\n'
-    printf '    "commandList": "/command",\n'
-    printf '    "findText": "/find?pattern={pattern}",\n'
-    printf '    "findFile": "/find/file?query={query}",\n'
-    printf '    "findSymbol": "/find/symbol?query={query}",\n'
-    printf '    "fileList": "/file?path={path}",\n'
-    printf '    "fileContent": "/file/content?path={path}",\n'
-    printf '    "fileStatus": "/file/status",\n'
-    printf '    "experimentalToolIds": "/experimental/tool/ids",\n'
-    printf '    "experimentalToolList": "/experimental/tool?provider={provider}&model={model}",\n'
-    printf '    "lspStatus": "/lsp",\n'
-    printf '    "formatterStatus": "/formatter",\n'
-    printf '    "mcpStatus": "/mcp",\n'
-    printf '    "mcpAdd": "/mcp",\n'
-    printf '    "agentList": "/agent",\n'
-    printf '    "logWrite": "/log",\n'
-    printf '    "tuiAppendPrompt": "/tui/append-prompt",\n'
-    printf '    "tuiOpenHelp": "/tui/open-help",\n'
-    printf '    "tuiOpenSessions": "/tui/open-sessions",\n'
-    printf '    "tuiOpenThemes": "/tui/open-themes",\n'
-    printf '    "tuiOpenModels": "/tui/open-models",\n'
-    printf '    "tuiSubmitPrompt": "/tui/submit-prompt",\n'
-    printf '    "tuiClearPrompt": "/tui/clear-prompt",\n'
-    printf '    "tuiExecuteCommand": "/tui/execute-command",\n'
-    printf '    "tuiShowToast": "/tui/show-toast",\n'
-    printf '    "tuiControlNext": "/tui/control/next",\n'
-    printf '    "tuiControlResponse": "/tui/control/response",\n'
-    printf '    "authSet": "/auth/:id",\n'
-    printf '    "eventStream": "/event"\n'
+    local -a endpoints=(
+      "health:/global/health"
+      "globalEvent:/global/event"
+      "projectList:/project"
+      "projectCurrent:/project/current"
+      "pathCurrent:/path"
+      "vcsInfo:/vcs"
+      "instanceDispose:/instance/dispose"
+      "configGet:/config"
+      "configPatch:/config"
+      "configProviders:/config/providers"
+      "providerList:/provider"
+      "providerAuthMethods:/provider/auth"
+      "providerOauthAuthorize:/provider/{id}/oauth/authorize"
+      "providerOauthCallback:/provider/{id}/oauth/callback"
+      "sessionList:/session"
+      "openapi:/doc"
+      "sessionCreate:/session"
+      "sessionStatus:/session/status"
+      "sessionGet:/session/:id"
+      "sessionDelete:/session/:id"
+      "sessionPatch:/session/:id"
+      "sessionChildren:/session/:id/children"
+      "sessionTodo:/session/:id/todo"
+      "sessionInit:/session/:id/init"
+      "sessionFork:/session/:id/fork"
+      "sessionAbort:/session/:id/abort"
+      "sessionShare:/session/:id/share"
+      "sessionUnshare:/session/:id/share"
+      "sessionDiff:/session/:id/diff"
+      "sessionSummarize:/session/:id/summarize"
+      "sessionRevert:/session/:id/revert"
+      "sessionUnrevert:/session/:id/unrevert"
+      "permissionList:/permission"
+      "permissionReply:/permission/:requestID/reply"
+      "questionList:/question"
+      "questionReply:/question/:requestID/reply"
+      "questionReject:/question/:requestID/reject"
+      "sessionPermissionReply:/session/:id/permissions/:permissionID"
+      "messageList:/session/:id/message"
+      "sessionMessage:/session/:id/message"
+      "messageGet:/session/:id/message/:messageID"
+      "promptAsync:/session/:id/prompt_async"
+      "sessionCommand:/session/:id/command"
+      "sessionShell:/session/:id/shell"
+      "commandList:/command"
+      "findText:/find?pattern={pattern}"
+      "findFile:/find/file?query={query}"
+      "findSymbol:/find/symbol?query={query}"
+      "fileList:/file?path={path}"
+      "fileContent:/file/content?path={path}"
+      "fileStatus:/file/status"
+      "experimentalToolIds:/experimental/tool/ids"
+      "experimentalToolList:/experimental/tool?provider={provider}&model={model}"
+      "lspStatus:/lsp"
+      "formatterStatus:/formatter"
+      "mcpStatus:/mcp"
+      "mcpAdd:/mcp"
+      "agentList:/agent"
+      "logWrite:/log"
+      "tuiAppendPrompt:/tui/append-prompt"
+      "tuiOpenHelp:/tui/open-help"
+      "tuiOpenSessions:/tui/open-sessions"
+      "tuiOpenThemes:/tui/open-themes"
+      "tuiOpenModels:/tui/open-models"
+      "tuiSubmitPrompt:/tui/submit-prompt"
+      "tuiClearPrompt:/tui/clear-prompt"
+      "tuiExecuteCommand:/tui/execute-command"
+      "tuiShowToast:/tui/show-toast"
+      "tuiControlNext:/tui/control/next"
+      "tuiControlResponse:/tui/control/response"
+      "authSet:/auth/:id"
+      "eventStream:/event"
+    )
+    local ep last_idx=$(( ${#endpoints[@]} - 1 ))
+    for i in "${!endpoints[@]}"; do
+      ep="${endpoints[$i]}"
+      if [ "$i" -lt "$last_idx" ]; then
+        printf '    "%s": "%s",\n' "${ep%%:*}" "${ep#*:}"
+      else
+        printf '    "%s": "%s"\n' "${ep%%:*}" "${ep#*:}"
+      fi
+    done
     printf '  }\n'
     printf '}\n'
   } >"$ROUTING_JSON"
+}
+
+configure_worker_repo() {
+  local worker_dir="$1"
+  local worker_name="$2"
+
+  local template_cfg template_src
+  template_cfg="${worker_dir}/config.json.template"
+  template_src="$(resolve_template_config "$template_cfg")"
+
+  local repo_slug repo_url repo_ref repo_path
+  repo_slug="$(read_template_repo_value "$template_src" '.repos[0].slug' '')"
+  repo_url="$(read_template_repo_value "$template_src" '.repos[0].url' '')"
+  repo_ref="$(read_template_repo_value "$template_src" '.repos[0].ref' 'main')"
+  repo_path="$(read_template_repo_value "$template_src" '.repos[0].path' '')"
+
+  local slug_default url_default
+  slug_default="$repo_slug"
+  url_default="$repo_url"
+  is_placeholder_repo_value "$repo_slug" && slug_default="${worker_name}"
+  is_placeholder_repo_value "$repo_url" && url_default=""
+
+  repo_slug="$(ask_required "Slug репозитория для ${worker_name}" "$slug_default")"
+  repo_url="$(ask_required "Git URL репозитория для ${worker_name} (https://...)" "$url_default")"
+  repo_ref="$(ask "Ветка / ref" "${repo_ref:-main}")"
+
+  local path_default
+  path_default="$repo_path"
+  is_placeholder_repo_value "$repo_path" && path_default="$repo_slug"
+  repo_path="$(ask "Папка внутри workspace" "$path_default")"
+
+  local package_manager turbo_enabled turbo_tasks auto_start_docker post_bootstrap
+  package_manager="$(read_template_repo_value "$template_src" '.repos[0].package_manager' 'auto')"
+  turbo_enabled="$(read_template_repo_value "$template_src" '.repos[0].turbo_smoke' 'false')"
+  turbo_tasks="$(read_template_repo_value "$template_src" '.repos[0].turbo_tasks | join(",")' 'build,test')"
+  auto_start_docker="$(read_template_repo_value "$template_src" '.repos[0].auto_start_docker' 'true')"
+  post_bootstrap=""
+
+  if [ "${ADVANCED_MODE:-false}" = "true" ]; then
+    package_manager="$(ask_required "Пакетный менеджер (auto/pnpm/npm/npm-ci/bun)" "$package_manager")"
+    if ask_yes_no "Запускать Turborepo-задачи?" "$( [ "$turbo_enabled" = "true" ] && printf y || printf n )"; then
+      turbo_enabled="true"
+      turbo_tasks="$(ask_required "Список turbo-задач через запятую" "$turbo_tasks")"
+    else
+      turbo_enabled="false"
+    fi
+    if ask_yes_no "Автоматически поднимать Docker-инфраструктуру репозитория?" "$( [ "$auto_start_docker" = "true" ] && printf y || printf n )"; then
+      auto_start_docker="true"
+    else
+      auto_start_docker="false"
+    fi
+    if ask_yes_no "Добавить post-bootstrap команду?" n; then
+      post_bootstrap="$(ask_required "Команда post-bootstrap" "")"
+    fi
+  fi
+
+  write_repos_file \
+    "${worker_dir}/config.json" \
+    "$repo_slug" "$repo_url" "$repo_ref" "$repo_path" \
+    "$package_manager" "$turbo_enabled" "$turbo_tasks" \
+    "$auto_start_docker" "$post_bootstrap"
+
+  log_ok "config.json настроен: ${worker_dir}/config.json"
 }
 
 recover_existing_configuration() {
@@ -664,7 +739,7 @@ recover_existing_configuration() {
     log_ok 'N8N_PORT исправлен в .env'
   fi
 
-  if [[ ! "${N8N_PROTOCOL}" =~ ^(http|https)$ ]]; then
+  if [[ ! "${N8N_PROTOCOL:-}" =~ ^(http|https)$ ]]; then
     upsert_env_value N8N_PROTOCOL "$(ask_protocol 'Протокол n8n (http/https)' 'http')"
     log_ok 'N8N_PROTOCOL исправлен в .env'
   fi
@@ -768,58 +843,7 @@ recover_existing_configuration() {
     mkdir -p "$worker_dir_abs"
     ensure_worker_dir_writable "$worker_dir_abs"
     if [ ! -f "${worker_dir_abs}/config.json" ] || config_is_disabled_placeholder "${worker_dir_abs}/config.json"; then
-      log_warn "config.json отсутствует или содержит отключенный placeholder. Требуется настройка репозитория."
-      printf '\n--- Настройка репозитория для %s ---\n' "$worker_name"
-      local template_cfg="${worker_dir_abs}/config.json.template"
-      local template_src
-      template_src="$(resolve_template_config "$template_cfg")"
-
-      local repo_slug repo_url repo_ref repo_path
-      repo_slug="$(read_template_repo_value "$template_src" '.repos[0].slug' '')"
-      repo_url="$(read_template_repo_value "$template_src" '.repos[0].url' '')"
-      repo_ref="$(read_template_repo_value "$template_src" '.repos[0].ref' 'main')"
-      repo_path="$(read_template_repo_value "$template_src" '.repos[0].path' '')"
-
-      if is_placeholder_repo_value "$repo_slug" || is_placeholder_repo_value "$repo_url"; then
-        repo_slug="$(ask_required "Slug репозитория для ${worker_name}" "${worker_name}")"
-        repo_url="$(ask_required "Git URL репозитория для ${worker_name} (https://...)" "")"
-      else
-        repo_slug="$(ask "Slug репозитория" "${repo_slug:-${worker_name}}")"
-        repo_url="$(ask "Git URL репозитория (https://...)" "$repo_url")"
-      fi
-      repo_ref="$(ask "Ветка / ref" "${repo_ref:-main}")"
-      repo_path="$(ask "Папка внутри workspace" "$(is_placeholder_repo_value "$repo_path" && printf '%s' "$repo_slug" || printf '%s' "${repo_path:-${repo_slug}}")")"
-
-      local pkg_mgr turbo_en turbo_tasks auto_dock post_boot
-      pkg_mgr="$(read_template_repo_value "$template_src" '.repos[0].package_manager' 'auto')"
-      turbo_en="$(read_template_repo_value "$template_src" '.repos[0].turbo_smoke' 'false')"
-      turbo_tasks="$(read_template_repo_value "$template_src" '.repos[0].turbo_tasks | join(",")' 'build,test')"
-      auto_dock="$(read_template_repo_value "$template_src" '.repos[0].auto_start_docker' 'true')"
-      post_boot=""
-
-      if [ "${ADVANCED_MODE:-false}" = "true" ]; then
-        pkg_mgr="$(ask_required "Пакетный менеджер (auto/pnpm/npm/npm-ci/bun)" "$pkg_mgr")"
-        if ask_yes_no "Запускать Turborepo-задачи?" "$( [ "$turbo_en" = "true" ] && printf y || printf n )"; then
-          turbo_en="true"
-          turbo_tasks="$(ask_required "Список turbo-задач через запятую" "$turbo_tasks")"
-        else
-          turbo_en="false"
-        fi
-        if ask_yes_no "Автоматически поднимать Docker-инфраструктуру репозитория?" "$( [ "$auto_dock" = "true" ] && printf y || printf n )"; then
-          auto_dock="true"
-        else
-          auto_dock="false"
-        fi
-        if ask_yes_no "Добавить post-bootstrap команду?" n; then
-          post_boot="$(ask_required "Команда post-bootstrap" "")"
-        fi
-      fi
-
-      write_repos_file \
-        "${worker_dir_abs}/config.json" \
-        "$repo_slug" "$repo_url" "$repo_ref" "$repo_path" \
-        "$pkg_mgr" "$turbo_en" "$turbo_tasks" "$auto_dock" "$post_boot"
-      log_ok "config.json настроен: ${worker_dir_rel}/config.json"
+      configure_worker_repo "$worker_dir_abs" "$worker_name"
     fi
 
     WORKER_NAMES+=("$worker_name")
@@ -933,6 +957,7 @@ repo_json_block() {
   local turbo_tasks_csv="$7"
   local auto_start_docker="$8"
   local post_bootstrap="${9:-}"
+  local TASKS task first
 
   printf '    {\n'
   printf '      "slug": "%s",\n' "$(json_escape "$slug")"
@@ -944,8 +969,7 @@ repo_json_block() {
 
   if [ "$turbo_enabled" = "true" ]; then
     printf '      "turbo_tasks": ['
-    local first=1
-    local task
+    first=1
     IFS=',' read -r -a TASKS <<< "$turbo_tasks_csv"
     for task in "${TASKS[@]}"; do
       task="$(trim "$task")"
@@ -1326,61 +1350,8 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
   ensure_worker_dir_writable "$worker_dir_abs"
   log_info "worker ${i}/${WORKER_COUNT}: каталог ${worker_dir_rel} подготовлен"
 
-  local template_cfg="${worker_dir_abs}/config.json.template"
-  local template_src
-  template_src="$(resolve_template_config "$template_cfg")"
-
-  repo_slug="$(read_template_repo_value "$template_src" '.repos[0].slug' '')"
-  repo_url="$(read_template_repo_value "$template_src" '.repos[0].url' '')"
-  repo_ref="$(read_template_repo_value "$template_src" '.repos[0].ref' 'main')"
-  repo_path="$(read_template_repo_value "$template_src" '.repos[0].path' '')"
-  package_manager="$(read_template_repo_value "$template_src" '.repos[0].package_manager' 'auto')"
-  turbo_enabled="$(read_template_repo_value "$template_src" '.repos[0].turbo_smoke' 'false')"
-  turbo_tasks="$(read_template_repo_value "$template_src" '.repos[0].turbo_tasks | join(",")' 'build,test')"
-  auto_start_docker="$(read_template_repo_value "$template_src" '.repos[0].auto_start_docker' 'true')"
-  post_bootstrap=""
-
   if ask_yes_no "Настроить реальный репозиторий для worker ${i} прямо сейчас?" y; then
-    local slug_default url_default
-    slug_default="$repo_slug"
-    url_default="$repo_url"
-    is_placeholder_repo_value "$repo_slug" && slug_default="${worker_name}"
-    is_placeholder_repo_value "$repo_url" && url_default=""
-    repo_slug="$(ask_required "Slug репозитория для worker ${i}" "$slug_default")"
-    repo_url="$(ask_required "Git URL репозитория для worker ${i} (https://...)" "$url_default")"
-    repo_ref="$(ask_required "Ветка / ref для worker ${i}" "$repo_ref")"
-    repo_path="$(ask_required "Папка внутри workspace worker ${i}" "$repo_path")"
-
-    if [ "$ADVANCED_MODE" = "true" ]; then
-      package_manager="$(ask_required "Пакетный менеджер (auto/pnpm/npm/npm-ci/bun)" "$package_manager")"
-      if ask_yes_no "Запускать Turborepo-задачи для worker ${i}?" "$( [ "$turbo_enabled" = "true" ] && printf y || printf n )"; then
-        turbo_enabled="true"
-        turbo_tasks="$(ask_required "Список turbo-задач через запятую" "$turbo_tasks")"
-      else
-        turbo_enabled="false"
-      fi
-      if ask_yes_no "Автоматически поднимать полную Docker-инфраструктуру репозитория?" "$( [ "$auto_start_docker" = "true" ] && printf y || printf n )"; then
-        auto_start_docker="true"
-      else
-        auto_start_docker="false"
-      fi
-      if ask_yes_no "Добавить post-bootstrap команду?" n; then
-        post_bootstrap="$(ask_required "Команда post-bootstrap" "pnpm lint")"
-      fi
-    fi
-
-    write_repos_file \
-      "${worker_dir_abs}/config.json" \
-      "$repo_slug" \
-      "$repo_url" \
-      "$repo_ref" \
-      "$repo_path" \
-      "$package_manager" \
-      "$turbo_enabled" \
-      "$turbo_tasks" \
-      "$auto_start_docker" \
-      "$post_bootstrap"
-    log_ok "worker ${i}/${WORKER_COUNT}: config.json создан"
+    configure_worker_repo "$worker_dir_abs" "$worker_name"
   else
     write_disabled_placeholder_repo "${worker_dir_abs}/config.json"
     log_warn "worker ${i}/${WORKER_COUNT}: записан отключенный placeholder config.json"

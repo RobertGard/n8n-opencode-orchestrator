@@ -781,10 +781,10 @@ recover_existing_configuration() {
       repo_path="$(read_template_repo_value "$template_src" '.repos[0].path' '')"
 
       if is_placeholder_repo_value "$repo_slug" || is_placeholder_repo_value "$repo_url"; then
-        repo_slug="$(ask_required "Slug репозитория для ${worker_name}" "")"
+        repo_slug="$(ask_required "Slug репозитория для ${worker_name}" "${worker_name}")"
         repo_url="$(ask_required "Git URL репозитория для ${worker_name}" "")"
       else
-        repo_slug="$(ask "Slug репозитория" "$repo_slug")"
+        repo_slug="$(ask "Slug репозитория" "${repo_slug:-${worker_name}}")"
         repo_url="$(ask "Git URL репозитория" "$repo_url")"
       fi
       repo_ref="$(ask "Ветка / ref" "${repo_ref:-main}")"
@@ -1344,7 +1344,7 @@ for ((i = 1; i <= WORKER_COUNT; i++)); do
     local slug_default url_default
     slug_default="$repo_slug"
     url_default="$repo_url"
-    is_placeholder_repo_value "$repo_slug" && slug_default=""
+    is_placeholder_repo_value "$repo_slug" && slug_default="${worker_name}"
     is_placeholder_repo_value "$repo_url" && url_default=""
     repo_slug="$(ask_required "Slug репозитория для worker ${i}" "$slug_default")"
     repo_url="$(ask_required "Git URL репозитория для worker ${i}" "$url_default")"

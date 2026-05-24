@@ -158,10 +158,11 @@ run_turbo_smoke() {
 }
 
 docker_compose() {
-  if docker compose "$@" 2>/dev/null; then
-    return 0
+  if docker compose version >/dev/null 2>&1; then
+    docker compose "$@"
+  else
+    docker-compose "$@"
   fi
-  docker-compose "$@"
 }
 
 while IFS= read -r repo; do

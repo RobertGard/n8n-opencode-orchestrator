@@ -1046,7 +1046,7 @@ jq_tooling_from_template() {
   if [ ! -f "$template_file" ]; then
     return 1
   fi
-  grep -v '^\s*//' "$template_file" | jq -c '.tooling' 2>/dev/null
+  grep -v '^\s*//' "$template_file" | jq '.tooling' 2>/dev/null
 }
 
 resolve_template_config() {

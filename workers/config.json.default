@@ -37,7 +37,7 @@
     // после установки всех пакетов
     "post_install": [
       "serena init",
-      "playwright install chromium"
+      "npx playwright install chromium"
     ]
   }
 }

@@ -157,6 +157,13 @@ run_turbo_smoke() {
   turbo run "${tasks[@]}" --continue --cache-dir .turbo --cwd "${repo_dir}" || true
 }
 
+docker_compose() {
+  if docker compose "$@" 2>/dev/null; then
+    return 0
+  fi
+  docker-compose "$@"
+}
+
 while IFS= read -r repo; do
   slug="$(printf '%s' "${repo}" | jq -r '.slug')"
   repo_url="$(printf '%s' "${repo}" | jq -r '.url')"
@@ -204,7 +211,7 @@ while IFS= read -r repo; do
     fi
     compose_file="$(compose_file_for_repo "${repo_dir}" "${docker_file}")"
     if [ -n "${compose_file}" ]; then
-      docker-compose -f "${compose_file}" up -d || true
+      docker_compose -f "${compose_file}" up -d || true
     fi
   fi
 

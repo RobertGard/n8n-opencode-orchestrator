@@ -129,6 +129,7 @@ cat > "${CONFIG_FILE}" <<'BASE_EOF'
       "git *": "allow",
       "gh *": "allow",
       "docker *": "allow",
+      "docker-compose *": "allow",
       "docker compose *": "allow",
       "npm *": "allow",
       "npx *": "allow",

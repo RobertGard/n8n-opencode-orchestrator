@@ -533,7 +533,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Универсальный сборщик: берём данные из любой ветки интеракции (permission или question)\n// и добавляем контекст задачи.\n\nconst item = $input.item.json\nconst context = $('Разбираем входные данные').item.json\n\nreturn {\n  json: {\n    hasInteraction: Boolean(item.hasInteraction),\n    interactionType: String(item.interactionType || '').trim(),\n    pendingQuestionText: String(item.pendingQuestionText || '').trim(),\n    pendingOptionsJson: String(item.pendingOptionsJson || '[]'),\n    taskKey: item.taskKey || context.taskKey,\n    sessionId: item.sessionId || context.sessionId,\n    chatId: item.chatId || context.chatId,\n  },\n}"
+        "jsCode": "// Универсальный сборщик: берём данные из любой ветки интеракции (permission или question)\n// и добавляем контекст задачи.\n\nconst item = $('Отменяем сессию OpenCode').first().json\nconst context = $('Разбираем входные данные').item.json\n\nreturn {\n  json: {\n    hasInteraction: Boolean(item.hasInteraction),\n    interactionType: String(item.interactionType || '').trim(),\n    pendingQuestionText: String(item.pendingQuestionText || '').trim(),\n    pendingOptionsJson: String(item.pendingOptionsJson || '[]'),\n    taskKey: item.taskKey || context.taskKey,\n    sessionId: item.sessionId || context.sessionId,\n    chatId: item.chatId || context.chatId,\n  },\n}"
       },
       "id": "pick-source",
       "name": "Выбираем найденную интеракцию",

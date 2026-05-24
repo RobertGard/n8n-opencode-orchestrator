@@ -120,7 +120,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "const updated = $input.item.json\nconst found = Number(updated?.count || 0) > 0\nreturn {\n  json: {\n    ok: found,\n    task_key: $('Извлекаем параметры').item.json.task_key,\n    reason: $('Извлекаем параметры').item.json.reason,\n    message: found\n      ? `Задача ${$('Извлекаем параметры').item.json.task_key} отменена`\n      : `Задача ${$('Извлекаем параметры').item.json.task_key} не найдена или уже завершена`,\n  },\n}"
+        "jsCode": "const updated = $('Указан task_key?').first().json\nconst found = Number(updated?.count || 0) > 0\nreturn {\n  json: {\n    ok: found,\n    task_key: $('Извлекаем параметры').item.json.task_key,\n    reason: $('Извлекаем параметры').item.json.reason,\n    message: found\n      ? `Задача ${$('Извлекаем параметры').item.json.task_key} отменена`\n      : `Задача ${$('Извлекаем параметры').item.json.task_key} не найдена или уже завершена`,\n  },\n}"
       },
       "id": "build-response",
       "name": "Формируем ответ",

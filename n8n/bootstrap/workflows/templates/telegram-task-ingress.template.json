@@ -1123,15 +1123,15 @@
           "conditions": [
             {
               "keyName": "chat_id",
-              "keyValue": "={{ $('Фиксируем chat_id').item.json.chat_id }}"
+              "keyValue": "={{ $('Фиксируем chat_id').item.json.chatId }}"
             }
           ]
         },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "chat_id": "={{ $('Фиксируем chat_id').item.json.chat_id }}",
-            "auto_mode": "={{ String($json.flags.auto_mode).toLowerCase() === 'true' }}"
+            "chat_id": "={{ $('Фиксируем chat_id').item.json.chatId }}",
+            "auto_mode": "={{ String($json.auto_mode).toLowerCase() === 'true' }}"
           }
         },
         "options": {}
@@ -1148,7 +1148,7 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Фиксируем chat_id').item.json.chat_id }}",
+        "chatId": "={{ $('Фиксируем chat_id').item.json.chatId }}",
         "text": "={{ $json.auto_mode === 'true' ? 'Автономный режим включён. Агент будет сам создавать следующие задачи.' : 'Автономный режим выключен.' }}",
         "additionalFields": {
           "appendAttribution": false,

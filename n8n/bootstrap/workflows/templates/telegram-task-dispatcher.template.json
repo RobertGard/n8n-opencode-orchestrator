@@ -113,7 +113,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "jsCode": "// Берём пакет данных текущего worker-а, который уже содержит только queued задачи\n// и количество активных задач этого worker-а.\nconst workerPackage = $('Готовим пакеты обработчиков').item.json\nconst queuedTasks = Array.isArray(workerPackage.queuedTasks) ? workerPackage.queuedTasks : []\nconst workerTasks = Array.isArray(workerPackage.workerTasks) ? workerPackage.workerTasks : []\n\n// Приоритет всегда у зависимых задач.\n// Если зависимых задач нет, берём самую раннюю обычную queued-задачу.\n// Зависимые задачи — только если родитель УЖЕ не в очереди (запущен/завершён)\nconst dependentTasks = queuedTasks.filter((task) => {\n  const parentKey = String(task.parent_task_key || '').trim()\n  if (!parentKey) return false\n  return !queuedTasks.some((t) => String(t.task_key || '').trim() === parentKey)\n})\nconst regularTasks = queuedTasks.filter((task) => !String(task.parent_task_key || '').trim())\nconst selectedTask = dependentTasks[0] || regularTasks[0] || null\n\nlet context = {}\ntry {\n  context = JSON.parse(String(selectedTask?.context_json || '{}'))\n} catch {\n  context = {}\n}\n\nconst chatId = String(selectedTask?.chat_id || '').trim()\nconst sessionHistory = workerTasks\n  .filter((task) => String(task.chat_id || '').trim() === chatId)\n  .filter((task) => String(task.session_id || '').trim())\n  .filter((task) => ['running', 'needs_input', 'done'].includes(String(task.status || '').trim()))\n\nconst latestSessionTask = sessionHistory[sessionHistory.length - 1] || null\nconst latestSessionId = String(latestSessionTask?.session_id || '').trim()\nconst newSessionRequested = Boolean(\n  context.newSessionRequested ||\n  context.flags?.['new-session'] ||\n  context.flags?.['new_session'] ||\n  context.flags?.['fresh-session'] ||\n  context.flags?.['fresh_session']\n)\n\nreturn {\n  json: {\n    task: selectedTask,\n    parentTaskKey: String(selectedTask?.parent_task_key || '').trim(),\n    parentMatchText: String(selectedTask?.parent_match_text || '').trim(),\n    promptText: String(selectedTask?.prompt || '').trim(),\n    latestSessionId,\n    createNewSession: newSessionRequested || !latestSessionId,\n  },\n}"
       },
       "id": "pick-task",
@@ -743,7 +742,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "jsCode": "// Выбираем первую активную задачу для текущего worker-а.\n// Из её context_json извлекаем:\n//   abortRequested — пользователь запросил прерывание\n//   latestSentId   — id последнего отправленного в Telegram сообщения (для дельты)\n\nconst workerPackage = $('Готовим пакеты обработчиков').item.json\nconst activeTasks = Array.isArray(workerPackage.activeTasks) ? workerPackage.activeTasks : []\nconst selectedTask = activeTasks[0] || null\n\nlet contextJson = {}\nlet abortRequested = false\nlet latestSentId = ''\nif (selectedTask) {\n  try {\n    contextJson = JSON.parse(String(selectedTask.context_json || '{}'))\n  } catch {}\n  abortRequested = contextJson.abortRequested === true\n  latestSentId = String(contextJson.latestSentId || '').trim()\n}\n\nreturn {\n  json: {\n    task: selectedTask,\n    taskStatus: String(selectedTask?.status || '').trim(),\n    sessionId: String(selectedTask?.session_id || '').trim(),\n    pendingQuestion: String(selectedTask?.pending_question || '').trim(),\n    pendingOptionsJson: String(selectedTask?.pending_options_json || '[]'),\n    abortRequested,\n    contextJson,\n    latestSentId,\n  },\n}"
       },
       "id": "pick-active-task",
@@ -772,8 +770,7 @@
             "createNewSession": "={{ $('Выбираем кандидатную задачу').item.json.createNewSession }}",
             "taskKey": "={{ $('Выбираем кандидатную задачу').item.json.task.task_key }}"
           }
-        },
-        "mode": "runOnceForEachItem",
+        }
         "options": {}
       },
       "id": "exec-session",
@@ -788,7 +785,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "jsCode": "// Копируем sessionId и launchError от менеджера сессий в отдельные поля,\n// чтобы exec-launch мог ссылаться на них без проблем paired-item цепочки.\n\nconst sessionOutput = $('Управление сессией').first().json\n\nreturn {\n  json: {\n    sessionId: String(sessionOutput.sessionId || '').trim(),\n    launchError: String(sessionOutput.launchError || '').trim(),\n  },\n}"
       },
       "id": "capture-session-result",
@@ -822,8 +818,7 @@
             "opencodeModelProviderID": "={{ $('Готовим пакеты обработчиков').item.json.opencodeModel?.providerID }}",
             "opencodeModelModelID": "={{ $('Готовим пакеты обработчиков').item.json.opencodeModel?.modelID }}"
           }
-        },
-        "mode": "runOnceForEachItem",
+        }
         "options": {}
       },
       "id": "exec-launch",
@@ -1002,8 +997,7 @@
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": true
-        },
-        "mode": "runOnceForEachItem",
+        }
         "options": {}
       },
       "id": "exec-interaction",
@@ -1587,8 +1581,7 @@
             "completed_prompt": "={{ $('Выбираем активную задачу').first().json.task.prompt }}",
             "completed_result": "={{ $('Завершение задачи').first().json.replyText }}"
           }
-        },
-        "mode": "runOnceForEachItem"
+        }
       },
       "id": "exec-auto-generator-1",
       "name": "Авто-генератор задач",
@@ -1692,8 +1685,7 @@
             "is_needs_input": true,
             "pending_options_json": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}"
           }
-        },
-        "mode": "runOnceForEachItem"
+        }
       },
       "id": "exec-auto-generator-2",
       "name": "Авто-генератор ответа",

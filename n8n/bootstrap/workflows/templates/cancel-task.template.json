@@ -119,7 +119,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "language": "javaScript",
         "jsCode": "const updated = $input.item.json\nconst found = Number(updated?.count || 0) > 0\nreturn {\n  json: {\n    ok: found,\n    task_key: $('Извлекаем параметры').item.json.task_key,\n    reason: $('Извлекаем параметры').item.json.reason,\n    message: found\n      ? `Задача ${$('Извлекаем параметры').item.json.task_key} отменена`\n      : `Задача ${$('Извлекаем параметры').item.json.task_key} не найдена или уже завершена`,\n  },\n}"
       },
@@ -134,7 +133,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "language": "javaScript",
         "jsCode": "return {\n  json: {\n    ok: false,\n    task_key: '',\n    message: 'Не передан параметр task_key',\n  },\n}"
       },

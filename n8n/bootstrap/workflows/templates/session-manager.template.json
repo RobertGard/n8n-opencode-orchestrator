@@ -43,7 +43,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "language": "javaScript",
         "jsCode": "// Нормализуем входные данные для менеджера сессий.\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nreturn {\n  json: {\n    workerAlias: String(input.workerAlias || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    sessionCreatePath: String(input.sessionCreatePath || '').trim(),\n    latestSessionId: String(input.latestSessionId || '').trim(),\n    createNewSession: input.createNewSession === true,\n    taskKey: String(input.taskKey || '').trim(),\n  },\n}"
       },
@@ -153,7 +152,6 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForEachItem",
         "language": "javaScript",
         "jsCode": "// Извлекаем sessionId из ответа OpenCode API (POST /session).\n// OpenCode может вернуть ответ в нескольких форматах, обрабатываем все.\n// Если сессия создана → sessionId есть, launchError пустой.\n// Если ошибка API    → launchError заполняется, sessionId пустой.\n// Если нет ни id ни ошибки → launchError = 'OpenCode не вернул session id.'\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst sessionResponse = $input.item.json\nconst sessionId = String(\n  sessionResponse.sessionId || sessionResponse.id || sessionResponse.data?.id || ''\n).trim()\n\nconst launchError = sessionResponse.error\n  ? stripHtml(String(sessionResponse.error.message || sessionResponse.error))\n  : sessionId\n    ? ''\n    : 'OpenCode не вернул session id.'\n\nreturn {\n  json: { sessionId, launchError },\n}"
       },

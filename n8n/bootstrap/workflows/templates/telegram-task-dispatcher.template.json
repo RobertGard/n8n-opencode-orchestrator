@@ -706,7 +706,8 @@
           "id": "__TELEGRAM_CREDENTIAL_ID__",
           "name": "__TELEGRAM_CREDENTIAL_NAME__"
         }
-      }
+      },
+      "retryOnFail": true
     },
     {
       "parameters": {
@@ -1141,7 +1142,8 @@
           "id": "__TELEGRAM_CREDENTIAL_ID__",
           "name": "__TELEGRAM_CREDENTIAL_NAME__"
         }
-      }
+      },
+      "retryOnFail": true
     },
     {
       "parameters": {

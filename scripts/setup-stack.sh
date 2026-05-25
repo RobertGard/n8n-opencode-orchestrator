@@ -384,20 +384,21 @@ install_cleanup_cron() {
 
   mkdir -p "$log_dir"
 
-  # Check if cron entry already exists
+  # Update cron entry (create or replace)
   if crontab -l 2>/dev/null | grep -qF "${cron_marker}"; then
-    log_ok 'Cron-задача очистки executions уже установлена.'
-    return
+    crontab -l 2>/dev/null | grep -vF "${cron_marker}" | {
+      cat
+      echo "$cron_line"
+    } | crontab -
+    log_info 'Cron-задача очистки executions обновлена.'
+  else
+    {
+      crontab -l 2>/dev/null || true
+      echo "$cron_line"
+    } | crontab -
+    log_info 'Cron-задача очистки executions установлена.'
   fi
-
-  # Add cron entry (crontab -l may fail if no crontab exists)
-  {
-    crontab -l 2>/dev/null || true
-    echo "$cron_line"
-  } | crontab -
-
-  log_info "Добавлена cron-запись: ${cron_line}"
-  log_ok 'Cron-задача очистки executions установлена (каждый час).'
+  log_ok 'Cron-задача очистки executions активна (каждый час).'
 }
 
 run_startup_pipeline() {

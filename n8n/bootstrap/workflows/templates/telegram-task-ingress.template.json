@@ -481,8 +481,7 @@
               "keyName": "task_key",
               "keyValue": "={{ $('Ответ распознан?').first().json.targetTaskKey }}"
             }
-          ],
-          "combinator": "and"
+          ]
         },
         "columns": {
           "mappingMode": "defineBelow",

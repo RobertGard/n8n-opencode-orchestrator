@@ -67,7 +67,7 @@ services:
       - data
 
   n8n:
-    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.20.5}
+    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.21.7}
     restart: unless-stopped
     env_file:
       - ./.env
@@ -121,7 +121,7 @@ services:
     stop_grace_period: 10m
 
   n8n-worker:
-    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.20.5}
+    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.21.7}
     restart: unless-stopped
     env_file:
       - ./.env

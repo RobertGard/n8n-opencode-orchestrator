@@ -715,7 +715,7 @@ recover_existing_configuration() {
   ensure_env_default TZ UTC
   ensure_env_boolean_default ENABLE_CADDY_PROXY false
   ensure_env_default N8N_PORT 5678
-  ensure_env_default N8N_VERSION 2.20.5
+  ensure_env_default N8N_VERSION 2.21.7
   ensure_env_default N8N_PROXY_HOPS 1
   ensure_env_default N8N_CONCURRENCY_PRODUCTION_LIMIT 4
   ensure_env_default N8N_WORKER_CONCURRENCY 2
@@ -1262,7 +1262,7 @@ N8N_EDITOR_BASE_URL=""
 ENABLE_CADDY_PROXY="false"
 PUBLIC_N8N_DOMAIN=""
 ACME_EMAIL=""
-N8N_VERSION="2.20.5"
+N8N_VERSION="2.21.7"
 N8N_CONCURRENCY_PRODUCTION_LIMIT="4"
 N8N_WORKER_CONCURRENCY="2"
 N8N_EXECUTIONS_TIMEOUT="604800"

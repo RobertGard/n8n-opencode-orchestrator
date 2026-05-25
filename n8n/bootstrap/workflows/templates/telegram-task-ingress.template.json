@@ -480,12 +480,9 @@
             {
               "keyName": "task_key",
               "keyValue": "={{ $('Ответ распознан?').first().json.targetTaskKey }}"
-            },
-            {
-              "keyName": "status",
-              "keyValue": "needs_input"
             }
-          ]
+          ],
+          "combinator": "and"
         },
         "columns": {
           "mappingMode": "defineBelow",

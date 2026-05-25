@@ -32,40 +32,6 @@ fi
 N8N_URL="http://127.0.0.1:${N8N_PORT:-5678}"
 CUTOFF_DATE="$(date -u -d "${RETENTION_HOURS} hours ago" +%Y-%m-%dT%H:%M:%S.000Z 2>/dev/null || date -u -v-${RETENTION_HOURS}H +%Y-%m-%dT%H:%M:%S.000Z)"
 
-# Health check: restart dispatcher schedule if it stopped ticking (n8n 2.20.5 bug)
-check_dispatcher_health() {
-  local dispatcher_id
-  dispatcher_id="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" 2>/dev/null | jq -r '.data[] | select(.name == "Диспетчер задач Telegram") | .id')"
-
-  if [ -z "$dispatcher_id" ]; then
-    log_warn "Не удалось найти workflow диспетчера"
-    return
-  fi
-
-  local last_exec
-  last_exec="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/executions?workflowId=${dispatcher_id}&limit=1" 2>/dev/null | jq -r '.data[0].startedAt // empty')"
-
-  if [ -z "$last_exec" ]; then
-    log_warn "Не удалось получить время последнего запуска диспетчера"
-    return
-  fi
-
-  local now_epoch last_epoch
-  now_epoch="$(date -u +%s)"
-  last_epoch="$(date -u -d "$last_exec" +%s 2>/dev/null || date -u -j -f "%Y-%m-%dT%H:%M:%S" "$last_exec" +%s 2>/dev/null)"
-
-  local diff_seconds=$((now_epoch - last_epoch))
-  if [ "$diff_seconds" -gt 300 ]; then
-    log_warn "Диспетчер не запускался ${diff_seconds} сек — перезапускаю Schedule Trigger"
-    curl -fsS -X POST -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${dispatcher_id}/deactivate" >/dev/null 2>&1 || true
-    sleep 2
-    curl -fsS -X POST -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${dispatcher_id}/activate" >/dev/null 2>&1 || true
-    log_ok "Schedule Trigger диспетчера перезапущен"
-  else
-    log_info "Диспетчер жив (последний запуск ${diff_seconds} сек назад)"
-  fi
-}
-
 log_info "Удаляю execution старше ${RETENTION_HOURS} ч (ранее ${CUTOFF_DATE})"
 
 total_deleted=0
@@ -100,6 +66,3 @@ while [ "$page" -lt "$MAX_PAGES" ]; do
 done
 
 log_ok "Всего удалено execution: ${total_deleted}"
-
-log_info 'Проверяю здоровье диспетчера...'
-check_dispatcher_health || true

@@ -515,14 +515,6 @@ log_ok 'Sub-workflow активированы.'
 activate_and_verify "$ingress_workflow_id" "$INGRESS_WORKFLOW_NAME"
 activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
 
-# Принудительный перезапуск Schedule Trigger (workaround бага n8n 2.20.5)
-log_info 'Перезапускаю Schedule Trigger для диспетчера (n8n 2.20.5 bug workaround)'
-curl -fsS -X POST \
-  -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
-  "${N8N_URL}/api/v1/workflows/${dispatch_workflow_id}/deactivate" >/dev/null 2>&1 || true
-sleep 2
-activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
-
 log_ok 'Workflow активированы после перезапуска.'
 
 log_ok 'Telegram credential и workflow импортированы.'

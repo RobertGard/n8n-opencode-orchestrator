@@ -618,6 +618,41 @@
       "alwaysOutputData": true
     },
     {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.taskKey }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_options_json": "={{ $json.updatedPendingOptionsJson || $json.pendingOptionsJson || '[]' }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "save-delivered-at",
+      "name": "Сохраняем deliveredAt в БД",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [2912, 208],
+      "alwaysOutputData": true
+    },
+    {
       "id": "enrich-abort",
       "name": "Обогащаем: задача отменена",
       "type": "n8n-nodes-base.code",
@@ -928,7 +963,7 @@
       "main": [
         [
           {
-            "node": "Сохраняем pending в БД (sub-workflow)",
+            "node": "Сохраняем deliveredAt в БД",
             "type": "main",
             "index": 0
           }
@@ -958,6 +993,17 @@
       ]
     },
     "Сохраняем pending в БД (sub-workflow)": {
+      "main": [
+        [
+          {
+            "node": "Собираем итог интеракции",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сохраняем deliveredAt в БД": {
       "main": [
         [
           {

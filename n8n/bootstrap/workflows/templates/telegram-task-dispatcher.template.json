@@ -1164,7 +1164,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "context_json": "={{ JSON.stringify({ latestSentId: String($('Завершение задачи').first().json.latestSentId || '').trim() }) }}"
+            "context_json": "={{ (() => { const prevCtx = $('Выбираем активную задачу').first().json.contextJson || {}; const newId = String($('Завершение задачи').first().json.latestSentId || '').trim(); return JSON.stringify({ ...prevCtx, latestSentId: newId }) })() }}"
           },
           "matchingColumns": [],
           "schema": [

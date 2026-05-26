@@ -547,7 +547,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Определяем итоговый resultType по приоритету:\n//   abort > pending_sent > interaction_processed > interaction_found > no_action\n// taskKey/sessionId/chatId берём из data, с fallback на контекст вызова —\n// иначе ветка «нет вопроса» потеряет все три поля и сломает paired-item цепочку диспетчера.\n// answerSent: ссылка на enrich-answer-sent для ветки interaction_processed,\n//   т.к. clear-pending-after-answer (DataTable update) затирает computed-поля.\n\nconst data = $input.first().json\nconst context = $('Разбираем входные данные').item.json\nconst answerSent = (() => {\n  try { return $('Обогащаем: ответ в OpenCode отправлен').first().json }\n  catch { return {} }\n})()\n\nconst resultType = data.taskCancelled ? 'abort'\n  : data.questionSent ? 'pending_sent'\n  : (data.hasAnswerPayload || answerSent.hasAnswerPayload) ? 'interaction_processed'\n  : data.hasInteraction ? 'interaction_found'\n  : 'no_action'\n\nreturn {\n  json: {\n    taskKey: data.taskKey || answerSent.taskKey || context.taskKey || '',\n    sessionId: data.sessionId || answerSent.sessionId || context.sessionId || '',\n    chatId: data.chatId || answerSent.chatId || context.chatId || '',\n    resultType,\n    interactionType: answerSent.interactionType || data.interactionType || '',\n    hasInteraction: data.hasInteraction || answerSent.hasInteraction || false,\n    questionSent: data.questionSent || false,\n    taskCancelled: data.taskCancelled || false,\n    error: data.replyError || answerSent.replyError || data.error || '',\n    pendingQuestionText: data.pendingQuestionText || '',\n    pendingOptionsJson: data.pendingOptionsJson || data.updatedPendingOptionsJson || '',\n  },\n}"
+        "jsCode": "// Определяем итоговый resultType по приоритету:\n//   abort > pending_sent > interaction_processed > interaction_found > no_action\n// taskKey/sessionId/chatId берём из data, с fallback на контекст вызова —\n// иначе ветка «нет вопроса» потеряет все три поля и сломает paired-item цепочку диспетчера.\n// answerSent: ссылка на enrich-answer-sent для ветки interaction_processed,\n//   т.к. clear-pending-after-answer (DataTable update) затирает computed-поля.\n// pendingSent: ссылка на enrich-pending-sent для ветки pending_sent,\n//   т.к. save-delivered-at (DataTable update) затирает computed-поля.\n\nconst data = $input.first().json\nconst context = $('Разбираем входные данные').item.json\nconst answerSent = (() => {\n  try { return $('Обогащаем: ответ в OpenCode отправлен').first().json }\n  catch { return {} }\n})()\nconst pendingSent = (() => {\n  try { return $('Обогащаем: вопрос отправлен').first().json }\n  catch { return {} }\n})()\n\nconst resultType = data.taskCancelled ? 'abort'\n  : (data.questionSent || pendingSent.questionSent) ? 'pending_sent'\n  : (data.hasAnswerPayload || answerSent.hasAnswerPayload) ? 'interaction_processed'\n  : data.hasInteraction ? 'interaction_found'\n  : 'no_action'\n\nreturn {\n  json: {\n    taskKey: data.taskKey || answerSent.taskKey || pendingSent.taskKey || context.taskKey || '',\n    sessionId: data.sessionId || answerSent.sessionId || pendingSent.sessionId || context.sessionId || '',\n    chatId: data.chatId || answerSent.chatId || pendingSent.chatId || context.chatId || '',\n    resultType,\n    interactionType: answerSent.interactionType || pendingSent.interactionType || data.interactionType || '',\n    hasInteraction: data.hasInteraction || answerSent.hasInteraction || false,\n    questionSent: data.questionSent || pendingSent.questionSent || false,\n    taskCancelled: data.taskCancelled || false,\n    error: data.replyError || answerSent.replyError || data.error || '',\n    pendingQuestionText: data.pendingQuestionText || '',\n    pendingOptionsJson: data.pendingOptionsJson || data.updatedPendingOptionsJson || '',\n  },\n}"
       },
       "id": "merge-result",
       "name": "Собираем итог интеракции",
@@ -568,7 +568,7 @@
         208
       ],
       "parameters": {
-        "jsCode": "const context = $('Разбираем входные данные').item.json\nconst pendingMeta = {}\ntry { Object.assign(pendingMeta, JSON.parse(String(context.pendingOptionsJson || '{}'))) } catch {}\npendingMeta.deliveredAt = new Date().toISOString()\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true, pendingQuestionText: context.pendingQuestion || '', updatedPendingOptionsJson: JSON.stringify(pendingMeta) } }",
+        "jsCode": "const context = $('Разбираем входные данные').item.json\nconst answer = $('Готовим ответ пользователю').first().json\nconst pendingMeta = {}\nconst originalPendingOptionsJson = String(context.pendingOptionsJson || '[]')\ntry { Object.assign(pendingMeta, JSON.parse(originalPendingOptionsJson)) } catch {}\npendingMeta.deliveredAt = new Date().toISOString()\nreturn { json: { taskKey: context.taskKey, sessionId: context.sessionId, chatId: context.chatId, resultType: 'pending_sent', questionSent: true, interactionType: answer.interactionType, hasInteraction: false, pendingQuestionText: context.pendingQuestion || '', updatedPendingOptionsJson: JSON.stringify(pendingMeta), originalPendingOptionsJson } }",
         "language": "javaScript"
       }
     },
@@ -632,6 +632,11 @@
               "keyName": "task_key",
               "condition": "eq",
               "keyValue": "={{ $json.taskKey }}"
+            },
+            {
+              "keyName": "pending_options_json",
+              "condition": "eq",
+              "keyValue": "={{ $json.originalPendingOptionsJson }}"
             }
           ]
         },

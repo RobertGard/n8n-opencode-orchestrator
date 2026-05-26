@@ -504,11 +504,6 @@
               "keyName": "task_key",
               "condition": "eq",
               "keyValue": "={{ $json.taskKey }}"
-            },
-            {
-              "keyName": "pending_options_json",
-              "condition": "eq",
-              "keyValue": "[]"
             }
           ]
         },

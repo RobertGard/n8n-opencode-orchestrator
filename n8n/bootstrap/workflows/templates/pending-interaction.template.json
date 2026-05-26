@@ -636,9 +636,45 @@
         496
       ],
       "parameters": {
-        "jsCode": "// После отправки ответа в OpenCode API собираем итог: ошибка или успех.\n// Очистка от HTML-тегов: Telegram-нода по умолчанию шлёт parse_mode=HTML.\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst httpResult = $input.first().json\nconst answer = $('Готовим ответ пользователю').item.json\nconst context = $('Разбираем входные данные').item.json\n\nreturn {\n  json: {\n    taskKey: answer.taskKey || context.taskKey,\n    sessionId: answer.sessionId || context.sessionId,\n    chatId: answer.chatId || context.chatId,\n    taskKey: answer.taskKey || context.taskKey, pendingQuestionText: '', pendingOptionsJson: '[]', resultType: 'interaction_processed',\n    interactionType: answer.interactionType,\n    requestAction: answer.requestAction,\n    hasInteraction: true,\n    hasAnswerPayload: true,\n    // Ошибка: либо от n8n ($input.item.error), либо из тела ответа API\n    replyError: stripHtml($input.item.error?.message || (httpResult.error ? String(httpResult.error.message || httpResult.error) : '')),\n  },\n}",
+        "jsCode": "// После отправки ответа в OpenCode API собираем итог: ошибка или успех.\n// Очистка от HTML-тегов: Telegram-нода по умолчанию шлёт parse_mode=HTML.\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst httpResult = $input.first().json\nconst answer = $('Готовим ответ пользователю').item.json\nconst context = $('Разбираем входные данные').item.json\n\nreturn {\n  json: {\n    taskKey: answer.taskKey || context.taskKey,\n    sessionId: answer.sessionId || context.sessionId,\n    chatId: answer.chatId || context.chatId,\n    pendingQuestionText: '',\n    pendingOptionsJson: '[]',\n    resultType: 'interaction_processed',\n    interactionType: answer.interactionType,\n    requestAction: answer.requestAction,\n    hasInteraction: true,\n    hasAnswerPayload: true,\n    // Ошибка: либо от n8n ($input.item.error), либо из тела ответа API\n    replyError: stripHtml($input.item.error?.message || (httpResult.error ? String(httpResult.error.message || httpResult.error) : '')),\n  },\n}",
         "language": "javaScript"
       }
+    },
+    {
+      "parameters": {
+        "resource": "row",
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "condition": "eq",
+              "keyValue": "={{ $json.taskKey }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pending_question": "",
+            "pending_options_json": "[]"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "clear-pending-after-answer",
+      "name": "Очищаем pending после ответа",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [2688, 496],
+      "alwaysOutputData": true
     }
   ],
   "connections": {
@@ -908,7 +944,7 @@
       "main": [
         [
           {
-            "node": "Сохраняем pending в БД (sub-workflow)",
+            "node": "Очищаем pending после ответа",
             "type": "main",
             "index": 0
           }
@@ -916,6 +952,17 @@
       ]
     },
     "Сохраняем pending в БД (sub-workflow)": {
+      "main": [
+        [
+          {
+            "node": "Собираем итог интеракции",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Очищаем pending после ответа": {
       "main": [
         [
           {

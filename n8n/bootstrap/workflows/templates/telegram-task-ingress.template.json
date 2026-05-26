@@ -486,8 +486,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "pending_options_json": "={{ $('Ответ распознан?').first().json.updatedPendingOptionsJson }}",
-            "status": "needs_input"
+            "pending_options_json": "={{ $('Ответ распознан?').first().json.updatedPendingOptionsJson }}"
           },
           "matchingColumns": [],
           "schema": [

@@ -1581,7 +1581,8 @@
             "chat_id": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
             "completed_task_key": "={{ $('Выбираем активную задачу').first().json.task.task_key }}",
             "completed_prompt": "={{ $('Выбираем активную задачу').first().json.task.prompt }}",
-            "completed_result": "={{ $('Завершение задачи').first().json.replyText }}"
+            "completed_result": "={{ $('Завершение задачи').first().json.replyText }}",
+            "worker_alias": "={{ $('Выбираем активную задачу').first().json.task.worker_alias }}"
           }
         }
       },
@@ -1685,7 +1686,8 @@
             "completed_prompt": "={{ $('Выбираем активную задачу').first().json.task.prompt }}",
             "pending_question": "={{ $('Выбираем активную задачу').first().json.pendingQuestion }}",
             "is_needs_input": true,
-            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}"
+            "pending_options_json": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}",
+            "worker_alias": "={{ $('Выбираем активную задачу').first().json.task.worker_alias }}"
           }
         }
       },

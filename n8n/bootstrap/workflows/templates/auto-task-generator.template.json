@@ -198,7 +198,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
-        "text": "=🤖 Авто-задача: {{ $('Валидируем ответ').first().json.prompt }}\n\n/task --auto_mode=\"false\" — выключить авто-режим",
+        "text": "=🤖 Авто-задача [{{ $json.task_key }}]: {{ $('Валидируем ответ').first().json.prompt }}\n\n/task --auto_mode=\"false\" — выключить авто-режим",
         "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
       },
       "id": "notify-task",

@@ -1650,11 +1650,11 @@
               }
             },
             {
-              "leftValue": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}",
-              "rightValue": "[]",
+              "leftValue": "={{ $('Выбираем активную задачу').first().json.pendingQuestion }}",
+              "rightValue": "",
               "operator": {
                 "type": "string",
-                "operation": "equals"
+                "operation": "notEmpty"
               }
             }
           ],

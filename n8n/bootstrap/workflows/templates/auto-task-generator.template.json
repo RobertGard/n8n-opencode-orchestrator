@@ -7,19 +7,57 @@
       "name": "Триггер: вызов из диспетчера",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [320, 400]
+      "position": [
+        320,
+        400
+      ]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            {"id": "max-tasks", "name": "maxTasksToFetch", "value": 5, "type": "number"},
-            {"id": "max-result", "name": "maxResultLength", "value": 500, "type": "number"},
-            {"id": "max-context", "name": "maxContextItems", "value": 3, "type": "number"},
-            {"id": "min-prompt", "name": "minPromptLength", "value": 5, "type": "number"},
-            {"id": "answer-prompt", "name": "promptAnswerSystem", "value": "<role>\nТы — агент-ассистент OpenCode. Твоя задача: прочитай вопрос OpenCode и контекст задачи, в которой он возник, и дай ответ, позволяющий продолжить работу без задержки.\n</role>\n\n<decision_tree>\nОпредели тип вопроса и действуй по сценарию:\n\n1. OpenCode запрашивает КОНКРЕТНУЮ КОМАНДУ (например «какую команду запустить», «какой флаг использовать»)\n   → Отправь точную команду как ответ.\n\n2. OpenCode ждёт ВЫБОРА ИЗ ВАРИАНТОВ (перечислены варианты A/B/C или 1/2/3)\n   → Выбери вариант. НЕ поясняй выбор.\n\n3. OpenCode сообщает о ПРОБЛЕМЕ и просит помощи («не могу найти файл», «тест падает с ошибкой X»)\n   → Задай ОДИН уточняющий вопрос. НЕ предлагай решение — OpenCode сам его найдёт, ему нужна конкретика.\n\n4. Простой вопрос с очевидным ответом из контекста («npm install прошёл?», «какой порт?»)\n   → Ответь прямо, без лишних слов.\n</decision_tree>\n\n<instructions>\n— Отвечай кратко: одно-три предложения.\n— НЕ переспрашивай, если ответ очевиден из контекста.\n— НЕ давай готовых решений проблемы — только уточняющий вопрос.\n— Если OpenCode ждёт выбора из вариантов — НЕ поясняй и НЕ рассуждай, просто верни выбранный вариант.\n</instructions>\n\n<examples>\nПримеры ниже показывают принцип ответа — стиль, краткость, формат. НЕ копируй их дословно. Твои ответы должны опираться на реальный вопрос и контекст, который ты получил.\n\nПример 1: вопрос «какую команду выполнить для запуска тестов?», контекст: проект на Node.js\n→ {\"answer\": \"npm test\"}\n\nПример 2: вопрос «lodash или ramda для утилит?», контекст: нужна библиотека для работы с массивами\n→ {\"answer\": \"lodash\"}\n\nПример 3: вопрос «тест auth.test.ts падает с TypeError: Cannot read property 'token'», контекст: рефакторинг auth модуля\n→ {\"answer\": \"В какой строке auth.test.ts происходит ошибка? Покажи stack trace.\"}\n</examples>\n\n<output_format>\nОтвечай СТРОГО валидным JSON (без markdown, без ```json):\n{\"answer\": \"твой ответ\"}\n</output_format>", "type": "string"},
-            {"id": "planner-prompt", "name": "promptPlannerSystem", "value": "<role>\nТы — агент планирования. Твоя задача: проанализировать последнюю выполненную задачу и её результат, и предложить одну следующую задачу.\n\nOpenCode умеет искать в интернете, читать документацию и делать запросы в GitHub — используй это в задачах когда нужно.\n</role>\n\n<gsd_cycle>\nЕсли в истории задач есть gsd-команды — следуй циклу:\n/gsd-discuss-phase N → /gsd-plan-phase N → /gsd-execute-phase N → /gsd-verify-work N → /gsd-code-review N (если много кода) → /gsd-ship N\nПосле всех фаз: /gsd-audit-milestone → /gsd-complete-milestone → /gsd-new-milestone\n</gsd_cycle>\n\n<quality_gates>\nВ GSD-контексте используй специальные команды вместо общих фраз:\n- Вместо «проверь на дублирование и качество» → /gsd-code-review N\n- Вместо «проверь что всё работает» → /gsd-verify-work N\n- Вместо «проверь документацию и закрой» → /gsd-audit-milestone\nЕсли контекст НЕ GSD — используй обычные формулировки (проверь, упрости, протестируй).\n</quality_gates>\n\n<instructions>\n1. Изучи последнюю задачу и результат.\n2. Если ошибки → поручи ИСПРАВЛЕНИЕ.\n3. Если успех и контекст GSD → предложи следующую команду по циклу.\n4. Если успех и контекст НЕ GSD → предложи тесты, документацию, следующий компонент.\n5. Одна задача за раз.\n</instructions>\n\n<examples>\nПримеры ниже показывают принцип формулировки задач. НЕ копируй их дословно, НЕ используй конкретные названия файлов и модулей из примеров — они даны только для иллюстрации стиля. Твои задачи должны опираться на реальный текст prompt и результата, который ты получил.\n\nПример 1: задача «напиши unit-тесты для utils.ts», результат «написал 12 тестов, все проходят»\n→ контекст НЕ GSD, обычная задача\n→ {\"prompt\": \"проверь покрытие тестами utils.ts, добавь тесты для edge-кейсов\"}\n\nПример 2: задача /gsd-plan-phase 12, результат «План Phase 12 создан. 3 задачи. Plan checker: 0 блокеров. Готов выполнять?»\n→ GSD-контекст, plan → execute\n→ {\"prompt\": \"/gsd-execute-phase 12\"}\n\nПример 3: задача /gsd-execute-phase 12, результат «Phase 12 executed. 3 services created. 47 tests pass. 6 files changed.»\n→ GSD-контекст, execute → verify. Много кода — нужен code-review\n→ {\"prompt\": \"/gsd-code-review 12\"}\n\nПример 4: задача /gsd-code-review 12, результат «Code review Phase 12: 0 critical, 3 warnings fixed. All clear.»\n→ GSD-контекст, review пройден → verify\n→ {\"prompt\": \"/gsd-verify-work 12\"}\n\nПример 5: задача /gsd-verify-work 12, результат «Phase 12 verified. All checks passed.»\n→ GSD-контекст, verify → ship\n→ {\"prompt\": \"/gsd-ship 12\"}\n\nПример 6: задача /gsd-ship 12, результат «PR merged. All phases complete. 14/14 phases done.»\n→ все фазы завершены → audit → complete → new\n→ {\"prompt\": \"/gsd-audit-milestone\"}\n</examples>\n\n<output_rules>\n— Если задача — GSD-команда: НЕ добавляй пояснений, просто верни команду.\n— Если задача — описание работы: 1-3 предложения, без анализа и пересказа истории.\n</output_rules>\n\n<output_format>\nОтвечай СТРОГО валидным JSON (без markdown, без ```json):\n{\"prompt\": \"следующая задача для OpenCode\"}\n</output_format>", "type": "string"},
-            {"id": "worker", "name": "workerAlias", "value": "={{ $('Триггер: вызов из диспетчера').first().json.worker_alias || '__DEFAULT_WORKER_ALIAS__' }}", "type": "string"}
+            {
+              "id": "max-tasks",
+              "name": "maxTasksToFetch",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "max-result",
+              "name": "maxResultLength",
+              "value": 500,
+              "type": "number"
+            },
+            {
+              "id": "max-context",
+              "name": "maxContextItems",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "min-prompt",
+              "name": "minPromptLength",
+              "value": 5,
+              "type": "number"
+            },
+            {
+              "id": "answer-prompt",
+              "name": "promptAnswerSystem",
+              "value": "<role>\nТы — агент-ассистент OpenCode. Твоя задача: прочитай вопрос OpenCode и контекст задачи, в которой он возник, и дай ответ, позволяющий продолжить работу без задержки.\n</role>\n\n<decision_tree>\nОпредели тип вопроса и действуй по сценарию:\n\n1. OpenCode запрашивает КОНКРЕТНУЮ КОМАНДУ (например «какую команду запустить», «какой флаг использовать»)\n   → Отправь точную команду как ответ.\n\n2. OpenCode ждёт ВЫБОРА ИЗ ВАРИАНТОВ (перечислены варианты A/B/C или 1/2/3)\n   → Выбери вариант. НЕ поясняй выбор.\n\n3. OpenCode сообщает о ПРОБЛЕМЕ и просит помощи («не могу найти файл», «тест падает с ошибкой X»)\n   → Задай ОДИН уточняющий вопрос. НЕ предлагай решение — OpenCode сам его найдёт, ему нужна конкретика.\n\n4. Простой вопрос с очевидным ответом из контекста («npm install прошёл?», «какой порт?»)\n   → Ответь прямо, без лишних слов.\n</decision_tree>\n\n<instructions>\n— Отвечай кратко: одно-три предложения.\n— НЕ переспрашивай, если ответ очевиден из контекста.\n— НЕ давай готовых решений проблемы — только уточняющий вопрос.\n— Если OpenCode ждёт выбора из вариантов — НЕ поясняй и НЕ рассуждай, просто верни выбранный вариант.\n</instructions>\n\n<examples>\nПримеры ниже показывают принцип ответа — стиль, краткость, формат. НЕ копируй их дословно. Твои ответы должны опираться на реальный вопрос и контекст, который ты получил.\n\nПример 1: вопрос «какую команду выполнить для запуска тестов?», контекст: проект на Node.js\n→ {\"answer\": \"npm test\"}\n\nПример 2: вопрос «lodash или ramda для утилит?», контекст: нужна библиотека для работы с массивами\n→ {\"answer\": \"lodash\"}\n\nПример 3: вопрос «тест auth.test.ts падает с TypeError: Cannot read property 'token'», контекст: рефакторинг auth модуля\n→ {\"answer\": \"В какой строке auth.test.ts происходит ошибка? Покажи stack trace.\"}\n</examples>\n\n<output_format>\nОтвечай СТРОГО валидным JSON (без markdown, без ```json):\n{\"answer\": \"твой ответ\"}\n</output_format>",
+              "type": "string"
+            },
+            {
+              "id": "planner-prompt",
+              "name": "promptPlannerSystem",
+              "value": "<role>\nТы — агент планирования. Твоя задача: проанализировать последнюю выполненную задачу и её результат, и предложить одну следующую задачу.\n\nOpenCode умеет искать в интернете, читать документацию и делать запросы в GitHub — используй это в задачах когда нужно.\n</role>\n\n<gsd_cycle>\nЕсли в истории задач есть gsd-команды — следуй циклу:\n  /gsd-discuss-phase N → /gsd-plan-phase N → /gsd-execute-phase N → /gsd-code-review N (если много кода) → /gsd-verify-work N → /gsd-ship N\n\nДополнительные команды:\n  /gsd-code-review N --fix        — найти и авто-исправить проблемы\n  /gsd-code-review N --fix --auto — исправлять + перепроверять до чистой\n  /gsd-debug \"описание\"            — системная отладка багов\n  /gsd-add-tests N                 — сгенерировать тесты для фазы\n  /gsd-validate-phase N            — аудит покрытия тестами\n  /gsd-audit-milestone             — проверка перед завершением milestone\n  /gsd-complete-milestone          — архивировать, создать тег\n  /gsd-new-milestone               — начать следующую версию\n</gsd_cycle>\n\n<quality_gates>\nВ GSD-контексте заменяй общие фразы на команды:\n  «проверь на дублирование/качество» → /gsd-code-review N\n  «проверь что всё работает»         → /gsd-verify-work N\n  «исправь баги»                      → /gsd-debug \"описание\"\n  «добавь тесты»                      → /gsd-add-tests N\n  «проверь документацию и закрой»     → /gsd-audit-milestone\nЕсли контекст НЕ GSD — используй обычные формулировки.\n</quality_gates>\n\n<instructions>\n1. Изучи последнюю задачу и результат.\n2. Если ошибки → поручи ИСПРАВЛЕНИЕ.\n3. Если успех и контекст GSD → предложи следующую команду по циклу.\n4. Если успех и контекст НЕ GSD → предложи тесты, документацию, следующий компонент.\n5. Одна задача за раз.\n</instructions>\n\n<examples>\nПримеры ниже показывают принцип формулировки задач. НЕ копируй их дословно, НЕ используй конкретные названия файлов и модулей из примеров — они даны только для иллюстрации стиля. Твои задачи должны опираться на реальный текст prompt и результата, который ты получил.\n\nПример 1: задача «напиши unit-тесты для utils.ts», результат «написал 12 тестов, все проходят»\n→ контекст НЕ GSD, обычная задача\n→ {\"prompt\": \"проверь покрытие тестами utils.ts, добавь тесты для edge-кейсов\"}\n\nПример 2: задача /gsd-plan-phase 12, результат «План Phase 12 создан. 3 задачи. Plan checker: 0 блокеров. Готов выполнять?»\n→ GSD-контекст, plan → execute\n→ {\"prompt\": \"/gsd-execute-phase 12\"}\n\nПример 3: задача /gsd-execute-phase 12, результат «Phase 12 executed. 3 services created. 47 tests pass. 6 files changed.»\n→ GSD-контекст, execute → verify. Много кода — нужен code-review\n→ {\"prompt\": \"/gsd-code-review 12\"}\n\nПример 4: задача /gsd-execute-phase 13, результат «Phase 13 executed. Tests: 4 RED. Ошибка: analytics.failed не эмитится.»\n→ GSD-контекст, есть баги → debug\n→ {\"prompt\": \"/gsd-debug \\\"analytics.failed не эмитится после execute\\\"\"}\n\nПример 5: задача /gsd-code-review 12, результат «Code review Phase 12: 0 critical, 3 warnings fixed. All clear.»\n→ GSD-контекст, review пройден → verify\n→ {\"prompt\": \"/gsd-verify-work 12\"}\n\nПример 6: задача /gsd-verify-work 12, результат «Phase 12 verified. All checks passed. No tests for new services.»\n→ GSD-контекст, есть непокрытый код → add-tests\n→ {\"prompt\": \"/gsd-add-tests 12\"}\n\nПример 7: задача /gsd-ship 12, результат «PR merged. All phases complete. 14/14 phases done.»\n→ все фазы завершены → audit → complete → new\n→ {\"prompt\": \"/gsd-audit-milestone\"}\n</examples>",
+              "type": "string"
+            },
+            {
+              "id": "worker",
+              "name": "workerAlias",
+              "value": "={{ $('Триггер: вызов из диспетчера').first().json.worker_alias || '__DEFAULT_WORKER_ALIAS__' }}",
+              "type": "string"
+            }
           ]
         },
         "options": {}
@@ -28,19 +66,31 @@
       "name": "Конфигурация авто-генератора",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [560, 400]
+      "position": [
+        560,
+        400
+      ]
     },
     {
       "parameters": {
         "operation": "get",
-        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
         "returnAll": false,
         "limit": "={{ $('Конфигурация авто-генератора').first().json.maxTasksToFetch }}",
         "matchType": "allConditions",
         "filters": {
           "conditions": [
-            {"keyName": "chat_id", "keyValue": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}"},
-            {"keyName": "status", "keyValue": "done"}
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "done"
+            }
           ]
         },
         "orderBy": true,
@@ -51,7 +101,10 @@
       "name": "Получаем историю задач",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [800, 400],
+      "position": [
+        800,
+        400
+      ],
       "alwaysOutputData": true
     },
     {
@@ -62,27 +115,42 @@
       "name": "Формируем контекст для агента",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1040, 400]
+      "position": [
+        1040,
+        400
+      ]
     },
     {
       "parameters": {
         "promptType": "define",
         "text": "={{ $('Формируем контекст для агента').first().json.userPrompt }}",
-        "options": {"systemMessage": "={{ $('Формируем контекст для агента').first().json.systemPrompt }}"}
+        "options": {
+          "systemMessage": "={{ $('Формируем контекст для агента').first().json.systemPrompt }}"
+        }
       },
       "id": "ai-agent",
       "name": "AI Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
-      "position": [1280, 400]
+      "position": [
+        1280,
+        400
+      ]
     },
     {
-      "parameters": {"options": {"model": "deepseek-v4-pro"}},
+      "parameters": {
+        "options": {
+          "model": "deepseek-v4-pro"
+        }
+      },
       "id": "ds-model",
       "name": "DeepSeek Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
-      "position": [1280, 560],
+      "position": [
+        1280,
+        560
+      ],
       "credentials": {
         "deepSeekApi": {
           "id": "__DEEPSEEK_CREDENTIAL_ID__",
@@ -98,7 +166,10 @@
       "name": "Извлекаем JSON из ответа",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1520, 400]
+      "position": [
+        1520,
+        400
+      ]
     },
     {
       "parameters": {
@@ -108,14 +179,28 @@
       "name": "Валидируем ответ",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1760, 400]
+      "position": [
+        1760,
+        400
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "typeValidation": "strict", "version": 2},
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
-            {"leftValue": "={{ $('Валидируем ответ').first().json.error }}", "rightValue": "", "operator": {"type": "string", "operation": "notEmpty"}}
+            {
+              "leftValue": "={{ $('Валидируем ответ').first().json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
           ],
           "combinator": "and"
         }
@@ -124,14 +209,29 @@
       "name": "Есть ошибка?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [2000, 400]
+      "position": [
+        2000,
+        400
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "typeValidation": "strict", "version": 2},
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 2
+          },
           "conditions": [
-            {"leftValue": "={{ $('Валидируем ответ').first().json.is_needs_input }}", "rightValue": true, "operator": {"type": "boolean", "operation": "true", "singleValue": true}}
+            {
+              "leftValue": "={{ $('Валидируем ответ').first().json.is_needs_input }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
           ],
           "combinator": "and"
         }
@@ -140,17 +240,29 @@
       "name": "Это ответ или задача?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [2240, 400]
+      "position": [
+        2240,
+        400
+      ]
     },
     {
       "parameters": {
         "operation": "update",
-        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
         "matchType": "allConditions",
         "filters": {
           "conditions": [
-            {"keyName": "task_key", "keyValue": "={{ $('Валидируем ответ').first().json.taskKey }}"},
-            {"keyName": "status", "keyValue": "needs_input"}
+            {
+              "keyName": "task_key",
+              "keyValue": "={{ $('Валидируем ответ').first().json.taskKey }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "needs_input"
+            }
           ]
         },
         "columns": {
@@ -165,13 +277,19 @@
       "name": "Сохраняем ответ в ожидающую задачу",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [2480, 240],
+      "position": [
+        2480,
+        240
+      ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
         "operation": "insert",
-        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -192,94 +310,236 @@
       "name": "Записываем задачу в БД",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [2480, 480],
+      "position": [
+        2480,
+        480
+      ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
         "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
         "text": "=🤖 Авто-задача [<code>{{ $json.task_key }}</code>]: {{ $('Валидируем ответ').first().json.prompt }}\n\n/task --auto_mode=\"false\" — выключить авто-режим",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-task",
       "name": "Уведомляем о новой задаче",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2720, 480],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        2720,
+        480
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     },
     {
       "parameters": {
         "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
         "text": "=🤖 Авто-ответ: {{ $('Валидируем ответ').first().json.answer }}",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-answer",
       "name": "Уведомляем об ответе",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2720, 240],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        2720,
+        240
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     },
     {
       "parameters": {
         "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
         "text": "=⚠️ Ошибка авто-генератора: {{ $('Валидируем ответ').first().json.error }}",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-err",
       "name": "Сообщаем об ошибке генерации",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2240, 640],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        2240,
+        640
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     }
   ],
   "connections": {
     "Триггер: вызов из диспетчера": {
-      "main": [[{"node": "Конфигурация авто-генератора", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Конфигурация авто-генератора",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Конфигурация авто-генератора": {
-      "main": [[{"node": "Получаем историю задач", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Получаем историю задач",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Получаем историю задач": {
-      "main": [[{"node": "Формируем контекст для агента", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Формируем контекст для агента",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Формируем контекст для агента": {
-      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "DeepSeek Chat Model": {
-      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "AI Agent": {
-      "main": [[{"node": "Извлекаем JSON из ответа", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Извлекаем JSON из ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Извлекаем JSON из ответа": {
-      "main": [[{"node": "Валидируем ответ", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Валидируем ответ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Валидируем ответ": {
-      "main": [[{"node": "Есть ошибка?", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Есть ошибка?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Есть ошибка?": {
       "main": [
-        [{"node": "Сообщаем об ошибке генерации", "type": "main", "index": 0}],
-        [{"node": "Это ответ или задача?", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Сообщаем об ошибке генерации",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Это ответ или задача?",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Это ответ или задача?": {
       "main": [
-        [{"node": "Сохраняем ответ в ожидающую задачу", "type": "main", "index": 0}],
-        [{"node": "Записываем задачу в БД", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Сохраняем ответ в ожидающую задачу",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Записываем задачу в БД",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Сохраняем ответ в ожидающую задачу": {
-      "main": [[{"node": "Уведомляем об ответе", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Уведомляем об ответе",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Записываем задачу в БД": {
-      "main": [[{"node": "Уведомляем о новой задаче", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Уведомляем о новой задаче",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "id": "900016",
   "active": false
 }

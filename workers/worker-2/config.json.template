@@ -16,7 +16,7 @@
   "tooling": {
     // npm install -g. mcp = зарегистрировать как MCP-сервер в OpenCode
     "npm": [
-      { "package": "get-shit-done-cc@latest", "args": "--opencode --global" },
+      { "package": "@opengsd/gsd-core@latest", "binary": "gsd-core", "args": "--opencode --global" },
       { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"], "enabled": true } },
       { "package": "@modelcontextprotocol/server-github", "mcp": { "name": "github", "enabled": true } },
       { "package": "@modelcontextprotocol/server-memory", "mcp": { "name": "memory", "enabled": true } },

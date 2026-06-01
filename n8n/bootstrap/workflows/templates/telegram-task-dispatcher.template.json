@@ -321,7 +321,7 @@
               "rightValue": "",
               "operator": {
                 "type": "string",
-                "operation": "notEmpty"
+                "operation": "isEmpty"
               }
             },
             {
@@ -333,7 +333,7 @@
               }
             }
           ],
-          "combinator": "and"
+          "combinator": "or"
         },
         "options": {}
       },

@@ -285,7 +285,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "text": "={{ `Задача <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> отменена: родительская задача <code>${$('Выбираем кандидатную задачу').item.json.parentTaskKey}</code> завершилась со статусом ${$('Получаем родительскую задачу').item.json.status}.` }}",
+        "text": "={{ `Задача <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> отменена [${$('Выбираем кандидатную задачу').item.json.task.worker_alias || 'primary'}]: родительская задача <code>${$('Выбираем кандидатную задачу').item.json.parentTaskKey}</code> завершилась со статусом ${$('Получаем родительскую задачу').item.json.status}.` }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -388,7 +388,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "text": "={{ `Задача <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> отменена: в результате <code>${$('Выбираем кандидатную задачу').item.json.parentTaskKey}</code> не найдено вхождение '${$('Выбираем кандидатную задачу').item.json.parentMatchText}'.` }}",
+        "text": "={{ `Задача <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> отменена [${$('Выбираем кандидатную задачу').item.json.task.worker_alias || 'primary'}]: в результате <code>${$('Выбираем кандидатную задачу').item.json.parentTaskKey}</code> не найдено вхождение '${$('Выбираем кандидатную задачу').item.json.parentMatchText}'.` }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -412,7 +412,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "text": "={{ `Задача <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> успешно запущена. Ожидайте результат.` }}",
+        "text": "={{ `Задача <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> [${$('Выбираем кандидатную задачу').item.json.task.worker_alias || 'primary'}] успешно запущена. Ожидайте результат.` }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -436,7 +436,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем кандидатную задачу').item.json.task.chat_id }}",
-        "text": "={{ `Асинхронный запуск задачи <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> не удался: ${$('Запуск задачи').item.json.launchError || 'OpenCode не принял запрос.'}` }}",
+        "text": "={{ `Асинхронный запуск задачи [${$('Выбираем кандидатную задачу').item.json.task.worker_alias || 'primary'}] <code>${$('Выбираем кандидатную задачу').item.json.task.task_key}</code> не удался: ${$('Запуск задачи').item.json.launchError || 'OpenCode не принял запрос.'}` }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -460,7 +460,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-        "text": "={{ `Ответ на вопрос по задаче <code>${$('Выбираем активную задачу').first().json.task.task_key}</code> не отправлен: ${String($('Обработка интеракций').item.json.error || 'OpenCode не вернул корректный ответ.')}` }}",
+        "text": "={{ `Ответ на вопрос по задаче [${$('Выбираем активную задачу').first().json.task.worker_alias || 'primary'}] <code>${$('Выбираем активную задачу').first().json.task.task_key}</code> не отправлен: ${String($('Обработка интеракций').item.json.error || 'OpenCode не вернул корректный ответ.')}` }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1029,7 +1029,8 @@
             "sessionStatusPath": "={{ $('Готовим пакеты обработчиков').item.json.sessionStatusPath }}",
             "messageListPath": "={{ $('Готовим пакеты обработчиков').item.json.messageListPath }}",
             "latestSentId": "={{ $('Выбираем активную задачу').first().json.latestSentId }}",
-            "queuedAt": "={{ $('Выбираем активную задачу').first().json.task.queued_at }}"
+            "queuedAt": "={{ $('Выбираем активную задачу').first().json.task.queued_at }}",
+            "workerAlias": "={{ $('Выбираем активную задачу').first().json.task.worker_alias || 'primary' }}"
           },
           "matchingColumns": [],
           "schema": [

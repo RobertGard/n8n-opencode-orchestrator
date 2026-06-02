@@ -87,10 +87,20 @@
               "keyName": "chat_id",
               "keyValue": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}"
             },
-            {
-              "keyName": "status",
-              "keyValue": "done"
-            }
+      {
+        "keyName": "status",
+        "keyValue": "done"
+      },
+      {
+        "keyName": "worker_alias",
+        "keyValue": "={{ $('Конфигурация авто-генератора').first().json.workerAlias || '__DEFAULT_WORKER_ALIAS__' }}"
+      }
+    ]
+  },
+  "orderBy": true,
+  "orderByColumn": "queued_at",
+  "orderByDirection": "DESC"
+}
           ]
         },
         "orderBy": true,

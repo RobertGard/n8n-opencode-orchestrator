@@ -343,7 +343,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Формируем контекст для агента').first().json.chatId }}",
-        "text": "=🤖 Авто-ответ [{{ ($('Конфигурация авто-генератора').first().json.workerAlias) || 'primary' }}]: {{ $('Валидируем ответ').first().json.answer }}",
+        "text": "=🤖 Авто-ответ [<code>{{ $('Валидируем ответ').first().json.taskKey }}</code>] [{{ ($('Конфигурация авто-генератора').first().json.workerAlias) || 'primary' }}]: {{ $('Валидируем ответ').first().json.answer }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"

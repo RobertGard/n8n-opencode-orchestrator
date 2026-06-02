@@ -687,7 +687,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-        "text": "={{ $('Завершение задачи').first().json.replyText }}",
+        "text": "={{ (($('Завершение задачи').first().json.replyText) || '').slice(0, 3900) }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"
@@ -1124,7 +1124,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-        "text": "={{ $('Завершение задачи').first().json.streamProgressText }}",
+        "text": "={{ (($('Завершение задачи').first().json.streamProgressText) || '').slice(0, 3900) }}",
         "additionalFields": {
           "appendAttribution": false,
           "parse_mode": "HTML"

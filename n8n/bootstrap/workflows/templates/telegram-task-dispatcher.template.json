@@ -857,7 +857,8 @@
             "permissionListPath": "={{ $('Готовим пакеты обработчиков').item.json.permissionListPath }}",
             "permissionReplyPath": "={{ $('Готовим пакеты обработчиков').item.json.permissionReplyPath }}",
             "abortRequested": "={{ String($('Выбираем активную задачу').first().json.abortRequested) }}",
-            "contextJson": "={{ JSON.stringify($('Выбираем активную задачу').first().json.contextJson) }}"
+            "contextJson": "={{ JSON.stringify($('Выбираем активную задачу').first().json.contextJson) }}",
+            "workerAlias": "={{ $('Выбираем активную задачу').first().json.task.worker_alias || 'primary' }}"
           },
           "matchingColumns": [],
           "schema": [

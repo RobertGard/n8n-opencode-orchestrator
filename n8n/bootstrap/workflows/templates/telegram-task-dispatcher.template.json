@@ -18,7 +18,7 @@
       "typeVersion": 1.2,
       "position": [
         224,
-        800
+        840
       ]
     },
     {
@@ -33,7 +33,7 @@
       "typeVersion": 3.4,
       "position": [
         448,
-        800
+        840
       ]
     },
     {
@@ -54,7 +54,7 @@
       "typeVersion": 1.1,
       "position": [
         672,
-        800
+        840
       ],
       "alwaysOutputData": true
     },
@@ -68,7 +68,7 @@
       "typeVersion": 2,
       "position": [
         896,
-        800
+        840
       ]
     },
     {
@@ -108,7 +108,7 @@
       "typeVersion": 2.2,
       "position": [
         1344,
-        432
+        384
       ]
     },
     {
@@ -121,7 +121,7 @@
       "typeVersion": 2,
       "position": [
         1568,
-        432
+        384
       ]
     },
     {
@@ -153,7 +153,7 @@
       "typeVersion": 2.2,
       "position": [
         1792,
-        432
+        384
       ]
     },
     {
@@ -179,7 +179,7 @@
       "typeVersion": 1.1,
       "position": [
         2016,
-        368
+        336
       ],
       "alwaysOutputData": true
     },
@@ -207,7 +207,7 @@
       "typeVersion": 1.1,
       "position": [
         2240,
-        368
+        336
       ],
       "alwaysOutputData": true
     },
@@ -240,7 +240,7 @@
       "typeVersion": 2.2,
       "position": [
         2464,
-        368
+        336
       ]
     },
     {
@@ -343,7 +343,7 @@
       "typeVersion": 2.2,
       "position": [
         2688,
-        288
+        336
       ]
     },
     {
@@ -424,7 +424,7 @@
       "typeVersion": 1.2,
       "position": [
         3808,
-        432
+        384
       ],
       "credentials": {
         "telegramApi": {
@@ -471,8 +471,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2016,
-        1200
+        2464,
+        1152
       ],
       "credentials": {
         "telegramApi": {
@@ -679,8 +679,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2688,
-        960
+        3136,
+        912
       ],
       "alwaysOutputData": true
     },
@@ -698,8 +698,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2912,
-        960
+        3360,
+        912
       ],
       "credentials": {
         "telegramApi": {
@@ -738,7 +738,7 @@
       "typeVersion": 2.2,
       "position": [
         1120,
-        800
+        840
       ]
     },
     {
@@ -751,7 +751,7 @@
       "typeVersion": 2,
       "position": [
         1344,
-        1136
+        1176
       ]
     },
     {
@@ -1008,8 +1008,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1568,
-        1136
+        2016,
+        1080
       ],
       "alwaysOutputData": true
     },
@@ -1119,8 +1119,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        2240,
-        1136
+        2688,
+        1080
       ],
       "alwaysOutputData": true
     },
@@ -1138,8 +1138,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2912,
-        1152
+        3360,
+        1104
       ],
       "credentials": {
         "telegramApi": {
@@ -1345,8 +1345,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        3136,
-        1232
+        3584,
+        1176
       ],
       "alwaysOutputData": true
     },
@@ -1411,8 +1411,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2464,
-        1136
+        2912,
+        1080
       ]
     },
     {
@@ -1443,8 +1443,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2688,
-        1232
+        3136,
+        1176
       ]
     },
     {
@@ -1475,8 +1475,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1792,
-        1136
+        2240,
+        1080
       ]
     },
     {
@@ -1536,8 +1536,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        3136,
-        1040
+        3584,
+        912
       ],
       "alwaysOutputData": true
     },
@@ -1568,8 +1568,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3360,
-        1040
+        3808,
+        912
       ]
     },
     {
@@ -1595,8 +1595,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        3584,
-        1040
+        4032,
+        912
       ],
       "alwaysOutputData": true
     },
@@ -1624,7 +1624,7 @@
       "typeVersion": 1.1,
       "position": [
         1568,
-        1136
+        1176
       ],
       "alwaysOutputData": true
     },
@@ -1672,7 +1672,7 @@
       "typeVersion": 2.2,
       "position": [
         1792,
-        1136
+        1176
       ]
     },
     {
@@ -1701,7 +1701,7 @@
       "typeVersion": 1.3,
       "position": [
         2016,
-        1136
+        1272
       ],
       "alwaysOutputData": true
     }

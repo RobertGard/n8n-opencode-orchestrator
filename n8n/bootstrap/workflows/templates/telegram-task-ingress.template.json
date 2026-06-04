@@ -15,7 +15,7 @@
       "typeVersion": 1.2,
       "position": [
         -4448,
-        256
+        344
       ],
       "credentials": {
         "telegramApi": {
@@ -53,7 +53,7 @@
       "typeVersion": 2.3,
       "position": [
         -3776,
-        256
+        344
       ],
       "id": "if-chat-allowed",
       "name": "Чат разрешён?"
@@ -82,7 +82,7 @@
       "typeVersion": 3.4,
       "position": [
         -4224,
-        256
+        344
       ],
       "id": "set-vars",
       "name": "Задаём переменные"
@@ -99,7 +99,7 @@
       "typeVersion": 3.4,
       "position": [
         -4000,
-        256
+        344
       ]
     },
     {
@@ -141,7 +141,7 @@
       "typeVersion": 1.2,
       "position": [
         -3552,
-        160
+        248
       ],
       "credentials": {
         "telegramApi": {
@@ -160,7 +160,7 @@
       "typeVersion": 2,
       "position": [
         -3104,
-        352
+        440
       ]
     },
     {
@@ -177,8 +177,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -1536,
-        512
+        -1312,
+        704
       ],
       "credentials": {
         "telegramApi": {
@@ -406,8 +406,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -1760,
-        512
+        -1536,
+        704
       ],
       "alwaysOutputData": true
     },
@@ -431,7 +431,7 @@
       "typeVersion": 3.3,
       "position": [
         -3552,
-        352
+        440
       ]
     },
     {
@@ -465,7 +465,7 @@
       "typeVersion": 1.1,
       "position": [
         -3328,
-        352
+        440
       ],
       "alwaysOutputData": true
     },
@@ -666,7 +666,7 @@
       "typeVersion": 1.1,
       "position": [
         -1312,
-        416
+        320
       ],
       "alwaysOutputData": true
     },
@@ -701,7 +701,7 @@
       "typeVersion": 1.1,
       "position": [
         -1088,
-        416
+        320
       ],
       "alwaysOutputData": true
     },
@@ -720,7 +720,7 @@
       "typeVersion": 1.2,
       "position": [
         -864,
-        416
+        320
       ],
       "credentials": {
         "telegramApi": {
@@ -783,8 +783,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1984,
-        512
+        -1760,
+        704
       ]
     },
     {
@@ -816,7 +816,7 @@
       "typeVersion": 2.2,
       "position": [
         -2208,
-        608
+        704
       ]
     },
     {
@@ -829,7 +829,7 @@
       "typeVersion": 2,
       "position": [
         -1984,
-        704
+        512
       ]
     },
     {
@@ -863,7 +863,7 @@
       "typeVersion": 1.1,
       "position": [
         -1760,
-        704
+        512
       ],
       "alwaysOutputData": true
     },
@@ -877,7 +877,7 @@
       "typeVersion": 2,
       "position": [
         -1536,
-        704
+        512
       ]
     },
     {
@@ -916,7 +916,7 @@
       "typeVersion": 1.1,
       "position": [
         -1312,
-        704
+        512
       ],
       "alwaysOutputData": true
     },
@@ -935,7 +935,7 @@
       "typeVersion": 1.2,
       "position": [
         -1088,
-        704
+        512
       ],
       "credentials": {
         "telegramApi": {
@@ -1012,7 +1012,7 @@
       "typeVersion": 2,
       "position": [
         -2880,
-        352
+        440
       ]
     },
     {
@@ -1044,7 +1044,7 @@
       "typeVersion": 2.2,
       "position": [
         -2656,
-        352
+        440
       ]
     },
     {
@@ -1076,7 +1076,7 @@
       "typeVersion": 2.2,
       "position": [
         -2432,
-        416
+        512
       ]
     },
     {
@@ -1105,8 +1105,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        3200,
-        1104
+        -1984,
+        800
       ]
     },
     {
@@ -1139,8 +1139,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        3424,
-        1024
+        -1760,
+        896
       ],
       "alwaysOutputData": true
     },
@@ -1158,8 +1158,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        3648,
-        1024
+        -1536,
+        896
       ],
       "credentials": {
         "telegramApi": {

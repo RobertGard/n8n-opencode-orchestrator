@@ -9,7 +9,7 @@
       "typeVersion": 1,
       "position": [
         320,
-        400
+        432
       ]
     },
     {
@@ -67,8 +67,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        560,
-        400
+        544,
+        432
       ]
     },
     {
@@ -106,8 +106,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        800,
-        400
+        768,
+        432
       ],
       "alwaysOutputData": true
     },
@@ -120,8 +120,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1040,
-        400
+        992,
+        432
       ]
     },
     {
@@ -134,8 +134,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1280,
-        400
+        1216,
+        432
       ]
     },
     {
@@ -148,8 +148,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
       "position": [
-        1280,
-        560
+        1288,
+        656
       ],
       "credentials": {
         "deepSeekApi": {
@@ -167,8 +167,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1520,
-        400
+        1568,
+        432
       ]
     },
     {
@@ -180,8 +180,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1760,
-        400
+        1792,
+        432
       ]
     },
     {
@@ -210,8 +210,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2000,
-        400
+        2016,
+        432
       ]
     },
     {
@@ -242,7 +242,7 @@
       "typeVersion": 2.2,
       "position": [
         2240,
-        400
+        336
       ]
     },
     {
@@ -278,7 +278,7 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2480,
+        2464,
         240
       ],
       "alwaysOutputData": true
@@ -311,8 +311,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2480,
-        480
+        2464,
+        432
       ],
       "alwaysOutputData": true
     },
@@ -330,8 +330,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2720,
-        480
+        2688,
+        432
       ],
       "credentials": {
         "telegramApi": {
@@ -354,7 +354,7 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2720,
+        2688,
         240
       ],
       "credentials": {
@@ -379,7 +379,7 @@
       "typeVersion": 1.2,
       "position": [
         2240,
-        640
+        528
       ],
       "credentials": {
         "telegramApi": {

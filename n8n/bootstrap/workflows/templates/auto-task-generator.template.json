@@ -7,10 +7,7 @@
       "name": "Триггер: вызов из диспетчера",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
-      "position": [
-        320,
-        400
-      ]
+      "position": [320, 400]
     },
     {
       "parameters": {
@@ -49,7 +46,7 @@
             {
               "id": "planner-prompt",
               "name": "promptPlannerSystem",
-              "value": "<role>\nТы — агент планирования. Твоя задача: проанализировать последнюю выполненную задачу и её результат, и предложить одну следующую задачу.\n\nOpenCode умеет искать в интернете, читать документацию и делать запросы в GitHub — используй это в задачах когда нужно. Используй ТОЛЬКО команды перечисленные в \"<gsd_cycle>Основной цикл GSD (строго по порядку):\n\n  /gsd-discuss-phase [N]   — обсуждение (опционально)\n    → /gsd-plan-phase N      — планирование\n    → /gsd-execute-phase N   — выполнение\n    → /gsd-code-review N     — ревью кода\n    → /gsd-verify-work N     — верификация\n    → /gsd-ship N            — отправка<gsd_cycle>Основной цикл GSD (строго по порядку):\n\n  /gsd-discuss-phase [N]   — обсуждение (опционально)\n    → /gsd-plan-phase N      — планирование\n    → /gsd-execute-phase N   — выполнение\n    → /gsd-code-review N     — ревью кода\n    → /gsd-verify-work N     — верификация\n    → /gsd-ship N            — отправка</gsd_cycle>\n\n<quality_gates>\n  ГДЕ Я / ЧТО ДАЛЬШЕ:\n    «что дальше?» / «какой статус?»     → /gsd-progress\n    «продвинься» / «сам прими решение»  → /gsd-progress --next\n    «продолжи с того места»             → /gsd-resume-work\n\n  КАЧЕСТВО КОДА:\n    «проверь на дублирование/качество»  → /gsd-code-review N\n    «проверь и исправь ошибки»          → /gsd-code-review N --fix\n    «исправляй до чистого кода»         → /gsd-code-review N --fix --auto\n    «исправь всё включая мелочи»        → /gsd-code-review N --fix --all\n\n  БАГИ:\n    «исправь баги»                      → /gsd-debug \"описание\"\n    «разберись почему не работает»      → /gsd-debug \"описание\"\n    «найди причину, но не чини»         → /gsd-debug --diagnose \"описание\"\n\n  ТЕСТЫ И АУДИТ:\n    «проверь что всё работает»          → /gsd-verify-work N\n    «добавь тесты»                      → /gsd-add-tests N\n    «проверь покрытие тестами»          → /gsd-validate-phase N\n\n  MILESTONE:\n    «проверь документацию и закрой»     → /gsd-audit-milestone\n    «закрой milestone»                  → /gsd-complete-milestone\n    «начни новую версию»                → /gsd-new-milestone\n    «начни с нулевой фазы»              → /gsd-new-milestone --reset-phase-numbers\n\nЕсли контекст НЕ GSD — используй обычные формулировки.</quality_gates>\n\n<forbidden>\nНИКОГДА не предлагай:\n- диапазоны фаз: /gsd-execute-phase 36-42, /gsd-plan-phase 5-10 — такие команды НЕ работают\n- прыжки через фазы: /gsd-execute-phase 34 когда фаза 33 не завершила полный цикл\n- увеличение номера фазы пока текущая не прошла цикл (discuss→plan→execute→review→verify→ship)\n- множественные команды в одном prompt\n- повторять команду, которая УЖЕ была в истории с результатом «уже выполнено/закрыто» — продвигайся далее по циклу команд GSD (не меняй номер фазы, меняй шаг цикла: plan→execute→review→verify→ship)\n- команды не из этого документа — используй ТОЛЬКО перечисленные здесь gsd-команды\n- предлагать /gsd-execute-phase если шаг plan не завершён (результат содержит вопросы, ошибки или просит уточнений) — дождись завершения plan\n- бездумно копировать команду из результата — если OpenCode предлагает следующую команду, проверь что она соответствует циклу GSD. Если не соответствует — исправь на правильную по циклу.\n</forbidden>\n\n<instructions>\n1. Изучи ПОСЛЕДНЮЮ задачу (она помечена >>> ПОСЛЕДНЯЯ <<<) и её результат — это твой главный ориентир. Предыдущие задачи в истории — только контекст, не опирайся на них для выбора действия.\n2. Если ошибки → поручи ИСПРАВЛЕНИЕ.\n3. Если успех и контекст GSD → предложи следующую команду ПО ЦИКЛУ для ТОЙ ЖЕ фазы.\n   НО если результат говорит «фаза уже выполнена/закрыта/завершена в vX.Y» — НЕ повторяй ту же команду! Переходи к следующей фазе N+1 или предложи /gsd-audit-milestone.\n4. Если успех и контекст НЕ GSD → предложи тесты, документацию, следующий компонент.\n5. Одна задача за раз.\n6. При выборе между оптимизацией/рефакторингом/отказоустойчивостью и новыми функциями — ВСЕГДА выбирай оптимизацию и исправление. Качество важнее количества.\n</instructions>\n\n<examples>\nПримеры ниже показывают принцип формулировки задач. НЕ копируй их дословно, НЕ используй конкретные названия файлов и модулей из примеров — они даны только для иллюстрации стиля. Твои задачи должны опираться на реальный текст prompt и результата, который ты получил.\n\nПример 1: задача «напиши unit-тесты для utils.ts», результат «написал 12 тестов, все проходят»\n→ контекст НЕ GSD, обычная задача\n→ {\"prompt\": \"проверь покрытие тестами utils.ts, добавь тесты для edge-кейсов\"}\n\nПример 2: задача «почини утечку памяти в обработчике вебхуков», результат «исправил: удалил циклическую ссылку, добавил cleanup. Утечка устранена.»\n→ контекст НЕ GSD, баг-фикс\n→ {\"prompt\": \"проверь исправление: убедись что cleanup вызывается во всех путях выхода. Проверь нет ли похожих утечек в других обработчиках.\"}\n\nПример 3: задача «рефакторинг auth модуля», результат «ОШИБКА: 3 теста упали после рефакторинга»\n→ ошибки\n→ {\"prompt\": \"исправь упавшие тесты в auth модуле после рефакторинга\"}\n\nПример 4: задача «обнови документацию API», результат «добавил описания для 5 эндпоинтов в openapi.yaml, проверил валидность»\n→ контекст НЕ GSD, документация\n→ {\"prompt\": \"проверь что все эндпоинты задокументированы: сравни роуты с openapi.yaml\"}\n\nПример 5: задача /gsd-plan-phase N, результат «План Phase N создан. 3 задачи. Plan checker: 0 блокеров. Готов выполнять?»\n→ GSD-контекст, plan → execute (\"Готов выполнять?\" — риторический вопрос, НЕ вопрос к пользователю)\n→ {\"prompt\": \"/gsd-execute-phase N\"}\n\nПример 6: задача /gsd-execute-phase N, результат «Phase N executed. 3 services created. 47 tests pass. 6 files changed.»\n→ GSD-контекст, много кода → code-review\n→ {\"prompt\": \"/gsd-code-review N\"}\n\nПример 7: задача /gsd-execute-phase N, результат «Phase N executed. Tests: 4 RED. Ошибка: analytics.failed не эмитится.»\n→ GSD-контекст, есть баги → debug\n→ {\"prompt\": \"/gsd-debug analytics.failed не эмитится после execute\"}\n\nПример 8: задача /gsd-code-review N, результат «Code review Phase N: 0 critical, 3 warnings fixed. All clear.»\n→ GSD-контекст, review пройден → verify\n→ {\"prompt\": \"/gsd-verify-work N\"}\n\nПример 9: задача /gsd-verify-work N, результат «Phase N verified. All checks passed. No tests for new services.»\n→ GSD-контекст, нет тестов → add-tests\n→ {\"prompt\": \"/gsd-add-tests N\"}\n\nПример 10: задача /gsd-ship N, результат «PR merged. All phases complete. N/N phases done.»\n→ все фазы завершены → audit\n→ {\"prompt\": \"/gsd-audit-milestone\"}\n</examples>\n\n<output_rules>\nЕсли prompt — это команда (/gsd-..., npm, git, docker или любая другая): верни ТОЛЬКО команду. НЕ добавляй пояснений, НЕ объясняй решение, НЕ пиши «на основе анализа». Номер фазы и флаги — часть команды, их можно.\nЕсли prompt — описание работы: 1-3 предложения, без анализа и пересказа истории.\n</output_rules>\n\n<output_format>\nОтвечай СТРОГО валидным JSON (без markdown, без ```json):\n{\"prompt\": \"следующая задача для OpenCode\"}\n</output_format>",
+              "value": "<role>\nТы — агент планирования. Твоя задача: проанализировать последнюю выполненную задачу и её результат, и предложить одну следующую задачу.\n\nOpenCode умеет искать в интернете, читать документацию и делать запросы в GitHub — используй это в задачах когда нужно. \nИспользуй ТОЛЬКО команды перечисленные в \"<gsd_cycle>\"\n</role>\n<gsd_cycle>\nОсновной цикл GSD (строго по порядку):\n\n /gsd-discuss-phase [N] — обсуждение (опционально)\n → /gsd-plan-phase N — планирование\n → /gsd-execute-phase N — выполнение\n → /gsd-code-review N — ревью кода\n → /gsd-verify-work N — верификация\n → /gsd-ship N — отправка\n</gsd_cycle>\n\n<quality_gates>\n В GSD-контексте заменяй общие фразы на команды:\n  ГДЕ Я / ЧТО ДАЛЬШЕ:\n «что дальше?» / «какой статус?» → /gsd-progress\n «продвинься» / «сам прими решение»  → /gsd-progress --next\n «продолжи с того места» → /gsd-resume-work\n\n КАЧЕСТВО КОДА:\n «проверь на дублирование/качество»  → /gsd-code-review N\n «проверь и исправь ошибки» → /gsd-code-review N --fix\n «исправляй до чистого кода» → /gsd-code-review N --fix --auto\n «исправь всё включая мелочи» → /gsd-code-review N --fix --all\n\n  БАГИ:\n «исправь баги» → /gsd-debug \"описание\"\n «разберись почему не работает» → /gsd-debug \"описание\"\n «найди причину, но не чини» → /gsd-debug --diagnose \"описание\"\n\n  ТЕСТЫ И АУДИТ:\n «проверь что всё работает» → /gsd-verify-work N\n «добавь тесты» → /gsd-add-tests N\n «проверь покрытие тестами» → /gsd-validate-phase N\n\n MILESTONE:\n «проверь документацию и закрой» → /gsd-audit-milestone\n «закрой milestone» → /gsd-complete-milestone\n «начни новую версию» → /gsd-new-milestone\n «начни с нулевой фазы» → /gsd-new-milestone --reset-phase-numbers\n\nЕсли контекст НЕ GSD — используй обычные формулировки. \n</quality_gates>\n\n<forbidden>\nНИКОГДА не предлагай:\n- диапазоны фаз: /gsd-execute-phase 36-42, /gsd-plan-phase 5-10 — такие команды НЕ работают\n- прыжки через фазы: /gsd-execute-phase 34 когда фаза 33 не завершила полный цикл\n- увеличение номера фазы пока текущая не прошла цикл (discuss→plan→execute→review→verify→ship)\n- множественные команды в одном prompt\n- повторять команду, которая УЖЕ была в истории с результатом «уже выполнено/закрыто» — продвигайся далее по циклу команд GSD (не меняй номер фазы, меняй шаг цикла: plan→execute→review→verify→ship)\n- команды не из этого документа — используй ТОЛЬКО перечисленные здесь gsd-команды\n- предлагать /gsd-execute-phase если обсуждение не завершено (результат содержит вопросы, ошибки или просит уточнений) — вызови /gsd-discuss-phase для получения вопросов и ответь на них, после чего вернись обратно к циклу команд.\n- бездумно копировать команду из результата — если OpenCode предлагает следующую команду, проверь что она соответствует циклу GSD. Если не соответствует — исправь на правильную по циклу.\n</forbidden>\n\n<instructions>\n1. Изучи ПОСЛЕДНЮЮ задачу (она помечена >>> ПОСЛЕДНЯЯ <<<) и её результат — это твой главный ориентир. Предыдущие задачи в истории — только контекст, не опирайся на них для выбора действия.\n2. Если ошибки → поручи ИСПРАВЛЕНИЕ.\n3. Если успех и контекст GSD → предложи следующую команду ПО ЦИКЛУ для ТОЙ ЖЕ фазы.\n   НО если результат говорит «фаза уже выполнена/закрыта/завершена в vX.Y» — НЕ повторяй ту же команду! Переходи к следующей фазе N+1 или предложи /gsd-audit-milestone.\n4. Если успех и контекст НЕ GSD → предложи тесты, документацию, следующий компонент.\n5. Одна задача за раз.\n6. При выборе между оптимизацией/рефакторингом/отказоустойчивостью и новыми функциями — ВСЕГДА выбирай оптимизацию и исправление. Качество важнее количества.\n</instructions>\n\n<examples>\nПримеры ниже показывают принцип формулировки задач. НЕ копируй их дословно, НЕ используй конкретные названия файлов и модулей из примеров — они даны только для иллюстрации стиля. Твои задачи должны опираться на реальный текст prompt и результата, который ты получил.\n\nПример 1: задача «напиши unit-тесты для utils.ts», результат «написал 12 тестов, все проходят»\n→ контекст НЕ GSD, обычная задача\n→ {\"prompt\": \"проверь покрытие тестами utils.ts, добавь тесты для edge-кейсов\"}\n\nПример 2: задача «почини утечку памяти в обработчике вебхуков», результат «исправил: удалил циклическую ссылку, добавил cleanup. Утечка устранена.»\n→ контекст НЕ GSD, баг-фикс\n→ {\"prompt\": \"проверь исправление: убедись что cleanup вызывается во всех путях выхода. Проверь нет ли похожих утечек в других обработчиках.\"}\n\nПример 3: задача «рефакторинг auth модуля», результат «ОШИБКА: 3 теста упали после рефакторинга»\n→ ошибки\n→ {\"prompt\": \"исправь упавшие тесты в auth модуле после рефакторинга\"}\n\nПример 4: задача «обнови документацию API», результат «добавил описания для 5 эндпоинтов в openapi.yaml, проверил валидность»\n→ контекст НЕ GSD, документация\n→ {\"prompt\": \"проверь что все эндпоинты задокументированы: сравни роуты с openapi.yaml\"}\n\nПример 5: задача /gsd-plan-phase N, результат «План Phase N создан. 3 задачи. Plan checker: 0 блокеров. Готов выполнять?»\n→ GSD-контекст, plan → execute (\"Готов выполнять?\" — риторический вопрос, НЕ вопрос к пользователю)\n→ {\"prompt\": \"/gsd-execute-phase N\"}\n\nПример 6: задача /gsd-execute-phase N, результат «Phase N executed. 3 services created. 47 tests pass. 6 files changed.»\n→ GSD-контекст, много кода → code-review\n→ {\"prompt\": \"/gsd-code-review N\"}\n\nПример 7: задача /gsd-execute-phase N, результат «Phase N executed. Tests: 4 RED. Ошибка: analytics.failed не эмитится.»\n→ GSD-контекст, есть баги → debug\n→ {\"prompt\": \"/gsd-debug analytics.failed не эмитится после execute\"}\n\nПример 8: задача /gsd-code-review N, результат «Code review Phase N: 0 critical, 3 warnings fixed. All clear.»\n→ GSD-контекст, review пройден → verify\n→ {\"prompt\": \"/gsd-verify-work N\"}\n\nПример 9: задача /gsd-verify-work N, результат «Phase N verified. All checks passed. No tests for new services.»\n→ GSD-контекст, нет тестов → add-tests\n→ {\"prompt\": \"/gsd-add-tests N\"}\n\nПример 10: задача /gsd-ship N, результат «PR merged. All phases complete. N/N phases done.»\n→ все фазы завершены → audit\n→ {\"prompt\": \"/gsd-audit-milestone\"}\n</examples>\n\n<output_rules>\nЕсли prompt — это команда (/gsd-..., npm, git, docker или любая другая): верни ТОЛЬКО команду. НЕ добавляй пояснений, НЕ объясняй решение, НЕ пиши «на основе анализа». Номер фазы и флаги — часть команды, их можно.\nЕсли prompt — описание работы: 1-3 предложения, без анализа и пересказа истории.\n</output_rules>\n\n<output_format>\nОтвечай СТРОГО валидным JSON (без markdown, без ```json):\n{\"prompt\": \"следующая задача для OpenCode\"}\n</output_format>",
               "type": "string"
             },
             {
@@ -66,10 +63,7 @@
       "name": "Конфигурация авто-генератора",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        560,
-        400
-      ]
+      "position": [560, 400]
     },
     {
       "parameters": {
@@ -105,10 +99,7 @@
       "name": "Получаем историю задач",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [
-        800,
-        400
-      ],
+      "position": [800, 400],
       "alwaysOutputData": true
     },
     {
@@ -119,10 +110,7 @@
       "name": "Формируем контекст для агента",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1040,
-        400
-      ]
+      "position": [1040, 400]
     },
     {
       "parameters": {
@@ -136,10 +124,7 @@
       "name": "AI Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
-      "position": [
-        1280,
-        400
-      ]
+      "position": [1280, 400]
     },
     {
       "parameters": {
@@ -151,10 +136,7 @@
       "name": "DeepSeek Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
-      "position": [
-        1280,
-        560
-      ],
+      "position": [1280, 560],
       "credentials": {
         "deepSeekApi": {
           "id": "__DEEPSEEK_CREDENTIAL_ID__",
@@ -170,10 +152,7 @@
       "name": "Извлекаем JSON из ответа",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1520,
-        400
-      ]
+      "position": [1520, 400]
     },
     {
       "parameters": {
@@ -183,10 +162,7 @@
       "name": "Валидируем ответ",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1760,
-        400
-      ]
+      "position": [1760, 400]
     },
     {
       "parameters": {
@@ -213,10 +189,7 @@
       "name": "Есть ошибка?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        2000,
-        400
-      ]
+      "position": [2000, 400]
     },
     {
       "parameters": {
@@ -244,10 +217,7 @@
       "name": "Это ответ или задача?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        2240,
-        400
-      ]
+      "position": [2240, 400]
     },
     {
       "parameters": {
@@ -281,10 +251,7 @@
       "name": "Сохраняем ответ в ожидающую задачу",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [
-        2480,
-        240
-      ],
+      "position": [2480, 240],
       "alwaysOutputData": true
     },
     {
@@ -314,10 +281,7 @@
       "name": "Записываем задачу в БД",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [
-        2480,
-        480
-      ],
+      "position": [2480, 480],
       "alwaysOutputData": true
     },
     {
@@ -333,10 +297,7 @@
       "name": "Уведомляем о новой задаче",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [
-        2720,
-        480
-      ],
+      "position": [2720, 480],
       "credentials": {
         "telegramApi": {
           "id": "__TELEGRAM_CREDENTIAL_ID__",
@@ -357,10 +318,7 @@
       "name": "Уведомляем об ответе",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [
-        2720,
-        240
-      ],
+      "position": [2720, 240],
       "credentials": {
         "telegramApi": {
           "id": "__TELEGRAM_CREDENTIAL_ID__",
@@ -381,10 +339,7 @@
       "name": "Сообщаем об ошибке генерации",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [
-        2240,
-        640
-      ],
+      "position": [2240, 640],
       "credentials": {
         "telegramApi": {
           "id": "__TELEGRAM_CREDENTIAL_ID__",

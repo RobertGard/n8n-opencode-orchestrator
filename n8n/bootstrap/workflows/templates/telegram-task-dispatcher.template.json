@@ -848,7 +848,7 @@
             "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
             "taskStatus": "={{ $('Выбираем активную задачу').first().json.taskStatus }}",
             "pendingQuestion": "={{ $('Выбираем активную задачу').first().json.pendingQuestion }}",
-            "pendingOptionsJson": "={{ $('Выбираем активную задачу').first().json.pendingOptionsJson }}",
+            "pendingOptionsJson": "={{ $json.pending_options_json || $('Выбираем активную задачу').first().json.pendingOptionsJson }}",
             "workerBaseUrl": "={{ $('Готовим пакеты обработчиков').item.json.workerBaseUrl }}",
             "authorizationHeader": "={{ $('Готовим пакеты обработчиков').item.json.authorizationHeader }}",
             "questionListPath": "={{ $('Готовим пакеты обработчиков').item.json.questionListPath }}",

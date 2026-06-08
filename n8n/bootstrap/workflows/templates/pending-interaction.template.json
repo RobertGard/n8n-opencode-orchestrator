@@ -84,7 +84,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Нормализуем входные данные для обработчика интеракций OpenCode.\n// Пробрасываем все endpoint-ы: question (reply/reject), permission (list/reply).\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    pendingQuestion: (() => {\n      const db = (() => { try { return $('Перечитываем задачу из БД').first().json; } catch (_) { return {}; } })();\n      return String(db.pending_question || input.pendingQuestion || '').trim();\n    })(),\n    pendingOptionsJson: (() => {\n      const db = (() => { try { return $('Перечитываем задачу из БД').first().json; } catch (_) { return {}; } })();\n      return String(db.pending_options_json || input.pendingOptionsJson || '[]');\n    })(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    questionListPath: String(input.questionListPath || '').trim(),\n    questionReplyPath: String(input.questionReplyPath || '').trim(),\n    questionRejectPath: String(input.questionRejectPath || '').trim(),\n    permissionListPath: String(input.permissionListPath || '').trim(),\n    permissionReplyPath: String(input.permissionReplyPath || '').trim(),\n    abortRequested: input.abortRequested === true || String(input.abortRequested).trim() === 'true',\n    contextJson: input.contextJson || {},\n    workerAlias: String(input.workerAlias || '').trim(),\n  },\n}"
+        "jsCode": "// Нормализуем входные данные для обработчика интеракций OpenCode.\n// Пробрасываем все endpoint-ы: question (reply/reject), permission (list/reply).\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    chatId: String(input.chatId || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    pendingQuestion: String(input.pendingQuestion || '').trim(),\n    pendingOptionsJson: String(input.pendingOptionsJson || '[]'),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    questionListPath: String(input.questionListPath || '').trim(),\n    questionReplyPath: String(input.questionReplyPath || '').trim(),\n    questionRejectPath: String(input.questionRejectPath || '').trim(),\n    permissionListPath: String(input.permissionListPath || '').trim(),\n    permissionReplyPath: String(input.permissionReplyPath || '').trim(),\n    abortRequested: input.abortRequested === true || String(input.abortRequested).trim() === 'true',\n    contextJson: input.contextJson || {},\n    workerAlias: String(input.workerAlias || '').trim(),\n  },\n}"
       },
       "id": "parse-input",
       "name": "Разбираем входные данные",
@@ -94,35 +94,6 @@
         448,
         640
       ]
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "returnAll": false,
-        "limit": 1,
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "task_key",
-              "keyValue": "={{ $('Запуск по вызову из другого сценария').item.json.taskKey }}"
-            }
-          ]
-        }
-      },
-      "id": "re-read-task",
-      "name": "Перечитываем задачу из БД",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        336,
-        640
-      ],
-      "alwaysOutputData": true
     },
     {
       "parameters": {
@@ -767,7 +738,7 @@
       "main": [
         [
           {
-            "node": "Перечитываем задачу из БД",
+            "node": "Разбираем входные данные",
             "type": "main",
             "index": 0
           }
@@ -1063,17 +1034,6 @@
         [
           {
             "node": "Собираем итог интеракции",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Перечитываем задачу из БД": {
-      "main": [
-        [
-          {
-            "node": "Разбираем входные данные",
             "type": "main",
             "index": 0
           }

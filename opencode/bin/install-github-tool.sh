@@ -44,22 +44,21 @@ install_one() {
   printf '  → %s\n' "${url}"
 
   # --- install by file type ---
-  case "${pattern}" in
-    *'.tar.gz'|*'.tgz')
+  case "${url}" in
+    *.tar.gz|*.tgz|*.tar.bz2|*.tar.xz|*.tar)
       local tmp_dir
       tmp_dir="$(mktemp -d)"
-      curl -fsSL "${url}" | tar xz -C "${tmp_dir}" "${bin}" 2>/dev/null || {
-        # tar xz with filename didn't work — try extracting everything
-        curl -fsSL "${url}" | tar xz -C "${tmp_dir}" 2>/dev/null
-        # find the binary in the extracted files
-        local found
-        found="$(find "${tmp_dir}" -type f -name "${bin}" | head -1)"
-        [ -n "${found}" ] && install -m 0755 "${found}" "${dest}"
-        rm -rf "${tmp_dir}"
+      curl -fsSL "${url}" | tar x${url##*.tar} -C "${tmp_dir}" 2>/dev/null || {
+        curl -fsSL "${url}" | tar x -C "${tmp_dir}" 2>/dev/null
       }
-      [ -f "${dest}" ] || { printf '  ⚠️  binary "%s" not found after extraction\n' "${bin}" >&2; return 1; }
+      # find the binary in the extracted files
+      local found
+      found="$(find "${tmp_dir}" -type f -name "${bin}" | head -1)"
+      [ -n "${found}" ] && install -m 0755 "${found}" "${dest}"
+      rm -rf "${tmp_dir}"
+      [ -f "${dest}" ] || { printf '  ⚠️  binary "%s" not found in archive\n' "${bin}" >&2; return 1; }
       ;;
-    *'.deb')
+    *.deb)
       local tmp_deb
       tmp_deb="$(mktemp)"
       curl -fsSLo "${tmp_deb}" "${url}"

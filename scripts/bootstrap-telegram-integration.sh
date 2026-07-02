@@ -162,6 +162,7 @@ render_template() {
   local auto_generator_wf_id="${7:-900016}"
   local chat_settings_table_id="${8:-}"
   local deepseek_cred_id="${9:-}"
+  local verifier_wf_id="${10:-900017}"
   local cred_id_escaped="${cred_id//|/\\|}"
   local cred_name_escaped="${cred_name//|/\\|}"
   local table_id_escaped="${table_id//|/\\|}"
@@ -169,6 +170,7 @@ render_template() {
   local auto_gen_id_escaped="${auto_generator_wf_id//|/\\|}"
   local chat_settings_table_escaped="${chat_settings_table_id//|/\\|}"
   local deepseek_cred_escaped="${deepseek_cred_id//|/\\|}"
+  local verifier_wf_id_escaped="${verifier_wf_id//|/\\|}"
   local opencode_routing_json_sed_escaped="${opencode_routing_json_escaped//\\/\\\\}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//&/\\&}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//|/\\|}"
@@ -180,6 +182,7 @@ render_template() {
     -e "s|__TASKS_TABLE_ID__|${table_id_escaped}|g" \
     -e "s|__CHAT_SETTINGS_TABLE_ID__|${chat_settings_table_escaped}|g" \
     -e "s|__AUTO_GENERATOR_WORKFLOW_ID__|${auto_gen_id_escaped}|g" \
+    -e "s|__VERIFIER_WORKFLOW_ID__|${verifier_wf_id_escaped}|g" \
     -e "s|__TELEGRAM_CHAT_ID__|${telegram_chat_id_escaped}|g" \
     -e "s|__OPENCODE_ROUTING_JSON__|${opencode_routing_json_sed_escaped}|g" \
     "$input" > "$output"
@@ -417,31 +420,17 @@ printf '{"telegramCredentialId":"%s","deepseekCredentialId":"%s","tasksTableId":
   "$credential_id" "${deepseek_credential_id:-}" "$tasks_table_id" "${chat_settings_table_id:-}" > "$STATE_FILE"
 
 auto_generator_workflow_id="900016"
+acceptance_verifier_workflow_id="900017"
 
-# --- Импортируем verifier первым, чтобы получить его ID для dispatcher ---
-render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
-# Удаляем старый verifier если есть
-old_verifier_ids="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" | jq -r --arg name "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" '.data // . // [] | map(select(.name == $name)) | .[].id')"
-for old_id in $old_verifier_ids; do
-  [ -n "$old_id" ] && [ "$old_id" != "null" ] && curl -fsS -X DELETE -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${old_id}" >/dev/null || true
-done
-import_workflow_from_host_file "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" 'acceptance-verifier.json'
-acceptance_verifier_workflow_id="$(workflow_id_by_name "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME")"
-log_ok "Verifier workflow id: ${acceptance_verifier_workflow_id:-unknown}"
-
-# --- Рендерим остальные workflow ---
-
-render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id"
-render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id"
-render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
-render_template "$TASK_LAUNCHER_TEMPLATE" "$TASK_LAUNCHER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
-render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
-render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
-render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}"
+render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
+render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
+render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$TASK_LAUNCHER_TEMPLATE" "$TASK_LAUNCHER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}" "$acceptance_verifier_workflow_id"
+render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
 sed -i "s|__DEFAULT_WORKER_ALIAS__|${default_worker_alias}|g" "$AUTO_GENERATOR_WORKFLOW_TEMP"
-if [ -n "${acceptance_verifier_workflow_id:-}" ]; then
-  sed -i "s|__VERIFIER_WORKFLOW_ID__|${acceptance_verifier_workflow_id}|g" "$DISPATCH_WORKFLOW_TEMP"
-fi
 
 log_ok 'Временные workflow-файлы подготовлены.'
 
@@ -451,7 +440,7 @@ step_start 'Импортирую workflow в n8n'
 for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
                "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME"; do
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
   existing_ids="$(curl -fsS \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     "${N8N_URL}/api/v1/workflows" | jq -r --arg name "$wf_name" '.data // . // [] | map(select(.name == $name)) | .[].id')"
@@ -470,6 +459,7 @@ import_workflow_from_host_file "$TASK_LAUNCHER_WORKFLOW_TEMP" 'task-launcher.jso
 import_workflow_from_host_file "$PENDING_INTERACTION_WORKFLOW_TEMP" 'pending-interaction.json'
 import_workflow_from_host_file "$TASK_FINALIZER_WORKFLOW_TEMP" 'task-finalizer.json'
 import_workflow_from_host_file "$AUTO_GENERATOR_WORKFLOW_TEMP" 'auto-task-generator.json'
+import_workflow_from_host_file "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" 'acceptance-verifier.json'
 
 ingress_workflow_id="$(workflow_id_by_name "$INGRESS_WORKFLOW_NAME")"
 dispatch_workflow_id="$(workflow_id_by_name "$DISPATCH_WORKFLOW_NAME")"

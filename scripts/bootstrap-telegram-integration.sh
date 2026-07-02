@@ -11,6 +11,7 @@ TASK_LAUNCHER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-launc
 PENDING_INTERACTION_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/pending-interaction.template.json"
 TASK_FINALIZER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-finalizer.template.json"
 AUTO_GENERATOR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/auto-task-generator.template.json"
+ACCEPTANCE_VERIFIER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/acceptance-verifier.template.json"
 ROUTING_FILE="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
 TASKS_TABLE_NAME="agent_tasks"
 CHAT_SETTINGS_TABLE_NAME="chat_settings"
@@ -22,6 +23,7 @@ TASK_LAUNCHER_WORKFLOW_NAME="Запуск задачи"
 PENDING_INTERACTION_WORKFLOW_NAME="Обработка интеракций"
 TASK_FINALIZER_WORKFLOW_NAME="Завершение задачи"
 AUTO_GENERATOR_WORKFLOW_NAME="Авто-генератор задач"
+ACCEPTANCE_VERIFIER_WORKFLOW_NAME="Верификатор приёмки"
 TELEGRAM_CREDENTIAL_NAME="Telegram Bot"
 DEEPSEEK_CREDENTIAL_NAME="DeepSeek API"
 INGRESS_WORKFLOW_TEMP=""
@@ -31,6 +33,7 @@ TASK_LAUNCHER_WORKFLOW_TEMP=""
 PENDING_INTERACTION_WORKFLOW_TEMP=""
 TASK_FINALIZER_WORKFLOW_TEMP=""
 AUTO_GENERATOR_WORKFLOW_TEMP=""
+ACCEPTANCE_VERIFIER_WORKFLOW_TEMP=""
 
 log_info() {
   printf '[INFO] %s\n' "$1"
@@ -61,6 +64,7 @@ cleanup_temp_files() {
   [ -n "$PENDING_INTERACTION_WORKFLOW_TEMP" ] && rm -f "$PENDING_INTERACTION_WORKFLOW_TEMP"
   [ -n "$TASK_FINALIZER_WORKFLOW_TEMP" ] && rm -f "$TASK_FINALIZER_WORKFLOW_TEMP"
   [ -n "$AUTO_GENERATOR_WORKFLOW_TEMP" ] && rm -f "$AUTO_GENERATOR_WORKFLOW_TEMP"
+  [ -n "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" ] && rm -f "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP"
 }
 
 trap cleanup_temp_files EXIT
@@ -389,6 +393,7 @@ TASK_LAUNCHER_WORKFLOW_TEMP="$(mktemp)"
 PENDING_INTERACTION_WORKFLOW_TEMP="$(mktemp)"
 TASK_FINALIZER_WORKFLOW_TEMP="$(mktemp)"
 AUTO_GENERATOR_WORKFLOW_TEMP="$(mktemp)"
+ACCEPTANCE_VERIFIER_WORKFLOW_TEMP="$(mktemp)"
 
 # Создаём таблицу chat_settings если ещё нет
 chat_settings_table_id=""
@@ -413,6 +418,19 @@ printf '{"telegramCredentialId":"%s","deepseekCredentialId":"%s","tasksTableId":
 
 auto_generator_workflow_id="900016"
 
+# --- Импортируем verifier первым, чтобы получить его ID для dispatcher ---
+render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
+# Удаляем старый verifier если есть
+old_verifier_ids="$(curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows" | jq -r --arg name "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" '.data // . // [] | map(select(.name == $name)) | .[].id')"
+for old_id in $old_verifier_ids; do
+  [ -n "$old_id" ] && [ "$old_id" != "null" ] && curl -fsS -X DELETE -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${old_id}" >/dev/null || true
+done
+import_workflow_from_host_file "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" 'acceptance-verifier.json'
+acceptance_verifier_workflow_id="$(workflow_id_by_name "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME")"
+log_ok "Verifier workflow id: ${acceptance_verifier_workflow_id:-unknown}"
+
+# --- Рендерим остальные workflow ---
+
 render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id"
 render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id"
 render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
@@ -421,6 +439,9 @@ render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_T
 render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped"
 render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}"
 sed -i "s|__DEFAULT_WORKER_ALIAS__|${default_worker_alias}|g" "$AUTO_GENERATOR_WORKFLOW_TEMP"
+if [ -n "${acceptance_verifier_workflow_id:-}" ]; then
+  sed -i "s|__VERIFIER_WORKFLOW_ID__|${acceptance_verifier_workflow_id}|g" "$DISPATCH_WORKFLOW_TEMP"
+fi
 
 log_ok 'Временные workflow-файлы подготовлены.'
 
@@ -498,7 +519,7 @@ fi
 log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
 for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME"; do
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
   sub_wf_id="$(workflow_id_by_name "$wf_name")"
   if [ -z "$sub_wf_id" ]; then
     die "Не удалось найти sub-workflow по имени: ${wf_name}"

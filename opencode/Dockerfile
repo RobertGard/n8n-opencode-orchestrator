@@ -61,6 +61,7 @@ RUN npm install -g \
   nx \
   prettier \
   prisma \
+  playwright \
   ts-jest \
   ts-node \
   tsx \

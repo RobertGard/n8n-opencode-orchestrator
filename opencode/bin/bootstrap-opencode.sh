@@ -166,6 +166,9 @@ cat > "${CONFIG_FILE}" <<'BASE_EOF'
   "plugin": [
     "superpowers@git+https://github.com/obra/superpowers.git"
   ],
+  "instructions": [
+    "/opt/opencode/templates/global-agents.md"
+  ],
   "provider": {
     "anthropic": {
       "options": {
@@ -227,6 +230,14 @@ install -m 0644 "${TEMPLATE_ROOT}/docker-up.md" "${WORKSPACE_ROOT}/.opencode/com
 install -m 0644 "${TEMPLATE_ROOT}/repair.md" "${WORKSPACE_ROOT}/.opencode/commands/repair.md"
 install -m 0644 "${TEMPLATE_ROOT}/bootstrap-repo.md" "${WORKSPACE_ROOT}/.opencode/commands/bootstrap-repo.md"
 
+# Skills — on-demand reusable instructions for agents
+mkdir -p "${CONFIG_DIR}/skills"
+for skill_dir in "${TEMPLATE_ROOT}/skills/"*/; do
+  skill_name="$(basename "${skill_dir}")"
+  mkdir -p "${CONFIG_DIR}/skills/${skill_name}"
+  install -m 0644 "${skill_dir}SKILL.md" "${CONFIG_DIR}/skills/${skill_name}/SKILL.md"
+done
+
 mkdir -p "${CONFIG_DIR}/agents"
 if [ ! -f "${CONFIG_DIR}/agents/verifier.md" ]; then
   cat > "${CONFIG_DIR}/agents/verifier.md" <<'VERIFIER_EOF'
@@ -255,6 +266,10 @@ If something fails, report it honestly — do NOT fabricate success.
 VERIFIER_EOF
 fi
 
+if [ ! -f "${CONFIG_DIR}/agents/reviewer.md" ]; then
+  install -m 0644 "${TEMPLATE_ROOT}/reviewer.md" "${CONFIG_DIR}/agents/reviewer.md"
+fi
+
 if [ ! -f "${WORKSPACE_ROOT}/AGENTS.md" ]; then
   cat > "${WORKSPACE_ROOT}/AGENTS.md" <<EOF
 # ${INSTANCE_NAME}
@@ -266,6 +281,11 @@ if [ ! -f "${WORKSPACE_ROOT}/AGENTS.md" ]; then
 - Do not read .env files unless the operator explicitly asks for it.
 - Prefer .opencode/commands for repeatable verification, bootstrap, and Docker workflows.
 EOF
+fi
+
+# Global rules — apply to ALL OpenCode sessions on this worker
+if [ ! -f "${CONFIG_DIR}/AGENTS.md" ]; then
+  install -m 0644 "${TEMPLATE_ROOT}/global-agents.md" "${CONFIG_DIR}/AGENTS.md"
 fi
 
 if [ "${OPENCODE_AUTO_INSTALL_TOOLING:-1}" = "1" ]; then

@@ -5,6 +5,7 @@ example/
 .DS_Store
 n8n/local-files/workflows/telegram-task-ingress.json
 n8n/local-files/workflows/telegram-task-dispatcher.json
+workers/*/config.json
 workers/*/repos.json
 compose.overrides/*.yml
 *.log

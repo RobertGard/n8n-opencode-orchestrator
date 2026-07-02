@@ -45,10 +45,10 @@ RUN mkdir -p /usr/local/lib/docker/cli-plugins \
 COPY bin/install-github-tool.sh /opt/opencode/bin/
 RUN bash /opt/opencode/bin/install-github-tool.sh \
     'hadolint/hadolint|hadolint|hadolint-Linux-x86_64' \
-    'dandavison/delta|delta|git-delta_amd64.deb' \
-    'xo/usql|usql|usql-linux-amd64' \
-    'rhysd/actionlint|actionlint|actionlint_linux_amd64.tar.gz' \
-    'gitleaks/gitleaks|gitleaks|gitleaks_linux_amd64.tar.gz'
+    'dandavison/delta|delta|git-delta_.*_amd64\.deb' \
+    'xo/usql|usql|usql.*linux.*amd64' \
+    'rhysd/actionlint|actionlint|actionlint_.*_linux_amd64\.tar\.gz' \
+    'gitleaks/gitleaks|gitleaks|gitleaks_.*_linux_amd64\.tar\.gz'
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN npm install -g \

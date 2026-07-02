@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Generic binary installer — works with GitHub, GitLab, direct URLs
+# Generic binary installer — GitHub releases, GitLab, direct URLs
+# Resolves asset names via GitHub API (handles versioned filenames)
 #
 # Usage:
-#   install-github-tool.sh 'github:hadolint/hadolint|hadolint|hadolint-Linux-x86_64'
-#   install-github-tool.sh 'direct|delta|git-delta_amd64|https://github.com/dandavison/delta/releases/latest/download/git-delta_amd64.deb'
-#   install-github-tool.sh 'gitlab:owner/repo|tool|tool-linux-amd64.tar.gz'
-#
-# Format: <source>:<repo>|<binary-name>|<asset-pattern>|<custom-url>
-#   source: github (default), gitlab, direct
-#   custom-url: overrides auto-generated URL
+#   install-github-tool.sh 'hadolint/hadolint|hadolint|hadolint-Linux-x86_64'
+#   install-github-tool.sh 'dandavison/delta|delta|git-delta_.*_amd64\.deb'
+#   install-github-tool.sh 'direct|mytool|mytool|https://cdn.example.com/mytool'
 
 install_one() {
   local spec="$1"
@@ -26,27 +23,43 @@ install_one() {
     repo="${source#gitlab:}"
     url="https://gitlab.com/${repo}/-/releases/permalink/latest/downloads/${pattern}"
   elif [[ "${source}" == direct:* ]]; then
-    repo="${source#direct:}"
-    url="${repo}"
+    url="${source#direct:}"
   else
-    # default: github
+    # default: github — resolve via API to handle versioned asset names
     repo="${source#github:}"
-    [ "${repo}" = "${source}" ] && repo="${source}"  # bare 'owner/repo' without prefix
-    url="https://github.com/${repo}/releases/latest/download/${pattern}"
+    [ "${repo}" = "${source}" ] && repo="${source}"
+    printf '→ resolving %s from %s (pattern: %s)\n' "${bin}" "${repo}" "${pattern}"
+
+    local api_url="https://api.github.com/repos/${repo}/releases/latest"
+    local download_url
+    download_url="$(curl -fsS "${api_url}" 2>/dev/null | jq -r --arg pattern "${pattern}" '.assets[] | select(.name | test($pattern)) | .browser_download_url' | head -1)"
+
+    if [ -z "${download_url}" ] || [ "${download_url}" = "null" ]; then
+      printf '  ⚠️  asset matching "%s" not found in latest release of %s\n' "${pattern}" "${repo}" >&2
+      return 1
+    fi
+    url="${download_url}"
   fi
 
-  printf '→ %s ← %s\n' "${bin}" "${url}"
+  printf '  → %s\n' "${url}"
 
   # --- install by file type ---
   case "${pattern}" in
-    *.tar.gz|*.tgz)
+    *'.tar.gz'|*'.tgz')
       local tmp_dir
       tmp_dir="$(mktemp -d)"
-      curl -fsSL "${url}" | tar xz -C "${tmp_dir}" "${bin}"
-      install -m 0755 "${tmp_dir}/${bin}" "${dest}"
-      rm -rf "${tmp_dir}"
+      curl -fsSL "${url}" | tar xz -C "${tmp_dir}" "${bin}" 2>/dev/null || {
+        # tar xz with filename didn't work — try extracting everything
+        curl -fsSL "${url}" | tar xz -C "${tmp_dir}" 2>/dev/null
+        # find the binary in the extracted files
+        local found
+        found="$(find "${tmp_dir}" -type f -name "${bin}" | head -1)"
+        [ -n "${found}" ] && install -m 0755 "${found}" "${dest}"
+        rm -rf "${tmp_dir}"
+      }
+      [ -f "${dest}" ] || { printf '  ⚠️  binary "%s" not found after extraction\n' "${bin}" >&2; return 1; }
       ;;
-    *.deb)
+    *'.deb')
       local tmp_deb
       tmp_deb="$(mktemp)"
       curl -fsSLo "${tmp_deb}" "${url}"
@@ -58,8 +71,10 @@ install_one() {
       chmod +x "${dest}"
       ;;
   esac
+
+  printf '  ✅ %s installed\n' "${bin}"
 }
 
 for spec in "$@"; do
-  install_one "${spec}"
+  install_one "${spec}" || printf '  ❌ failed to install: %s\n' "${spec}" >&2
 done

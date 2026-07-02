@@ -32,6 +32,8 @@ x-opencode-common: &opencode-common
     - edge
     - control
   stop_grace_period: 10m
+  mem_limit: ${OPENCODE_WORKER_MEMORY_LIMIT:-4g}
+  cpus: ${OPENCODE_WORKER_CPU_LIMIT:-2}
 
 services:
   postgres:

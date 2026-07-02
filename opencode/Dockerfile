@@ -19,9 +19,8 @@ RUN apt-get update && apt-get install -y \
   gosu \
   hyperfine \
   jq \
-  just \
   make \
-  mysql-client \
+  mariadb-client \
   openssh-client \
   passwd \
   postgresql-client \

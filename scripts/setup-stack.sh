@@ -1253,6 +1253,8 @@ services:
     networks:
       - edge
       - control
+    mem_limit: \${OPENCODE_WORKER_MEMORY_LIMIT:-4g}
+    cpus: \${OPENCODE_WORKER_CPU_LIMIT:-2}
 
 volumes:
   opencode_worker_${worker_index}_config:

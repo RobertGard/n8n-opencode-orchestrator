@@ -78,6 +78,9 @@ services:
       - opencode_worker_${WORKER_INDEX}_workspace:/workspace
     networks:
       - control
+    stop_grace_period: 10m
+    mem_limit: \${OPENCODE_WORKER_MEMORY_LIMIT:-4g}
+    cpus: \${OPENCODE_WORKER_CPU_LIMIT:-2}
 
 volumes:
   opencode_worker_${WORKER_INDEX}_config:

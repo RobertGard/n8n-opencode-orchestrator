@@ -120,14 +120,6 @@ cat > "${CONFIG_FILE}" <<'BASE_EOF'
     ]
   },
   "lsp": {},
-  "references": {
-    "nodejs": "https://nodejs.org/docs/latest/api/",
-    "react": "https://react.dev/reference/react",
-    "typescript": "https://www.typescriptlang.org/docs/handbook/",
-    "mdn": "https://developer.mozilla.org/en-US/docs/Web",
-    "docker": "https://docs.docker.com/reference/",
-    "prisma": "https://www.prisma.io/docs/orm/reference"
-  },
   "permission": {
     "external_directory": {
       "/workspace/**": "allow",

@@ -6,6 +6,7 @@ ENV_FILE="${ROOT_DIR}/.env"
 WORKERS_DIR="${ROOT_DIR}/workers"
 OVERRIDES_DIR="${ROOT_DIR}/compose.overrides"
 ROUTING_JSON="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
+ENDPOINTS_JSON="${ROOT_DIR}/n8n/bootstrap/opencode-endpoints.json"
 
 declare -a WORKER_NAMES WORKER_ALIASES WORKER_PORTS WORKER_PASSWORDS WORKER_SERVICES WORKER_CONFIG_DIRS WORKER_OVERRIDE_FILES
 
@@ -582,92 +583,14 @@ write_routing_file() {
       fi
     done
     printf '  },\n'
-    printf '  "endpoints": {\n'
-    local -a endpoints=(
-      "health:/global/health"
-      "globalEvent:/global/event"
-      "projectList:/project"
-      "projectCurrent:/project/current"
-      "pathCurrent:/path"
-      "vcsInfo:/vcs"
-      "instanceDispose:/instance/dispose"
-      "configGet:/config"
-      "configPatch:/config"
-      "configProviders:/config/providers"
-      "providerList:/provider"
-      "providerAuthMethods:/provider/auth"
-      "providerOauthAuthorize:/provider/{id}/oauth/authorize"
-      "providerOauthCallback:/provider/{id}/oauth/callback"
-      "sessionList:/session"
-      "openapi:/doc"
-      "sessionCreate:/session"
-      "sessionStatus:/session/status"
-      "sessionGet:/session/:id"
-      "sessionDelete:/session/:id"
-      "sessionPatch:/session/:id"
-      "sessionChildren:/session/:id/children"
-      "sessionTodo:/session/:id/todo"
-      "sessionInit:/session/:id/init"
-      "sessionFork:/session/:id/fork"
-      "sessionAbort:/session/:id/abort"
-      "sessionShare:/session/:id/share"
-      "sessionUnshare:/session/:id/share"
-      "sessionDiff:/session/:id/diff"
-      "sessionSummarize:/session/:id/summarize"
-      "sessionRevert:/session/:id/revert"
-      "sessionUnrevert:/session/:id/unrevert"
-      "permissionList:/permission"
-      "permissionReply:/permission/:requestID/reply"
-      "questionList:/question"
-      "questionReply:/question/:requestID/reply"
-      "questionReject:/question/:requestID/reject"
-      "sessionPermissionReply:/session/:id/permissions/:permissionID"
-      "messageList:/session/:id/message"
-      "sessionMessage:/session/:id/message"
-      "messageGet:/session/:id/message/:messageID"
-      "promptAsync:/session/:id/prompt_async"
-      "sessionCommand:/session/:id/command"
-      "sessionShell:/session/:id/shell"
-      "commandList:/command"
-      "findText:/find?pattern={pattern}"
-      "findFile:/find/file?query={query}"
-      "findSymbol:/find/symbol?query={query}"
-      "fileList:/file?path={path}"
-      "fileContent:/file/content?path={path}"
-      "fileStatus:/file/status"
-      "experimentalToolIds:/experimental/tool/ids"
-      "experimentalToolList:/experimental/tool?provider={provider}&model={model}"
-      "lspStatus:/lsp"
-      "formatterStatus:/formatter"
-      "mcpStatus:/mcp"
-      "mcpAdd:/mcp"
-      "agentList:/agent"
-      "logWrite:/log"
-      "tuiAppendPrompt:/tui/append-prompt"
-      "tuiOpenHelp:/tui/open-help"
-      "tuiOpenSessions:/tui/open-sessions"
-      "tuiOpenThemes:/tui/open-themes"
-      "tuiOpenModels:/tui/open-models"
-      "tuiSubmitPrompt:/tui/submit-prompt"
-      "tuiClearPrompt:/tui/clear-prompt"
-      "tuiExecuteCommand:/tui/execute-command"
-      "tuiShowToast:/tui/show-toast"
-      "tuiControlNext:/tui/control/next"
-      "tuiControlResponse:/tui/control/response"
-      "authSet:/auth/:id"
-      "eventStream:/event"
-    )
-    local ep last_idx=$(( ${#endpoints[@]} - 1 ))
-    for i in "${!endpoints[@]}"; do
-      ep="${endpoints[$i]}"
-      if [ "$i" -lt "$last_idx" ]; then
-        printf '    "%s": "%s",\n' "${ep%%:*}" "${ep#*:}"
-      else
-        printf '    "%s": "%s"\n' "${ep%%:*}" "${ep#*:}"
-      fi
-    done
-    printf '  }\n'
-    printf '}\n'
+    printf '  "endpoints": '
+    if [ -f "$ENDPOINTS_JSON" ]; then
+      jq '.' "$ENDPOINTS_JSON"
+    else
+      printf '{}\n'
+      printf 'warn: endpoints file not found: %s\n' "$ENDPOINTS_JSON" >&2
+    fi
+    printf '\n'
   } >"$ROUTING_JSON"
 }
 

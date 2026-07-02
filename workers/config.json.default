@@ -21,7 +21,7 @@
       { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"], "enabled": true } },
       { "package": "@modelcontextprotocol/server-memory", "mcp": { "name": "memory", "enabled": true } },
       { "package": "@upstash/context7-mcp", "mcp": { "name": "context7", "type": "remote", "url": "https://mcp.context7.com/mcp", "enabled": true } },
-      { "package": "mcp-server-brave-search", "mcp": { "name": "brave-search", "enabled": true } },
+      { "package": "@brave/brave-search-mcp-server", "mcp": { "name": "brave-search", "enabled": true } },
       { "package": "@modelcontextprotocol/server-sequential-thinking", "mcp": { "name": "sequential-thinking", "enabled": true } },
       { "package": "@playwright/mcp", "mcp": { "name": "playwright", "enabled": true, "env": { "BROWSER": "chromium" } } },
       { "package": "@henkey/postgres-mcp-server", "mcp": { "name": "postgres", "args": ["{env:DATABASE_URL}"], "enabled": true } },

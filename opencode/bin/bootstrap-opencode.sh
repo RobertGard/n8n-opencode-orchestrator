@@ -25,7 +25,6 @@ export const InjectEnvPlugin = async () => {
         "NPM_TOKEN",
         "CI",
         "TZ",
-        "FIRECRAWL_API_KEY",
         "BRAVE_API_KEY",
         "DATABASE_URL"
       ]

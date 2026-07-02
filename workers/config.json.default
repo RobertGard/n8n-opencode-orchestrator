@@ -25,8 +25,7 @@
       { "package": "@modelcontextprotocol/server-sequential-thinking", "mcp": { "name": "sequential-thinking", "enabled": true } },
       { "package": "@playwright/mcp", "mcp": { "name": "playwright", "enabled": true, "env": { "BROWSER": "chromium" } } },
       { "package": "@henkey/postgres-mcp-server", "mcp": { "name": "postgres", "args": ["{env:DATABASE_URL}"], "enabled": true } },
-      { "package": "mcp-server-fetch", "mcp": { "name": "fetch", "enabled": true } },
-      { "package": "firecrawl-mcp", "mcp": { "name": "firecrawl", "enabled": true, "env": { "FIRECRAWL_API_KEY": "{env:FIRECRAWL_API_KEY}" } } }
+      { "package": "mcp-server-fetch", "mcp": { "name": "fetch", "enabled": true } }
     ],
 
     // uv tool install. mcp = зарегистрировать как MCP-сервер в OpenCode

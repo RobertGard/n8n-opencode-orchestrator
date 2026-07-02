@@ -152,7 +152,72 @@
     },
     {
       "parameters": {
-        "jsCode": "// Главный парсер входящих Telegram-сообщений.\n// Все ответы на вопросы — через /task --answer=\"...\"\n// Все команды — через /command --flags=\"...\"\n\nconst input = $('Триггер Telegram').first().json\nconst msg = input.message || {}\nconst rawText = String(msg.text || '').trim()\n\nfunction parseCommand(text) {\n  const match = text.match(/^\\/([a-zA-Z0-9_]+)(?:@\\w+)?(?:\\s+|$)/)\n  if (!match) return { type: null, textAfterCommand: text }\n  return { type: match[1], textAfterCommand: text.slice(match[0].length).trim() }\n}\n\nfunction parseTokens(text) {\n  const flags = {}\n  const args = []\n  const regex = /--([a-zA-Z0-9_-]+)(?:=(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"']+)))?|\"([^\"]*)\"|'([^']*)'|([^\\s]+)/g\n  let match\n  while ((match = regex.exec(text)) !== null) {\n    if (match[1]) {\n      flags[match[1]] = match[2] ?? match[3] ?? match[4] ?? true\n      continue\n    }\n    const value = match[5] ?? match[6] ?? match[7]\n    if (value !== undefined) args.push(value)\n  }\n  return { flags, args }\n}\n\nif (!rawText.startsWith('/')) {\n  return [{ json: {\n    mode: 'parse_error',\n    rawText,\n    replyText: 'Не удалось распознать команду. Используйте /task --prompt=\"...\" или /task --answer=\"...\".'\n  }}]\n}\n\nconst command = parseCommand(rawText)\nif (!command.type) {\n  return [{ json: {\n    mode: 'parse_error',\n    rawText,\n    replyText: 'Команда не распознана. Используйте /task или /abort с флагами --flag=\"...\".'\n  }}]\n}\n\nconst parsed = parseTokens(command.textAfterCommand)\n\nreturn [{ json: {\n  mode: 'command_candidate',\n  rawText,\n  commandType: command.type,\n  flags: parsed.flags,\n  args: parsed.args,\n  prompt: String(parsed.flags.prompt || '').trim(),\n  answerText: String(parsed.flags.answer || '').trim(),\n  parentTaskId: String(parsed.flags.parent_task_key || '').trim(),\n  parentMatchText: String(parsed.flags.parent_match_text || '').trim(),\n  newSessionRequested: Boolean(\n    parsed.flags['new_session'] || parsed.flags['new-session'] ||\n    parsed.flags['fresh_session'] || parsed.flags['fresh-session']\n  )\n}}]"
+        "language": "javaScript",
+        "jsCode": "// Готовим systemPrompt (правила + примеры + allowed_commands) и userPrompt (текст пользователя).\n\nconst triggerData = $('Триггер Telegram').first().json\nconst msg = triggerData.message || {}\nconst rawText = String(msg.text || '').trim()\n\nconst allowedCommands = (() => {\n  try { return $('Задаём переменные').first().json.allowed_commands } catch (_) { return [] }\n})()\nconst commandsHelp = JSON.stringify(allowedCommands, null, 2)\n\nconst systemPrompt = `Ты — транслятор команд Telegram-бота. Твоя единственная задача: преобразовать обычный текст пользователя в ФОРМАТ КОМАНДЫ.\n\nПРАВИЛО №1: Если входящий текст УЖЕ команда (начинается с /) — верни его БЕЗ ИЗМЕНЕНИЙ.\nПРАВИЛО №2: НЕ переиначивай смысл просьбы. НЕ додумывай. НЕ добавляй лишних слов.\nПРАВИЛО №3: Отвечай ТОЛЬКО текстом команды. ОДНА строка. БЕЗ пояснений, БЕЗ markdown, БЕЗ \",.\nПРАВИЛО №4: Добавляй флаг ТОЛЬКО если он явно упомянут в просьбе. Не выдумывай флаги.\n\nДОСТУПНЫЕ КОМАНДЫ (allowed_commands):\n${commandsHelp}\n\nФЛАГИ (когда добавлять, а когда НЕТ):\n- --prompt=\"...\" — ВСЕГДА для /task. Содержит суть просьбы пользователя.\n- --worker=\"alias\" — ТОЛЬКО если явно указан воркер. 'первый'→'worker-1', 'второй'→'worker-2', 'третий'→'worker-3'.\n  Если НЕТ указания воркера — НЕ добавляй этот флаг.\n- --task_key=\"...\" — при ответе на вопрос (--answer) или при отмене (/abort) конкретной задачи.\n- --answer=\"...\" — при ответе на вопрос. Номер варианта или текст.\n- --parent_task_key=\"...\" --parent_match_text=\"...\" — при конструкции 'если в задаче X есть Y, то сделай Z'.\n- --auto_mode=\"true\"|\"false\" — при 'включи/выключи автомод/авторежим'.\n- --new_session или --fresh_session — при 'новая сессия', 'новая сессия opencode', 'fresh session'.\n- --verify=\"критерии\" — при 'задача принята когда...', 'проверь что...', 'убедись что...'\n\nПРИМЕРЫ ПРЕОБРАЗОВАНИЙ:\n\nВход: «разверни проект»\nВыход: /task --prompt=\"разверни проект\"\n\nВход: «выполни правки во втором воркере»\nВыход: /task --prompt=\"выполни правки\" --worker=\"worker-2\"\n\nВход: «выполни правки»\nВыход: /task --prompt=\"выполни правки\"\n\nВход: «ответь 2 в задаче task-abc»\nВыход: /task --task_key=\"task-abc\" --answer=\"2\"\n\nВход: «ответь второй в задаче task-xyz воркера 3»\nВыход: /task --task_key=\"task-xyz\" --answer=\"второй\"\n\nВход: «если в задаче task-abc есть текст \\\"готово\\\" то выполни доработку»\nВыход: /task --parent_task_key=\"task-abc\" --parent_match_text=\"готово\" --prompt=\"доработку\"\n\nВход: «если в результате задачи task-xyz есть вхождение \\\"завершено\\\" сделай проверку»\nВыход: /task --parent_task_key=\"task-xyz\" --parent_match_text=\"завершено\" --prompt=\"проверку\"\n\nВход: «включи автомод»\nВыход: /task --auto_mode=\"true\"\n\nВход: «отключи авторежим»\nВыход: /task --auto_mode=\"false\"\n\nВход: «сделай рефакторинг в новой сессии»\nВыход: /task --prompt=\"сделай рефакторинг\" --new_session\n\nВход: «напиши тесты в новой сессии»\nВыход: /task --prompt=\"напиши тесты\" --fresh_session\n\nВход: «отмени последнюю задачу»\nВыход: /abort\n\nВход: «отмени задачу task-abc»\nВыход: /abort --task_key=\"task-abc\"\n\nВход: «прерви задачу task-xyz»\nВыход: /abort --task_key=\"task-xyz\"\n\nВход: «сделай рефакторинг. проверь что линтер проходит и тесты зелёные»\nВыход: /task --prompt=\"сделай рефакторинг\" --verify=\"линтер проходит и тесты зелёные\"\n\nВход: «напиши тесты. задача принята когда coverage > 80% и все тесты проходят»\nВыход: /task --prompt=\"напиши тесты\" --verify=\"coverage > 80% и все тесты проходят\"\n\nВход: /task --prompt=\"уже команда\"\nВыход: /task --prompt=\"уже команда\"\n\nОТВЕЧАЙ ТОЛЬКО КОМАНДУ. ОДНУ СТРОКУ. БЕЗ ПОЯСНЕНИЙ.`\n\nreturn {\n  json: {\n    systemPrompt,\n    userPrompt: rawText,\n    rawText,\n  },\n}"
+      },
+      "id": "prepare-translate",
+      "name": "Готовим запрос для трансляции",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3264,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v4-pro",
+        "options": {}
+      },
+      "id": "ds-translate-model",
+      "name": "DeepSeek Chat Model (транслятор)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -3088,
+        800
+      ],
+      "credentials": {
+        "deepSeekApi": {
+          "id": "__DEEPSEEK_CREDENTIAL_ID__",
+          "name": "__DEEPSEEK_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userPrompt }}",
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}"
+        }
+      },
+      "id": "translate-command",
+      "name": "Транслятор команд",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -3088,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Извлекаем чистую команду из ответа AI-транслятора.\n\nconst toText = (v) => String(v ?? '').trim()\n\nlet agentOutput = ''\ntry { agentOutput = toText($('Транслятор команд').first().json.output ?? $('Транслятор команд').first().json.text ?? '') } catch (_) {}\n\nconst triggerData = $('Триггер Telegram').first().json\nconst originalText = toText((triggerData.message || {}).text || '')\n\nif (!agentOutput) {\n  return { json: { translatedCommand: originalText, originalText, isTranslated: false } }\n}\n\n// Очищаем: убираем markdown, бэктики, лишние пробелы и переносы\nlet cleaned = agentOutput\n  .replace(/```[\\s\\S]*?```/g, '')\n  .replace(/`([^`]*)`/g, '$1')\n  .replace(/^\\s*[/]/, '/')\n  .split('\\n')[0]\n  .trim()\n\n// Если результат начинается с /task или /abort — это команда\nconst looksLikeCommand = /^\\/(task|abort)\\b/.test(cleaned)\n\n// Если AI вернул не-команду — используем оригинал\nconst finalCommand = looksLikeCommand ? cleaned : originalText\n\nreturn {\n  json: {\n    translatedCommand: finalCommand,\n    originalText,\n    isTranslated: looksLikeCommand,\n    agentRawOutput: agentOutput,\n  },\n}"
+      },
+      "id": "extract-translated-command",
+      "name": "Извлекаем команду",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2912,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Главный парсер входящих Telegram-сообщений.\n// Все ответы на вопросы — через /task --answer=\"...\"\n// Все команды — через /command --flags=\"...\"\n\nconst input = $('Триггер Telegram').first().json\nconst msg = input.message || {}\nlet rawText = String(msg.text || '').trim()\n// Если AI-транслятор вернул команду — используем её вместо сырого текста\ntry {\n  const translated = $input.first().json.translatedCommand\n  if (translated && /^\\/(task|abort)\\b/.test(translated)) {\n    rawText = String(translated).trim()\n  }\n} catch (_) {}\n\nfunction parseCommand(text) {\n  const match = text.match(/^\\/([a-zA-Z0-9_]+)(?:@\\w+)?(?:\\s+|$)/)\n  if (!match) return { type: null, textAfterCommand: text }\n  return { type: match[1], textAfterCommand: text.slice(match[0].length).trim() }\n}\n\nfunction parseTokens(text) {\n  const flags = {}\n  const args = []\n  const regex = /--([a-zA-Z0-9_-]+)(?:=(?:\"([^\"]*)\"|'([^']*)'|([^\\s\"']+)))?|\"([^\"]*)\"|'([^']*)'|([^\\s]+)/g\n  let match\n  while ((match = regex.exec(text)) !== null) {\n    if (match[1]) {\n      flags[match[1]] = match[2] ?? match[3] ?? match[4] ?? true\n      continue\n    }\n    const value = match[5] ?? match[6] ?? match[7]\n    if (value !== undefined) args.push(value)\n  }\n  return { flags, args }\n}\n\nif (!rawText.startsWith('/')) {\n  return [{ json: {\n    mode: 'parse_error',\n    rawText,\n    replyText: 'Не удалось распознать команду. Используйте /task --prompt=\"...\" или /task --answer=\"...\".'\n  }}]\n}\n\nconst command = parseCommand(rawText)\nif (!command.type) {\n  return [{ json: {\n    mode: 'parse_error',\n    rawText,\n    replyText: 'Команда не распознана. Используйте /task или /abort с флагами --flag=\"...\".'\n  }}]\n}\n\nconst parsed = parseTokens(command.textAfterCommand)\n\nreturn [{ json: {\n  mode: 'command_candidate',\n  rawText,\n  commandType: command.type,\n  flags: parsed.flags,\n  args: parsed.args,\n  prompt: String(parsed.flags.prompt || '').trim(),\n  answerText: String(parsed.flags.answer || '').trim(),\n  parentTaskId: String(parsed.flags.parent_task_key || '').trim(),\n  parentMatchText: String(parsed.flags.parent_match_text || '').trim(),\n  newSessionRequested: Boolean(\n    parsed.flags['new_session'] || parsed.flags['new-session'] ||\n    parsed.flags['fresh_session'] || parsed.flags['fresh-session']\n  )\n}}]"
       },
       "id": "parse-command",
       "name": "Разбираем базовое сообщение Telegram",
@@ -1292,7 +1357,7 @@
       "main": [
         [
           {
-            "node": "Разбираем базовое сообщение Telegram",
+            "node": "Готовим запрос для трансляции",
             "type": "main",
             "index": 0
           }
@@ -1514,6 +1579,50 @@
         [
           {
             "node": "Уведомляем о смене режима",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим запрос для трансляции": {
+      "main": [
+        [
+          {
+            "node": "Транслятор команд",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model (транслятор)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Транслятор команд",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Транслятор команд": {
+      "main": [
+        [
+          {
+            "node": "Извлекаем команду",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Извлекаем команду": {
+      "main": [
+        [
+          {
+            "node": "Разбираем базовое сообщение Telegram",
             "type": "main",
             "index": 0
           }

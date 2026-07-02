@@ -19,7 +19,6 @@
     "npm": [
       { "package": "@opengsd/gsd-core@latest", "binary": "gsd-core", "args": "--opencode --local" },
       { "package": "@modelcontextprotocol/server-filesystem", "mcp": { "name": "filesystem", "args": ["/workspace"], "enabled": true } },
-      { "package": "@modelcontextprotocol/server-github", "mcp": { "name": "github", "enabled": true } },
       { "package": "@modelcontextprotocol/server-memory", "mcp": { "name": "memory", "enabled": true } },
       { "package": "@upstash/context7-mcp", "mcp": { "name": "context7", "type": "remote", "url": "https://mcp.context7.com/mcp", "enabled": true } },
       { "package": "@modelcontextprotocol/server-brave-search", "mcp": { "name": "brave-search", "enabled": true } },
@@ -44,7 +43,8 @@
     // после установки всех пакетов
     "post_install": [
       "serena init",
-      "npx playwright install chromium"
+      "npx playwright install chromium",
+      "docker pull ghcr.io/github/github-mcp-server:latest 2>/dev/null || true"
     ]
   }
 }

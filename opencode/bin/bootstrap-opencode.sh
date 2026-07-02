@@ -34,6 +34,11 @@ export const InjectEnvPlugin = async () => {
         const val = process.env[key]
         if (val && val.length > 0) output.env[key] = val
       }
+
+      // GitHub MCP Docker image expects GITHUB_PERSONAL_ACCESS_TOKEN
+      if (!output.env.GITHUB_PERSONAL_ACCESS_TOKEN && output.env.GITHUB_TOKEN) {
+        output.env.GITHUB_PERSONAL_ACCESS_TOKEN = output.env.GITHUB_TOKEN
+      }
     },
   }
 }
@@ -214,6 +219,15 @@ if [ -f "${WORKSPACE_CFG}" ] && jq -e '.tooling' "${WORKSPACE_CFG}" >/dev/null 2
     MCP_SECTION="{}"
   fi
 fi
+
+# Добавляем Docker-based MCP серверы (их нет в tooling.npm)
+MCP_SECTION="$(printf '%s' "${MCP_SECTION}" | jq '. + {
+  "github": {
+    "type": "local",
+    "enabled": true,
+    "command": ["docker", "run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server:latest"]
+  }
+}')"
 
 # Подставляем плейсхолдеры. __MCP_SECTION__ без кавычек — sed подставит JSON-объект
 sed -i.bak \

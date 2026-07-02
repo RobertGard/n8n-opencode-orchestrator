@@ -167,16 +167,19 @@ cat > "${CONFIG_FILE}" <<'BASE_EOF'
       "tsc *": "allow",
       "uv *": "allow",
       "jq *": "allow",
+      "just *": "allow",
       "ls *": "allow",
       "pwd": "allow",
-      "make *": "allow"
+      "make *": "allow",
+      "fzf *": "allow",
+      "hyperfine *": "allow",
+      "sg *": "allow",
+      "xh *": "allow",
+      "sd *": "allow"
     }
   },
   "plugin": [
     "superpowers@git+https://github.com/obra/superpowers.git"
-  ],
-  "instructions": [
-    "/opt/opencode/templates/global-agents.md"
   ],
   "provider": {
     "anthropic": {

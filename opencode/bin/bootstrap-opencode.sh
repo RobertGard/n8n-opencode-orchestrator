@@ -119,6 +119,7 @@ cat > "${CONFIG_FILE}" <<'BASE_EOF'
       ".pnpm-store/**"
     ]
   },
+  "lsp": {},
   "permission": {
     "external_directory": {
       "/workspace/**": "allow",
@@ -232,6 +233,9 @@ install -m 0644 "${TEMPLATE_ROOT}/bootstrap-repo.md" "${WORKSPACE_ROOT}/.opencod
 install -m 0644 "${TEMPLATE_ROOT}/review.md" "${WORKSPACE_ROOT}/.opencode/commands/review.md"
 install -m 0644 "${TEMPLATE_ROOT}/debug.md" "${WORKSPACE_ROOT}/.opencode/commands/debug.md"
 install -m 0644 "${TEMPLATE_ROOT}/deploy.md" "${WORKSPACE_ROOT}/.opencode/commands/deploy.md"
+install -m 0644 "${TEMPLATE_ROOT}/security.md" "${WORKSPACE_ROOT}/.opencode/commands/security.md"
+install -m 0644 "${TEMPLATE_ROOT}/perf.md" "${WORKSPACE_ROOT}/.opencode/commands/perf.md"
+install -m 0644 "${TEMPLATE_ROOT}/deps.md" "${WORKSPACE_ROOT}/.opencode/commands/deps.md"
 
 # Skills — on-demand reusable instructions for agents
 mkdir -p "${CONFIG_DIR}/skills"
@@ -271,6 +275,10 @@ fi
 
 if [ ! -f "${CONFIG_DIR}/agents/reviewer.md" ]; then
   install -m 0644 "${TEMPLATE_ROOT}/reviewer.md" "${CONFIG_DIR}/agents/reviewer.md"
+fi
+
+if [ ! -f "${CONFIG_DIR}/agents/planner.md" ]; then
+  install -m 0644 "${TEMPLATE_ROOT}/planner.md" "${CONFIG_DIR}/agents/planner.md"
 fi
 
 if [ ! -f "${CONFIG_DIR}/agents/security-auditor.md" ]; then

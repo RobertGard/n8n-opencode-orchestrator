@@ -37,6 +37,15 @@
 - `deployment-verify` — Pre/deploy/post verification + rollback
 - `schema-migration` — Database migration review and safety checks
 
+## Documentation references
+When working with these technologies, use `webfetch` or `context7` to access:
+- **Node.js API**: https://nodejs.org/docs/latest/api/
+- **React**: https://react.dev/reference/react
+- **TypeScript**: https://www.typescriptlang.org/docs/handbook/
+- **MDN Web Docs**: https://developer.mozilla.org/en-US/docs/Web
+- **Docker**: https://docs.docker.com/reference/
+- **Prisma**: https://www.prisma.io/docs/orm/reference
+
 ## Project conventions
 - Workspace root is at /workspace
 - Configuration is at /workspace-config

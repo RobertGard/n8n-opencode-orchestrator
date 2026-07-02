@@ -26,12 +26,15 @@
       { "package": "@modelcontextprotocol/server-sequential-thinking", "mcp": { "name": "sequential-thinking", "enabled": true } },
       { "package": "@playwright/mcp", "mcp": { "name": "playwright", "enabled": true, "env": { "BROWSER": "chromium" } } },
       { "package": "@modelcontextprotocol/server-postgres", "mcp": { "name": "postgres", "args": ["{env:DATABASE_URL}"], "enabled": true } },
+      { "package": "@modelcontextprotocol/server-fetch", "mcp": { "name": "fetch", "enabled": true } },
+      { "package": "@modelcontextprotocol/server-sqlite", "mcp": { "name": "sqlite", "args": ["/workspace/data.db"], "enabled": true } },
       { "package": "firecrawl-mcp", "mcp": { "name": "firecrawl", "enabled": true, "env": { "FIRECRAWL_API_KEY": "{env:FIRECRAWL_API_KEY}" } } }
     ],
 
     // uv tool install. mcp = зарегистрировать как MCP-сервер в OpenCode
     "uv": [
       { "package": "serena-agent@latest", "python": "3.13", "args": "--prerelease=allow", "mcp": { "name": "serena", "command": ["serena", "start-mcp-server", "--context", "ide", "--project-from-cwd"], "enabled": true } },
+      { "package": "mcp-server-git", "python": "3.13", "mcp": { "name": "git", "command": ["mcp-server-git", "--repository", "/workspace"], "enabled": true } },
       { "package": "browser-use", "python": "3.13" }
     ],
 

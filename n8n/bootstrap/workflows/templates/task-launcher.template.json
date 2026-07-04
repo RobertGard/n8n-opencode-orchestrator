@@ -68,7 +68,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Нормализуем входные данные от диспетчера и собираем тело запроса к OpenCode API.\n// Добавляем модель, если передана (формат provider/model → { providerID, modelID }).\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nconst requestBody = {\n  agent: String(input.opencodeAgent || '').trim(),\n  parts: [\n    { type: 'text', text: String(input.promptText || '').trim() }\n  ],\n}\nif (input.opencodeVariant) {\n  requestBody.variant = String(input.opencodeVariant).trim()\n}\nif (input.opencodeModelProviderID) {\n  requestBody.model = {\n    modelID: String(input.opencodeModelModelID || '').trim(),\n    providerID: String(input.opencodeModelProviderID || '').trim(),\n  }\n}\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    launchError: String(input.launchError || '').trim(),\n    opencodeVariant: String(input.opencodeVariant || '').trim(),\n    promptAsyncPath: String(input.promptAsyncPath || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    healthUrl: String(input.workerBaseUrl || '').trim().replace(/\\/+$/, '') + '/global/health',\n    requestBody: JSON.stringify(requestBody),\n  },\n}"
+        "jsCode": "// Нормализуем входные данные от диспетчера и собираем тело запроса к OpenCode API.\n// Добавляем модель, если передана (формат provider/model → { providerID, modelID }).\n\nconst input = $('Запуск по вызову из другого сценария').item.json\n\nconst requestBody = {\n  agent: String(input.opencodeAgent || '').trim(),\n  parts: [\n    { type: 'text', text: String(input.promptText || '').trim() }\n  ],\n}\nif (input.opencodeVariant) {\n  requestBody.variant = String(input.opencodeVariant).trim()\n}\nif (input.opencodeModelProviderID) {\n  requestBody.model = {\n    modelID: String(input.opencodeModelModelID || '').trim(),\n    providerID: String(input.opencodeModelProviderID || '').trim(),\n  }\n}\n\nreturn {\n  json: {\n    taskKey: String(input.taskKey || '').trim(),\n    taskStatus: String(input.taskStatus || '').trim(),\n    sessionId: String(input.sessionId || '').trim(),\n    launchError: String(input.launchError || '').trim(),\n    opencodeVariant: String(input.opencodeVariant || '').trim(),\n    promptAsyncPath: String(input.promptAsyncPath || '').trim(),\n    workerBaseUrl: String(input.workerBaseUrl || '').trim(),\n    authorizationHeader: String(input.authorizationHeader || '').trim(),\n    requestBody: JSON.stringify(requestBody),\n  },\n}"
       },
       "id": "parse-input",
       "name": "Разбираем входные данные",
@@ -76,38 +76,6 @@
       "typeVersion": 2,
       "position": [
         448,
-        392
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $('Разбираем входные данные').item.json.launchError }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "isEmpty"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "if-no-launch-error",
-      "name": "Запуск не провалился ранее?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        672,
         392
       ]
     },
@@ -131,6 +99,10 @@
               "keyName": "status",
               "condition": "eq",
               "keyValue": "queued"
+            },
+            {
+              "keyName": "session_id",
+              "condition": "empty"
             }
           ]
         },
@@ -155,7 +127,8 @@
         672,
         392
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -231,7 +204,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "// Собираем итоговый результат запуска задачи в OpenCode.\n// Успех: launchError пустой, сессия запущена.\n// Ошибка сессии: launchError = текст ошибки от менеджера сессий.\n// Ошибка HTTP: launchError = текст ошибки из ответа API prompt_async.\n// Очистка от HTML-тегов: Telegram-нода по умолчанию шлёт parse_mode=HTML.\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst input = $('Разбираем входные данные').item.json\nlet launchError = stripHtml(input.launchError || '')\n\n// Проверка ошибки HTTP-вызова prompt_async (если нода выполнялась)\ntry {\n  const promptResults = $('Запускаем задачу в OpenCode').all()\n  if (promptResults.length > 0) {\n    const promptError = promptResults[0].json.error\n    if (promptError) launchError = stripHtml(String(promptError.message || promptError))\n  }\n} catch (_) {}\n\nreturn {\n  json: {\n    sessionId: input.sessionId,\n    launchError,\n    taskKey: input.taskKey,\n  },\n}"
+        "jsCode": "// Собираем итоговый результат запуска задачи в OpenCode.\n// Успех: launchError пустой, сессия запущена.\n// Ошибка сессии: launchError = текст ошибки от менеджера сессий.\n// Ошибка захвата (claim): задача уже захвачена другим циклом → launchError, не спамим успехом.\n// Ошибка HTTP: launchError = текст ошибки из ответа API prompt_async.\n// Очистка от HTML-тегов: Telegram-нода по умолчанию шлёт parse_mode=HTML.\n\nconst stripHtml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').trim()\n\nconst input = $('Разбираем входные данные').item.json\nlet launchError = stripHtml(input.launchError || '')\n\n// Проверка ошибки захвата задачи (claim-task не нашёл строку — status уже не queued)\ntry {\n  const claimResults = $('Захватываем ожидающую задачу').all()\n  if (claimResults.length > 0) {\n    const claimError = claimResults[0].json.error\n    if (claimError) launchError = launchError || stripHtml(String(claimError.message || claimError))\n  }\n} catch (_) {}\n\n// Проверка ошибки HTTP-вызова prompt_async (если нода выполнялась)\ntry {\n  const promptResults = $('Запускаем задачу в OpenCode').all()\n  if (promptResults.length > 0) {\n    const promptError = promptResults[0].json.error\n    if (promptError) launchError = stripHtml(String(promptError.message || promptError))\n  }\n} catch (_) {}\n\nreturn {\n  json: {\n    sessionId: input.sessionId,\n    launchError,\n    taskKey: input.taskKey,\n  },\n}"
       },
       "id": "normalize-result",
       "name": "Нормализуем результат",
@@ -259,25 +232,7 @@
       "main": [
         [
           {
-            "node": "Запуск не провалился ранее?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Запуск не провалился ранее?": {
-      "main": [
-        [
-          {
             "node": "Захватываем ожидающую задачу",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Нормализуем результат",
             "type": "main",
             "index": 0
           }

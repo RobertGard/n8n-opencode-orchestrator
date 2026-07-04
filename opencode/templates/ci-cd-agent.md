@@ -22,6 +22,7 @@ permission:
     "cat *": allow
     "*": ask
   read:
+    "*": allow
   webfetch: "allow"
 ---
 

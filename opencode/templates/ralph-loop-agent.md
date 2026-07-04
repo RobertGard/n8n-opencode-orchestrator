@@ -31,6 +31,7 @@ permission:
     "gsd-core *": allow
     "*": ask
   read:
+    "*": allow
   webfetch: "allow"
 ---
 

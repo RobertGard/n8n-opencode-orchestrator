@@ -22,6 +22,7 @@ permission:
     "find *": allow
     "*": ask
   read:
+    "*": allow
   webfetch: "allow"
 ---
 

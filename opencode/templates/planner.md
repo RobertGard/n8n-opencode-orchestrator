@@ -12,6 +12,7 @@ permission:
     "grep *": allow
     "*": ask
   read:
+    "*": allow
   webfetch: "allow"
 ---
 

@@ -6,6 +6,7 @@ permission:
     "*": deny
   bash:
   read:
+    "*": allow
   webfetch: "allow"
 ---
 

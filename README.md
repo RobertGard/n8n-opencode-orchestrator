@@ -11,17 +11,21 @@ Self-hosted AI development assistant: submit a task in Telegram, n8n dispatches 
 - **Interactive OpenCode** — workers can ask clarifying questions directly in chat; you answer, they continue
 - **Auto-mode** — after task completion, the bot analyzes results and suggests the next step: GSD cycle, quality checks, tests, documentation
 - **Task chains** — a task can wait for its parent to complete and execute only if the result contains specified text (e.g. tests passed → deploy)
-- **Acceptance verification** — pass `--verify="criteria"` with a task; after completion, a read-only verifier agent checks code health, application logs, browser console (via Playwright), API responses, and per-criterion evidence. Failed verification auto-generates a fix task
+- **Acceptance verification** — pass `--verify="criteria"` with a task; after completion, a read-only verifier agent checks code health, application logs, browser console (via Playwright), API responses, and per-criterion evidence. Failed verification auto-generates a fix task with the same criteria
+- **Recurring tasks** — `--interval="4h"` flag runs a task on a schedule (30m, 4h, 1d). Stops with `/abort`. Saves DB space — reuses the same row
 - **Natural language commands** — type requests in plain language; an AI translator converts them to structured commands with proper flags
+- **OpenCode slash commands** — use `/gsd-ship`, `/deploy`, `/brainstorm` etc. in Telegram — they're automatically wrapped as `/task --prompt="/command"` for the worker
 - **Fully self-hosted** — no cloud services, all data under your control
 - **Batteries included** — PostgreSQL, Redis, n8n, Caddy (HTTPS) — one `bash setup-stack.sh` and you're ready
-- **CI/CD integration** — trigger pipelines, check build status, diagnose failures, manage releases from Telegram (`/ci`, `/release`)
+- **CI/CD integration** — trigger pipelines, check build status, diagnose failures, manage releases (`/ci`, `/release`)
 - **Database tools** — explore schemas, analyze queries, review migrations, generate seed data (`/db`)
 - **Observability** — log analysis, error pattern detection, incident reports, health monitoring
-- **Smart testing** — run only affected tests by changed files, detect flaky tests
 - **Docker deployment** — deploy, verify health, check logs, rollback via `/deploy`
-- **9 specialist agents** — planner, reviewer, verifier, security-auditor, ci-cd-agent, db-analyst, observability-agent, release-manager, ralph-loop-agent
+- **9 specialist agents** — planner, reviewer, verifier, security-auditor, ci-cd-agent, db-analyst, observability-agent, release-manager, ralph-loop-agent (GSD Execute+Verify)
 - **16 built-in skills** — from code review and performance profiling to CI/CD automation and Docker deployment
+- **skills.sh integration** — agents auto-discover and install skills from skills.sh via pre-flight check
+- **Code quality enforcement** — mandatory verification gate, anti-hardcoding rules, professional-grade standards
+- **Worker resource limits** — configurable CPU/memory caps per worker (`4GB/2CPU` default)
 
 ## Requirements
 
@@ -49,6 +53,8 @@ bash ./scripts/setup-stack.sh
 
 The bot accepts commands via `/`. Flags use `--flag="value"` format.
 
+System commands (handled by the bot directly):
+
 ### `/task` — task creation and management
 
 | Command | Description |
@@ -64,7 +70,7 @@ The bot accepts commands via `/`. Flags use `--flag="value"` format.
 
 | Command | Description |
 |---|---|
-| `/abort --task_key="xxx"` | Abort a specific task |
+| `/abort --task_key="xxx"` | Abort a specific task (running or queued recurring) |
 | `/abort` | Auto-select the only running task |
 
 ### Additional flags
@@ -73,7 +79,23 @@ The bot accepts commands via `/`. Flags use `--flag="value"` format.
 |---|---|
 | `--worker="alias"` | Assign task to a specific worker |
 | `--new_session` / `--fresh_session` | Force a new OpenCode session |
-| `--verify="criteria"` | Acceptance criteria — after task completion, a read-only verifier agent checks code health (lint, typecheck, tests), application logs (docker logs for every container), browser console (Playwright), API responses, and every criterion individually. Failed verification auto-creates a fix task |
+| `--verify="criteria"` | Acceptance criteria — after task completion, a read-only verifier agent checks code health (lint, typecheck, tests), application logs, browser console (Playwright), API responses. Failed verification auto-creates a fix task with the same criteria |
+| `--interval="4h"` | Recurring task — re-executes every N hours/days. Format: number + m/h/d (30m, 4h, 1d). Cancel with `/abort --task_key="xxx"` |
+
+### OpenCode worker commands
+
+All other `/` commands (like `/gsd-ship`, `/deploy`, `/brainstorm`) are automatically wrapped as `/task --prompt="/command"` and sent to the worker. The worker executes them as OpenCode slash commands. This includes:
+
+| Command | Where it runs | Description |
+|---------|-------------|-------------|
+| `/ci` | Worker (OpenCode) | CI/CD management |
+| `/db` | Worker (OpenCode) | Database tools |
+| `/release` | Worker (OpenCode) | Release management |
+| `/ship` | Worker (OpenCode) | Quality gates → commit → push → PR |
+| `/deploy` | Worker (OpenCode) | Docker deployment |
+| `/brainstorm` | Worker (OpenCode) | Problem decomposition |
+| `/skills` | Worker (OpenCode) | Skills discovery from skills.sh |
+| `/gsd-*` | Worker (OpenCode) | GSD workflow commands |
 
 ### Answering OpenCode questions
 
@@ -101,9 +123,21 @@ You don't have to write structured commands. Just type in plain language:
 | `enable automode` | `/task --auto_mode="true"` |
 | `cancel task task-xyz` | `/abort --task_key="task-xyz"` |
 | `refactor the code. verify that lint passes and tests are green` | `/task --prompt="refactor the code" --verify="lint passes and tests are green"` |
-| `/task --prompt="already a command"` | `/task --prompt="already a command"` (passes through unchanged) |
+| `run refactoring every 4 hours` | `/task --prompt="run refactoring" --interval="4h"` |
+| `/gsd-ship` | `/task --prompt="/gsd-ship"` (worker command, wrapped) |
+| `/task --prompt="already a command"` | `/task --prompt="already a command"` (system command, passes through) |
 
-The translator is an AI Agent (DeepSeek) that runs before the command parser. It preserves original meaning, doesn't invent flags, and passes existing commands through unchanged.
+The translator is an AI Agent (DeepSeek) that runs before the command parser. System commands (`/task`, `/abort`) pass through unchanged. All other slash commands are wrapped for the worker.
+
+### Recurring tasks
+
+Use `--interval="4h"` to create a task that re-executes on a schedule:
+
+1. Task completes → status resets to `queued` with `queued_at = now + interval`
+2. Dispatcher respects future `queued_at` — task won't execute before the interval
+3. Same DB row, no clones, no data bloat
+4. Cancel with `/abort --task_key="xxx"` — sets status to `aborted`, cycle stops
+5. Format: `30m` (minutes), `4h` (hours), `1d` (days)
 
 ### Acceptance verification pipeline
 
@@ -118,7 +152,8 @@ When you include `--verify="criteria"` with a task:
    - **Per-criterion verification**: each acceptance criterion matched against evidence
 4. Every checkpoint **requires actual output as evidence** — the agent cannot skip or fabricate
 5. A **DeepSeek AI judge** evaluates the verification report and returns a PASSED/FAILED verdict
-6. If FAILED → a fix task is auto-created with the same `--verify` criteria
+6. If FAILED → a fix task is auto-created with the **same `--verify` criteria** (criteria are copied to fix tasks)
+7. If the fix task also fails → another fix task is created, and so on until verification passes
 
 ## Architecture
 
@@ -132,41 +167,24 @@ Telegram → n8n ingress → Data Table → n8n dispatcher → OpenCode worker �
 
 ## Specialist agents
 
-8 specialized agents, each with role-based permissions and domain-specific system prompts:
+9 specialized agents, each with role-based permissions:
 
 | Agent | Role | Permissions |
 |-------|------|-------------|
 | `build` | General-purpose coder | Full read/write/bash |
-| `planner` | Design & architecture | Read-only, no edits |
+| `planner` | Design & architecture | Read-only, webfetch allowed |
 | `reviewer` | Code review | Read-only, no edits |
 | `verifier` | Acceptance verification | Read-only, bash allowed |
 | `security-auditor` | OWASP + CVE scan | Read-only, limited bash |
 | `ci-cd-agent` | Pipeline management | Read-only, `gh` CLI allowed |
-| `db-analyst` | Database analysis | Read-only, DB introspection allowed |
-| `observability-agent` | Log analysis & monitoring | Read-only, log inspection allowed |
+| `db-analyst` | Database analysis | Read-only, DB introspection |
+| `observability-agent` | Log analysis & monitoring | Read-only, log inspection |
 | `release-manager` | Versioning & deployment | Version files only |
-
-## CI/CD & Deployment
-
-| Command | Description |
-|---------|-------------|
-| `/ci` | Check CI runs for current branch. Trigger workflow, diagnose failures |
-| `/release` | Version bump, changelog generation, deployment coordination |
-| `/deploy` | Deploy to target platform. Verify health, prepare rollback |
-
-Supported deployment: Docker Compose. For cloud platforms — install via `npx skills add`.
-
-## Database management
-
-| Command | Description |
-|---------|-------------|
-| `/db` | Explore schema, analyze slow queries, review migration safety, generate seed data |
-
-Supports PostgreSQL, MySQL, SQLite, MongoDB. Integrated with Prisma, TypeORM, Knex, Alembic, Django ORM.
+| `ralph-loop-agent` | GSD Execute+Verify | Full read/write, subagent orchestration |
 
 ## Worker configuration
 
-Created by the setup script at `workers/<name>/config.json`:
+Workers are configured via `workers/config.json.default` — the single source of truth. Per-worker directories are generated by the setup script on deployment.
 
 ```json
 {
@@ -182,23 +200,13 @@ Created by the setup script at `workers/<name>/config.json`:
 
 **Repo fields:** `slug`, `url`, `ref`, `path`, `package_manager` (default `auto`), `turbo_smoke` (`false`), `turbo_tasks` (`["build","test"]`), `auto_start_docker` (`true`).
 
-**tooling** (optional) — global packages and MCP servers. Structure: `npm` (npm install -g), `uv` (uv tool install), `post_install` (commands after install). Example in `workers/config.json.default`.
+**tooling** — global packages and MCP servers. Structure: `npm` (npm install -g), `uv` (uv tool install), `post_install` (commands after install).
 
-**Templates:**
-
+**Worker resource limits:** configurable via `.env`:
+```bash
+OPENCODE_WORKER_CPU_LIMIT=2      # CPU cores per worker
+OPENCODE_WORKER_MEMORY_LIMIT=4g  # RAM per worker
 ```
-workers/
-├── config.json.default          ← default tooling for all workers
-├── worker-1/
-│   ├── config.json.template     ← overrides default for worker-1
-│   └── config.json              ← working config
-└── worker-2/
-    └── ...
-```
-
-Priority: `worker-N/config.json.template` → `workers/config.json.default`.
-
-**Reinstall behavior:** bind-mounted `config.json` survives `docker compose down -v`. If missing or disabled — the script asks for new slug/url.
 
 ## Environment variables (.env)
 
@@ -206,13 +214,14 @@ Created from `.env.example`. Key sections:
 
 | Group | Variables |
 |---|---|
-| n8n | `N8N_HOST`, `N8N_PROTOCOL`, `N8N_PORT`, `N8N_ENCRYPTION_KEY`, `N8N_BASIC_AUTH_*`, `N8N_API_KEY` |
+| n8n | `N8N_HOST`, `N8N_VERSION`, `N8N_PROTOCOL`, `N8N_PORT`, `N8N_ENCRYPTION_KEY`, `N8N_BASIC_AUTH_*`, `N8N_API_KEY` |
 | Database | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` |
 | Worker N | `OPENCODE_WORKER_N_NAME`, `_ALIAS`, `_PORT`, `_PASSWORD`, `_BASE_URL`, `_HEALTH_URL` |
+| Worker limits | `OPENCODE_WORKER_CPU_LIMIT`, `OPENCODE_WORKER_MEMORY_LIMIT` |
 | API keys | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_TOKEN` |
 | Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` |
 | OpenCode | `OPENCODE_AGENT`, `OPENCODE_MODEL`, `OPENCODE_PROVIDER_TIMEOUT_MS` |
-| CI/CD | `GITHUB_REPOSITORY`, `GITLAB_TOKEN` |
+| Optional | `DATABASE_URL`, `GITHUB_REPOSITORY`, `BRAVE_API_KEY` |
 
 ## Operations
 
@@ -251,28 +260,27 @@ After `docker compose down -v`, the script detects an expired key and asks for a
 │   └── cleanup-executions.sh
 ├── opencode/
 │   ├── Dockerfile
-│   └── bin/ (entrypoint, bootstrap-*.sh)
+│   └── bin/ (entrypoint, bootstrap-*.sh, install-github-tool.sh)
 ├── n8n/bootstrap/
-│   ├── opencode-routing.json
+│   ├── opencode-endpoints.json
 │   └── workflows/templates/
 └── workers/
-    ├── config.json.default
-    ├── worker-1/
-    └── worker-2/
+    └── config.json.default
 ```
 
 ## Getting help
 
 - **Installation issues:** run `bash ./scripts/verify-stack.sh` — checks compose, n8n, workers
 - **Telegram not working:** ensure `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` and `N8N_API_KEY` are set in `.env`, then `bash ./scripts/bootstrap-telegram-integration.sh`
-- **Worker not responding:** `docker compose ps` — all services should be healthy
+- **Worker not responding:** `docker compose ps` — all services should be healthy; check logs: `docker compose logs opencode-worker-1 --tail 200`
 - **Bugs and suggestions:** [GitHub Issues](https://github.com/RobertGard/n8n-opencode-orchestrator/issues)
 
 ## Contributing
 
 Pull requests welcome. Core principles:
 
-- No hardcoded values in bash — all defaults from `config.json.template` or `config.json.default`
+- No hardcoded values in bash — all defaults from `config.json.default`
 - `.env` — worker identity (Docker env vars), `config.json` — repo/tooling config (mounted into container)
 - `docker compose down -v` must not require manual config restoration
 - All scripts must pass `bash -n` (syntax check)
+- `workers/config.json.default` is the single source of truth for tooling — no per-worker files in git

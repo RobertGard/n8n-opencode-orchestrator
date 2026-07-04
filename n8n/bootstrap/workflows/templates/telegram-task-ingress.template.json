@@ -71,7 +71,7 @@
             {
               "id": "allowed-commands",
               "name": "allowed_commands",
-              "value": "[\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"answer\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"parent_task_key\",\n      \"parent_match_text\"\n    ]\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": []\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": [\n      \"task_key\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"auto_mode\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\",\n      \"verify\"\n    ]\n  }\n]",
+              "value": "[\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"answer\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"parent_task_key\",\n      \"parent_match_text\"\n    ]\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": []\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": [\n      \"task_key\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"auto_mode\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\",\n      \"verify\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\",\n      \"interval\"\n    ]\n  }\n]",
               "type": "array"
             }
           ]

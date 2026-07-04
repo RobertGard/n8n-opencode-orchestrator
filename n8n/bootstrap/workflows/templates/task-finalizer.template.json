@@ -208,6 +208,52 @@
         2800,
         560
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверяем нужно ли повторить задачу через интервал\nconst result = $input.first().json\nconst contextRaw = result.contextJson || '{}'\nlet context = {}\ntry { context = JSON.parse(contextRaw) } catch(e) {}\n\nconst interval = context.repeatInterval || ''\nif (!interval) {\n  return [{ json: { ...result, repeatScheduled: false } }]  // branch 0: нет повтора\n}\n\n// Парсим интервал: 30m, 4h, 1d\n// branch 0 goes to (end), branch 1 goes to insert node\nconst match = interval.match(/^(\\d+)([mhd])$/)\nif (!match) {\n  return [{ json: result }]\n}\nconst value = parseInt(match[1])\nconst unit = match[2]\nconst ms = unit === 'm' ? value * 60000 : unit === 'h' ? value * 3600000 : value * 86400000\n\nconst repeatTaskKey = `repeat-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`\nconst nextRun = new Date(Date.now() + ms).toISOString()\n\nreturn [\n  { json: { ...result, repeatScheduled: false } },\n  {\n  json: {\n    ...result,\n    repeatScheduled: true,\n    repeatTaskKey,\n    repeatNextRun: nextRun,\n    repeatInterval: interval,\n    repeatQueueData: {\n      task_key: repeatTaskKey,\n      source: 'repeat',\n      chat_id: context.chatId || '',\n      worker_alias: context.workerAlias || '',\n      command_name: 'task',\n      prompt: context.originalPrompt || result.replyText || '',\n      status: 'queued',\n      queued_at: nextRun,\n      context_json: JSON.stringify({\n        ...context,\n        repeatSource: result.taskKey || '',\n      }),\n    }\n  }\n}]"
+      },
+      "id": "check-repeat",
+      "name": "Проверяем повтор задачи",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4200,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "task_key": "={{ $('Проверяем повтор задачи').first().json.repeatQueueData.task_key }}",
+            "source": "repeat",
+            "chat_id": "={{ $('Проверяем повтор задачи').first().json.repeatQueueData.chat_id }}",
+            "worker_alias": "={{ $('Проверяем повтор задачи').first().json.repeatQueueData.worker_alias }}",
+            "command_name": "task",
+            "prompt": "={{ $('Проверяем повтор задачи').first().json.repeatQueueData.prompt }}",
+            "status": "queued",
+            "queued_at": "={{ $('Проверяем повтор задачи').first().json.repeatQueueData.queued_at }}",
+            "context_json": "={{ $('Проверяем повтор задачи').first().json.repeatQueueData.context_json }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "insert-repeat-task",
+      "name": "Создаём повторную задачу",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4400,
+        800
+      ],
+      "alwaysOutputData": true
     }
   ],
   "connections": {
@@ -278,6 +324,29 @@
         [
           {
             "node": "Сессия ещё выполняется",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Разбираем ответ OpenCode": {
+      "main": [
+        [
+          {
+            "node": "Проверяем повтор задачи",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Проверяем повтор задачи": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Создаём повторную задачу",
             "type": "main",
             "index": 0
           }

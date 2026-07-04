@@ -1780,6 +1780,87 @@
         944
       ],
       "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Проверяем нужно ли перезапустить задачу по интервалу\nconst tasks = $input.all()\nconst results = []\n\nfor (const item of tasks) {\n  let context = {}\n  try { context = JSON.parse(String(item.json.context_json || '{}')) } catch(e) {}\n  \n  const interval = String(context.repeatInterval || '').trim()\n  if (!interval) {\n    results.push({ json: { ...item.json, repeatActive: false } })\n    continue\n  }\n\n  // Парсим интервал: 30m, 4h, 1d\n  const match = interval.match(/^(\\d+)([mhd])$/)\n  if (!match) {\n    results.push({ json: { ...item.json, repeatActive: false } })\n    continue\n  }\n  const value = parseInt(match[1])\n  const unit = match[2]\n  const ms = unit === 'm' ? value * 60000 : unit === 'h' ? value * 3600000 : value * 86400000\n  const nextRun = new Date(Date.now() + ms).toISOString()\n\n  results.push({\n    json: {\n      ...item.json,\n      repeatActive: true,\n      repeatInterval: interval,\n      newQueuedAt: nextRun,\n      shouldReset: true,\n      replyText: (item.json.replyText || '') + `\\n\\n🔄 Повтор через ${interval} (${nextRun})`\n    }\n  })\n}\n\nreturn results"
+      },
+      "id": "check-repeat-interval",
+      "name": "Проверяем интервал повтора",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3580,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.shouldReset }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-repeat-active",
+      "name": "Нужен сброс для повтора?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3800,
+        848
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "keyValue": "={{ $('Проверяем интервал повтора').first().json.task_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "queued",
+            "queued_at": "={{ $('Проверяем интервал повтора').first().json.newQueuedAt }}",
+            "result_text": "={{ ($('Проверяем интервал повтора').first().json.replyText || '').slice(0, 4000) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "reset-repeat-status",
+      "name": "Сбрасываем в очередь для повтора",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4020,
+        800
+      ],
+      "alwaysOutputData": true
     }
   ],
   "connections": {
@@ -1981,7 +2062,7 @@
       "main": [
         [
           {
-            "node": "Отправляем результат в Telegram",
+            "node": "Проверяем интервал повтора",
             "type": "main",
             "index": 0
           }
@@ -2258,6 +2339,35 @@
     "Верификатор приёмки": {
       "main": [
         []
+      ]
+    },
+    "Проверяем интервал повтора": {
+      "main": [
+        [
+          {
+            "node": "Нужен сброс для повтора?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нужен сброс для повтора?": {
+      "main": [
+        [
+          {
+            "node": "Сбрасываем в очередь для повтора",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Отправляем результат в Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

@@ -294,6 +294,11 @@ if [ ! -f "${CONFIG_DIR}/agents/ralph-loop-agent.md" ]; then
   install -m 0644 "${TEMPLATE_ROOT}/ralph-loop-agent.md" "${CONFIG_DIR}/agents/ralph-loop-agent.md"
 fi
 
+for agent_file in "${CONFIG_DIR}/agents/"*.md; do
+  [ -f "${agent_file}" ] || continue
+  sed -i '/^[[:space:]]*webfetch:/d' "${agent_file}"
+done
+
 if [ ! -f "${WORKSPACE_ROOT}/AGENTS.md" ]; then
   cat > "${WORKSPACE_ROOT}/AGENTS.md" <<EOF
 # ${INSTANCE_NAME}

@@ -447,7 +447,8 @@ for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
   for old_id in $existing_ids; do
     if [ -n "$old_id" ] && [ "$old_id" != "null" ]; then
       log_info "Удаляю старый workflow '${wf_name}' (id=${old_id})"
-      curl -fsS -X DELETE -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${old_id}" >/dev/null || true
+      curl -fsS --retry 2 --retry-delay 1 -X DELETE -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${old_id}" >/dev/null 2>&1 || true
+      sleep 0.5
     fi
   done
 done
@@ -474,7 +475,7 @@ fi
 activate_workflow_by_id() {
   local wf_id="$1"
   local wf_label="$2"
-  if ! curl -fsS -X POST \
+  if ! curl -fsS --retry 3 --retry-delay 2 -X POST \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     -H 'Content-Type: application/json' \
     "${N8N_URL}/api/v1/workflows/${wf_id}/activate" >/dev/null 2>&1; then

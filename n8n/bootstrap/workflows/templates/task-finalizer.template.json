@@ -195,6 +195,19 @@
         1568,
         320
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Сессия ещё не завершена — возвращаем статус диспетчеру\nconst status = $input.first().json\n\nreturn [{\n  json: {\n    taskCompleted: false,\n    taskKey: status.taskKey || status.task_key || '',\n    replyText: '⏳ Сессия ещё выполняется, ожидаю завершения...',\n    resultStatus: 'running',\n  },\n}]"
+      },
+      "id": "still-running",
+      "name": "Сессия ещё выполняется",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2800,
+        560
+      ]
     }
   ],
   "connections": {
@@ -262,7 +275,13 @@
             "index": 0
           }
         ],
-        []
+        [
+          {
+            "node": "Сессия ещё выполняется",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

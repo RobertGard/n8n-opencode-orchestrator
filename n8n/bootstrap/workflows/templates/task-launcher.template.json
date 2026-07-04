@@ -99,10 +99,6 @@
               "keyName": "status",
               "condition": "eq",
               "keyValue": "queued"
-            },
-            {
-              "keyName": "session_id",
-              "condition": "empty"
             }
           ]
         },

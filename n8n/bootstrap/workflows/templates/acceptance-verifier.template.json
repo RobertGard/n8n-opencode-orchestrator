@@ -93,7 +93,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        672,
+        896,
         288
       ]
     },
@@ -111,8 +111,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        896,
-        128
+        672,
+        288
       ],
       "credentials": {
         "telegramApi": {
@@ -132,7 +132,7 @@
       "typeVersion": 2,
       "position": [
         1120,
-        128
+        160
       ]
     },
     {
@@ -170,7 +170,7 @@
       "typeVersion": 1.1,
       "position": [
         1344,
-        128
+        160
       ],
       "alwaysOutputData": true
     },
@@ -189,7 +189,7 @@
       "typeVersion": 1.2,
       "position": [
         1568,
-        128
+        160
       ],
       "credentials": {
         "telegramApi": {
@@ -427,7 +427,7 @@
       "main": [
         [
           {
-            "node": "Это задача проверки?",
+            "node": "Уведомляем о начале верификации",
             "type": "main",
             "index": 0
           }
@@ -456,7 +456,7 @@
       "main": [
         [
           {
-            "node": "Готовим задачу проверки",
+            "node": "Это задача проверки?",
             "type": "main",
             "index": 0
           }

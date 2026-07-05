@@ -312,7 +312,7 @@
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "const v = $('Извлекаем вердикт').first().json\nconst fixTaskKey = `fix-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`\n\nconst fixPrompt = `FIX TASK — previous implementation failed acceptance verification.\n\nORIGINAL TASK:\n${v.parentOriginalPrompt}\n\nVERIFICATION FAILED:\n${v.reason}\n\nPlease fix ALL the issues found in the verification.\n\nACCEPTANCE CRITERIA:\n${v.acceptanceCriteria}`\n\nconst contextJson = JSON.stringify({\n  acceptanceCriteria: v.acceptanceCriteria,\n  originalPrompt: v.parentOriginalPrompt,\n  original_parent_task_key: v.parentTaskKey,\n  original_parent_session_id: v.parentSessionId,\n  original_parent_prompt: v.parentOriginalPrompt,\n})\n\nreturn {\n  json: {\n    fixTaskKey,\n    fixPrompt,\n    contextJson,\n    chatId: v.chatId,\n    workerAlias: v.workerAlias,\n    parentTaskKey: v.parentTaskKey,\n    parentSessionId: v.parentSessionId,\n    taskKey: v.taskKey,\n    reason: v.reason,\n  },\n}"
+        "jsCode": "const v = $('Извлекаем вердикт').first().json\nconst fixTaskKey = `fix-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`\n\nconst fixPrompt = `FIX TASK — previous implementation failed acceptance verification.\n\nORIGINAL TASK:\n${v.parentOriginalPrompt}\n\nVERIFICATION FAILED:\n${v.reason}\n\nPlease fix ALL the issues found in the verification.\n\nACCEPTANCE CRITERIA:\n${v.acceptanceCriteria}`\n\nconst contextJson = JSON.stringify({\n  source: 'fix',\n  acceptanceCriteria: v.acceptanceCriteria,\n  originalPrompt: v.parentOriginalPrompt,\n  original_parent_task_key: v.parentTaskKey,\n  original_parent_session_id: v.parentSessionId,\n  original_parent_prompt: v.parentOriginalPrompt,\n})\n\nreturn {\n  json: {\n    fixTaskKey,\n    fixPrompt,\n    contextJson,\n    chatId: v.chatId,\n    workerAlias: v.workerAlias,\n    parentTaskKey: v.parentTaskKey,\n    parentSessionId: v.parentSessionId,\n    taskKey: v.taskKey,\n    reason: v.reason,\n  },\n}"
       },
       "id": "prepare-fix-task",
       "name": "Готовим задачу-фикс",
@@ -334,6 +334,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "task_key": "={{ $('Готовим задачу-фикс').first().json.fixTaskKey }}",
+            "source": "fix",
             "chat_id": "={{ $('Готовим задачу-фикс').first().json.chatId }}",
             "worker_alias": "={{ $('Готовим задачу-фикс').first().json.workerAlias }}",
             "session_id": "={{ $('Готовим задачу-фикс').first().json.parentSessionId }}",

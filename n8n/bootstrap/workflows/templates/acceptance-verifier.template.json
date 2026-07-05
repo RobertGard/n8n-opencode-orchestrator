@@ -6,14 +6,38 @@
       "parameters": {
         "workflowInputs": {
           "values": [
-            {"name": "task_key", "type": "string"},
-            {"name": "chat_id", "type": "string"},
-            {"name": "original_prompt", "type": "string"},
-            {"name": "acceptance_criteria", "type": "string"},
-            {"name": "result_text", "type": "string"},
-            {"name": "worker_alias", "type": "string"},
-            {"name": "session_id", "type": "string"},
-            {"name": "context_json", "type": "string"}
+            {
+              "name": "task_key",
+              "type": "string"
+            },
+            {
+              "name": "chat_id",
+              "type": "string"
+            },
+            {
+              "name": "original_prompt",
+              "type": "string"
+            },
+            {
+              "name": "acceptance_criteria",
+              "type": "string"
+            },
+            {
+              "name": "result_text",
+              "type": "string"
+            },
+            {
+              "name": "worker_alias",
+              "type": "string"
+            },
+            {
+              "name": "session_id",
+              "type": "string"
+            },
+            {
+              "name": "context_json",
+              "type": "string"
+            }
           ]
         }
       },
@@ -21,7 +45,10 @@
       "name": "Триггер: вызов из диспетчера",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
-      "position": [224, 288]
+      "position": [
+        224,
+        288
+      ]
     },
     {
       "parameters": {
@@ -32,17 +59,31 @@
       "name": "Разбираем входные данные",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [448, 288]
+      "position": [
+        448,
+        288
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2},
-          "conditions": [{
-            "leftValue": "={{ $('Разбираем входные данные').item.json.isVerification }}",
-            "rightValue": true,
-            "operator": {"type": "boolean", "operation": "true", "singleValue": true}
-          }],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Разбираем входные данные').item.json.isVerification }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
           "combinator": "and"
         },
         "options": {}
@@ -51,20 +92,34 @@
       "name": "Это задача проверки?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [672, 288]
+      "position": [
+        672,
+        288
+      ]
     },
     {
       "parameters": {
         "chatId": "={{ $('Разбираем входные данные').item.json.chatId }}",
         "text": "={{ `🔍 Начата верификация задачи <code>${$('Разбираем входные данные').item.json.taskKey}</code> [${$('Разбираем входные данные').item.json.workerAlias || 'primary'}].` }}",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-verify-start",
       "name": "Уведомляем о начале верификации",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [896, 128],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        896,
+        128
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     },
     {
       "parameters": {
@@ -75,12 +130,18 @@
       "name": "Готовим задачу проверки",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 128]
+      "position": [
+        1120,
+        128
+      ]
     },
     {
       "parameters": {
         "operation": "insert",
-        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -99,27 +160,43 @@
             "queued_at": "={{ new Date().toISOString() }}"
           }
         },
-        "options": {"optimizeBulk": true}
+        "options": {
+          "optimizeBulk": true
+        }
       },
       "id": "insert-verify-task",
       "name": "Создаём задачу проверки",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [1344, 128],
+      "position": [
+        1344,
+        128
+      ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
         "chatId": "={{ $('Готовим задачу проверки').first().json.chatId }}",
         "text": "={{ `📋 Задача проверки <code>${$('Готовим задачу проверки').first().json.verifyTaskKey}</code> поставлена в очередь [${$('Готовим задачу проверки').first().json.workerAlias || 'primary'}].` }}",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-verify-queued",
       "name": "Сообщаем о задаче проверки",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1568, 128],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        1568,
+        128
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     },
     {
       "parameters": {
@@ -143,28 +220,47 @@
       "name": "Готовим запрос к DeepSeek",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [896, 416]
+      "position": [
+        896,
+        416
+      ]
     },
     {
-      "parameters": {"model": "deepseek-v4-pro", "options": {}},
+      "parameters": {
+        "model": "deepseek-v4-pro",
+        "options": {}
+      },
       "id": "ds-model",
       "name": "DeepSeek Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
-      "position": [1200, 544],
-      "credentials": {"deepSeekApi": {"id": "__DEEPSEEK_CREDENTIAL_ID__", "name": "__DEEPSEEK_CREDENTIAL_NAME__"}}
+      "position": [
+        1200,
+        544
+      ],
+      "credentials": {
+        "deepSeekApi": {
+          "id": "__DEEPSEEK_CREDENTIAL_ID__",
+          "name": "__DEEPSEEK_CREDENTIAL_NAME__"
+        }
+      }
     },
     {
       "parameters": {
         "promptType": "define",
         "text": "={{ $json.userPrompt }}",
-        "options": {"systemMessage": "={{ $json.systemPrompt }}"}
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}"
+        }
       },
       "id": "deepseek-judge",
       "name": "DeepSeek Judge",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
-      "position": [1120, 416]
+      "position": [
+        1120,
+        416
+      ]
     },
     {
       "parameters": {
@@ -175,17 +271,31 @@
       "name": "Извлекаем вердикт",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1344, 416]
+      "position": [
+        1344,
+        416
+      ]
     },
     {
       "parameters": {
         "conditions": {
-          "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2},
-          "conditions": [{
-            "leftValue": "={{ $('Извлекаем вердикт').first().json.fixNeeded }}",
-            "rightValue": true,
-            "operator": {"type": "boolean", "operation": "true", "singleValue": true}
-          }],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Извлекаем вердикт').first().json.fixNeeded }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
           "combinator": "and"
         },
         "options": {}
@@ -194,28 +304,36 @@
       "name": "Верификация провалена?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1568, 416]
+      "position": [
+        1568,
+        416
+      ]
     },
     {
       "parameters": {
         "language": "javaScript",
-        "jsCode": "const v = $('Извлекаем вердикт').first().json\nconst fixTaskKey = `fix-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`\n\nconst fixPrompt = `FIX TASK — previous implementation failed acceptance verification.\\n\\nORIGINAL TASK:\\n${v.parentOriginalPrompt}\\n\\nVERIFICATION FAILED:\\n${v.reason}\\n\\nPlease fix ALL the issues found in the verification.\\n\\nACCEPTANCE CRITERIA:\\n${v.acceptanceCriteria}`\n\nconst contextJson = JSON.stringify({\n  source: 'fix',\n  acceptanceCriteria: v.acceptanceCriteria,\n  originalPrompt: v.parentOriginalPrompt,\n  original_parent_task_key: v.parentTaskKey,\n  original_parent_session_id: v.parentSessionId,\n})\n\nreturn { json: { fixTaskKey, fixPrompt, contextJson, chatId: v.chatId, workerAlias: v.workerAlias, parentTaskKey: v.parentTaskKey, parentSessionId: v.parentSessionId, taskKey: v.taskKey, reason: v.reason } }"
+        "jsCode": "const v = $('Извлекаем вердикт').first().json\nconst fixTaskKey = `fix-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`\n\nconst fixPrompt = `FIX TASK — previous implementation failed acceptance verification.\\n\\nORIGINAL TASK:\\n${v.parentOriginalPrompt}\\n\\nVERIFICATION FAILED:\\n${v.reason}\\n\\nPlease fix ALL the issues found in the verification.\\n\\nACCEPTANCE CRITERIA:\\n${v.acceptanceCriteria}`\n\nconst contextJson = JSON.stringify({\n  acceptanceCriteria: v.acceptanceCriteria,\n  originalPrompt: v.parentOriginalPrompt,\n  original_parent_task_key: v.parentTaskKey,\n  original_parent_session_id: v.parentSessionId,\n})\n\nreturn { json: { fixTaskKey, fixPrompt, contextJson, chatId: v.chatId, workerAlias: v.workerAlias, parentTaskKey: v.parentTaskKey, parentSessionId: v.parentSessionId, taskKey: v.taskKey, reason: v.reason } }"
       },
       "id": "prepare-fix-task",
       "name": "Готовим задачу-фикс",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1792, 320]
+      "position": [
+        1792,
+        320
+      ]
     },
     {
       "parameters": {
         "operation": "insert",
-        "dataTableId": {"mode": "id", "value": "__TASKS_TABLE_ID__"},
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
             "task_key": "={{ $('Готовим задачу-фикс').first().json.fixTaskKey }}",
-            "source": "fix",
             "chat_id": "={{ $('Готовим задачу-фикс').first().json.chatId }}",
             "worker_alias": "={{ $('Готовим задачу-фикс').first().json.workerAlias }}",
             "session_id": "={{ $('Готовим задачу-фикс').first().json.parentSessionId }}",
@@ -230,100 +348,247 @@
             "queued_at": "={{ new Date().toISOString() }}"
           }
         },
-        "options": {"optimizeBulk": true}
+        "options": {
+          "optimizeBulk": true
+        }
       },
       "id": "insert-fix-task",
       "name": "Создаём задачу-фикс",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
-      "position": [2016, 320],
+      "position": [
+        2016,
+        320
+      ],
       "alwaysOutputData": true
     },
     {
       "parameters": {
         "chatId": "={{ $('Готовим задачу-фикс').first().json.chatId }}",
         "text": "={{ `🔄 Задача <code>${$('Готовим задачу-фикс').first().json.parentTaskKey}</code> не прошла приёмку.\\n\\nПричина: ${$('Готовим задачу-фикс').first().json.reason}\\n\\nСоздана задача исправления: <code>${$('Готовим задачу-фикс').first().json.fixTaskKey}</code>` }}",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-fix",
       "name": "Сообщаем о fix-задаче",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2240, 320],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        2240,
+        320
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     },
     {
       "parameters": {
         "chatId": "={{ $('Извлекаем вердикт').first().json.chatId }}",
         "text": "={{ `✅ Задача <code>${$('Извлекаем вердикт').first().json.parentTaskKey || $('Извлекаем вердикт').first().json.taskKey}</code> прошла приёмку. Функционал реализован успешно.` }}",
-        "additionalFields": {"appendAttribution": false, "parse_mode": "HTML"}
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
       },
       "id": "notify-passed",
       "name": "Сообщаем об успешной приёмке",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [1792, 544],
-      "credentials": {"telegramApi": {"id": "__TELEGRAM_CREDENTIAL_ID__", "name": "__TELEGRAM_CREDENTIAL_NAME__"}}
+      "position": [
+        1792,
+        544
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     }
   ],
   "connections": {
     "Триггер: вызов из диспетчера": {
-      "main": [[{"node": "Разбираем входные данные", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Разбираем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Разбираем входные данные": {
-      "main": [[{"node": "Это задача проверки?", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Это задача проверки?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Это задача проверки?": {
       "main": [
-        [{"node": "Готовим запрос к DeepSeek", "type": "main", "index": 0}],
-        [{"node": "Уведомляем о начале верификации", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Готовим запрос к DeepSeek",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Уведомляем о начале верификации",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Уведомляем о начале верификации": {
-      "main": [[{"node": "Готовим задачу проверки", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Готовим задачу проверки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Готовим задачу проверки": {
-      "main": [[{"node": "Создаём задачу проверки", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Создаём задачу проверки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Создаём задачу проверки": {
-      "main": [[{"node": "Сообщаем о задаче проверки", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Сообщаем о задаче проверки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Сообщаем о задаче проверки": {
-      "main": [[]]
+      "main": [
+        []
+      ]
     },
     "Готовим запрос к DeepSeek": {
-      "main": [[{"node": "DeepSeek Judge", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "DeepSeek Judge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "DeepSeek Chat Model": {
-      "ai_languageModel": [[{"node": "DeepSeek Judge", "type": "ai_languageModel", "index": 0}]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "DeepSeek Judge",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "DeepSeek Judge": {
-      "main": [[{"node": "Извлекаем вердикт", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Извлекаем вердикт",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Извлекаем вердикт": {
-      "main": [[{"node": "Верификация провалена?", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Верификация провалена?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Верификация провалена?": {
       "main": [
-        [{"node": "Готовим задачу-фикс", "type": "main", "index": 0}],
-        [{"node": "Сообщаем об успешной приёмке", "type": "main", "index": 0}]
+        [
+          {
+            "node": "Готовим задачу-фикс",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Сообщаем об успешной приёмке",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Готовим задачу-фикс": {
-      "main": [[{"node": "Создаём задачу-фикс", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Создаём задачу-фикс",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Создаём задачу-фикс": {
-      "main": [[{"node": "Сообщаем о fix-задаче", "type": "main", "index": 0}]]
+      "main": [
+        [
+          {
+            "node": "Сообщаем о fix-задаче",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Сообщаем о fix-задаче": {
-      "main": [[]]
+      "main": [
+        []
+      ]
     },
     "Сообщаем об успешной приёмке": {
-      "main": [[]]
+      "main": [
+        []
+      ]
     }
   },
   "pinData": {},
   "active": false,
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "tags": []
 }

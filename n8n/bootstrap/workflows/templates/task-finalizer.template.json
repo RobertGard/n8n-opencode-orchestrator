@@ -119,39 +119,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "leftValue": "={{ $('Проверяем статус сессии').item.json.isIdle }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "if-idle",
-      "name": "Сессия завершена?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        1120,
-        320
-      ]
-    },
-    {
-      "parameters": {
         "method": "GET",
         "url": "={{ $('Разбираем входные данные').item.json.workerBaseUrl + $('Разбираем входные данные').item.json.messageListPath.replace(':id', $('Разбираем входные данные').item.json.sessionId) }}",
         "sendHeaders": true,
@@ -235,7 +202,7 @@
       "main": [
         [
           {
-            "node": "Сессия завершена?",
+            "node": "Получаем сообщения сессии",
             "type": "main",
             "index": 0
           }

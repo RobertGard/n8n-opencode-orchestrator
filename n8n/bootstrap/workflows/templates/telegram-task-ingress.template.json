@@ -65,7 +65,7 @@
             {
               "id": "telegram-chat-id",
               "name": "telegram_chat_id",
-              "value": "__TELEGRAM_CHAT_ID__",
+              "value": "__TELEGRAM_CHAT_IDS__",
               "type": "string"
             },
             {

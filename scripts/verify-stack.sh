@@ -137,8 +137,8 @@ fi
 
 if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
   step_start 'Проверяю Telegram интеграцию'
-  if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
-    log_warn 'TELEGRAM_CHAT_ID не задан, Telegram поток считается некорректно настроенным'
+  if [ -z "${TELEGRAM_CHAT_IDS:-}" ]; then
+    log_warn 'TELEGRAM_CHAT_IDS не задан, Telegram поток считается некорректно настроенным'
   fi
 
   N8N_URL="http://127.0.0.1:${N8N_PORT:-5678}"

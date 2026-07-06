@@ -96,9 +96,9 @@ if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
   exit 0
 fi
 
-if [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
-  log_error 'TELEGRAM_CHAT_ID не задан. Telegram интеграция должна быть привязана к одному чату.'
-  printf 'Добавь TELEGRAM_CHAT_ID в .env и запусти:\n' >&2
+if [ -z "${TELEGRAM_CHAT_IDS:-}" ]; then
+  log_error 'TELEGRAM_CHAT_IDS не задан. Telegram интеграция должна быть привязана к одному чату.'
+  printf 'Добавь TELEGRAM_CHAT_IDS в .env и запусти:\n' >&2
   printf 'bash ./scripts/bootstrap-telegram-integration.sh\n' >&2
   exit 1
 fi
@@ -166,7 +166,7 @@ render_template() {
   local cred_id_escaped="${cred_id//|/\\|}"
   local cred_name_escaped="${cred_name//|/\\|}"
   local table_id_escaped="${table_id//|/\\|}"
-  local telegram_chat_id_escaped="${TELEGRAM_CHAT_ID//|/\\|}"
+  local telegram_chat_id_escaped="${TELEGRAM_CHAT_IDS//|/\\|}"
   local auto_gen_id_escaped="${auto_generator_wf_id//|/\\|}"
   local chat_settings_table_escaped="${chat_settings_table_id//|/\\|}"
   local deepseek_cred_escaped="${deepseek_cred_id//|/\\|}"
@@ -183,7 +183,7 @@ render_template() {
     -e "s|__CHAT_SETTINGS_TABLE_ID__|${chat_settings_table_escaped}|g" \
     -e "s|__AUTO_GENERATOR_WORKFLOW_ID__|${auto_gen_id_escaped}|g" \
     -e "s|__VERIFIER_WORKFLOW_ID__|${verifier_wf_id_escaped}|g" \
-    -e "s|__TELEGRAM_CHAT_ID__|${telegram_chat_id_escaped}|g" \
+    -e "s|__TELEGRAM_CHAT_IDS__|${telegram_chat_id_escaped}|g" \
     -e "s|__OPENCODE_ROUTING_JSON__|${opencode_routing_json_sed_escaped}|g" \
     "$input" > "$output"
 }

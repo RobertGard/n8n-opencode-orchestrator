@@ -727,8 +727,8 @@ recover_existing_configuration() {
   upsert_env_value N8N_EDITOR_BASE_URL "$N8N_EDITOR_BASE_URL"
   upsert_env_value GENERIC_TIMEZONE "$TZ"
 
-  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
-    ensure_env_required TELEGRAM_CHAT_ID 'Telegram chat id. Только этот чат сможет писать боту и получать ответы' ''
+  if [ -n "${TELEGRAM_BOT_TOKEN:-}" ] && [ -z "${TELEGRAM_CHAT_IDS:-}" ]; then
+    ensure_env_required TELEGRAM_CHAT_IDS 'Telegram chat id. Только этот чат сможет писать боту и получать ответы' ''
   fi
 
   for ((index = 1; index <= 32; index++)); do
@@ -1269,7 +1269,7 @@ ANTHROPIC_API_KEY=""
 OPENROUTER_API_KEY=""
 N8N_API_KEY=""
 TELEGRAM_BOT_TOKEN=""
-TELEGRAM_CHAT_ID=""
+TELEGRAM_CHAT_IDS=""
 GITHUB_TOKEN=""
 NPM_TOKEN=""
 PNPM_HOME=""
@@ -1285,7 +1285,7 @@ fi
 printf '\n--- Telegram ---\n'
 if ask_yes_no "Включить Telegram интеграцию?" y; then
   TELEGRAM_BOT_TOKEN="$(ask_required "TELEGRAM_BOT_TOKEN" "")"
-  TELEGRAM_CHAT_ID="$(ask_required "Telegram chat id. Только этот чат сможет писать боту и получать ответы" "")"
+  TELEGRAM_CHAT_IDS="$(ask_required "Telegram chat id. Только этот чат сможет писать боту и получать ответы" "")"
   N8N_API_KEY="$(ask "N8N_API_KEY, если он у тебя уже есть. Иначе оставь пустым и добавишь после первого запуска n8n" "")"
 fi
 
@@ -1411,7 +1411,7 @@ step_start 'Записываю .env'
     "OPENROUTER_API_KEY|$OPENROUTER_API_KEY"
     "N8N_API_KEY|$N8N_API_KEY"
     "TELEGRAM_BOT_TOKEN|$TELEGRAM_BOT_TOKEN"
-    "TELEGRAM_CHAT_ID|$TELEGRAM_CHAT_ID"
+    "TELEGRAM_CHAT_IDS|$TELEGRAM_CHAT_IDS"
     "ENABLE_CADDY_PROXY|$ENABLE_CADDY_PROXY"
     "PUBLIC_N8N_DOMAIN|$PUBLIC_N8N_DOMAIN"
     "ACME_EMAIL|$ACME_EMAIL"

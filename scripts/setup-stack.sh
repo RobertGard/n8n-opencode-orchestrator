@@ -472,6 +472,18 @@ run_startup_pipeline() {
   install_cleanup_cron
 
   printf '\nКонтейнеры запущены.\n'
+
+  if [ -n "${DOCKER_HOST_IP:-}" ] || hostname -I 2>/dev/null | grep -q '[0-9]'; then
+    local ha_host="${DOCKER_HOST_IP:-$(hostname -I 2>/dev/null | awk '{print $1}')}"
+    printf '\n══════════════════════════════════════════\n'
+    printf '  🏠 Home Assistant\n'
+    printf '  Открой в браузере: http://%s:8123\n' "$ha_host"
+    printf '  1. Пройди первоначальную настройку (создай пользователя)\n'
+    printf '  2. После входа: Профиль → Длинные токены доступа → Создать токен\n'
+    printf '  3. Добавь в .env: HA_API_TOKEN=<токен>\n'
+    printf '  4. Установи HA Companion App на телефон и подключи к http://%s:8123\n' "$ha_host"
+    printf '══════════════════════════════════════════\n\n'
+  fi
 }
 
 prepare_resume_run() {

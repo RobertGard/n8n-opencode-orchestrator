@@ -12,7 +12,6 @@ PENDING_INTERACTION_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/pend
 TASK_FINALIZER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-finalizer.template.json"
 AUTO_GENERATOR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/auto-task-generator.template.json"
 ACCEPTANCE_VERIFIER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/acceptance-verifier.template.json"
-VOICE_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/voice-task-ingress.template.json"
 ROUTING_FILE="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
 TASKS_TABLE_NAME="agent_tasks"
 CHAT_SETTINGS_TABLE_NAME="chat_settings"
@@ -25,7 +24,6 @@ PENDING_INTERACTION_WORKFLOW_NAME="Обработка интеракций"
 TASK_FINALIZER_WORKFLOW_NAME="Завершение задачи"
 AUTO_GENERATOR_WORKFLOW_NAME="Авто-генератор задач"
 ACCEPTANCE_VERIFIER_WORKFLOW_NAME="Верификатор приёмки"
-VOICE_WORKFLOW_NAME="Voice Ingress"
 TELEGRAM_CREDENTIAL_NAME="Telegram Bot"
 DEEPSEEK_CREDENTIAL_NAME="DeepSeek API"
 INGRESS_WORKFLOW_TEMP=""
@@ -36,7 +34,6 @@ PENDING_INTERACTION_WORKFLOW_TEMP=""
 TASK_FINALIZER_WORKFLOW_TEMP=""
 AUTO_GENERATOR_WORKFLOW_TEMP=""
 ACCEPTANCE_VERIFIER_WORKFLOW_TEMP=""
-VOICE_WORKFLOW_TEMP=""
 
 log_info() {
   printf '[INFO] %s\n' "$1"
@@ -68,7 +65,6 @@ cleanup_temp_files() {
   [ -n "$TASK_FINALIZER_WORKFLOW_TEMP" ] && rm -f "$TASK_FINALIZER_WORKFLOW_TEMP"
   [ -n "$AUTO_GENERATOR_WORKFLOW_TEMP" ] && rm -f "$AUTO_GENERATOR_WORKFLOW_TEMP"
   [ -n "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" ] && rm -f "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP"
-  [ -n "$VOICE_WORKFLOW_TEMP" ] && rm -f "$VOICE_WORKFLOW_TEMP"
 }
 
 trap cleanup_temp_files EXIT
@@ -429,7 +425,6 @@ PENDING_INTERACTION_WORKFLOW_TEMP="$(mktemp)"
 TASK_FINALIZER_WORKFLOW_TEMP="$(mktemp)"
 AUTO_GENERATOR_WORKFLOW_TEMP="$(mktemp)"
 ACCEPTANCE_VERIFIER_WORKFLOW_TEMP="$(mktemp)"
-VOICE_WORKFLOW_TEMP="$(mktemp)"
 
 # Создаём таблицу chat_settings если ещё нет
 chat_settings_table_id=""
@@ -463,12 +458,6 @@ render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_T
 render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
 render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}" "$acceptance_verifier_workflow_id"
 render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
-if [ -n "${ha_credential_id:-}" ]; then
-  sed -e "s|__HA_CREDENTIAL_ID__|${ha_credential_id}|g" \
-      -e "s|__HA_CREDENTIAL_NAME__|${HA_CREDENTIAL_NAME}|g" \
-      -e "s|__TASKS_TABLE_ID__|${tasks_table_id}|g" \
-      "$VOICE_TEMPLATE" > "$VOICE_WORKFLOW_TEMP"
-fi
 sed -i "s|__DEFAULT_WORKER_ALIAS__|${default_worker_alias}|g" "$AUTO_GENERATOR_WORKFLOW_TEMP"
 
 log_ok 'Временные workflow-файлы подготовлены.'
@@ -479,8 +468,7 @@ step_start 'Импортирую workflow в n8n'
 for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
                "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" \
-               "$VOICE_WORKFLOW_NAME"; do
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
   existing_ids="$(curl -fsS --retry 3 --retry-delay 2 \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     "${N8N_URL}/api/v1/workflows" 2>/dev/null | jq -r --arg name "$wf_name" '.data // . // [] | map(select(.name == $name)) | .[].id' 2>/dev/null || true)"
@@ -501,9 +489,6 @@ import_workflow_from_host_file "$PENDING_INTERACTION_WORKFLOW_TEMP" 'pending-int
 import_workflow_from_host_file "$TASK_FINALIZER_WORKFLOW_TEMP" 'task-finalizer.json'
 import_workflow_from_host_file "$AUTO_GENERATOR_WORKFLOW_TEMP" 'auto-task-generator.json'
 import_workflow_from_host_file "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" 'acceptance-verifier.json'
-if [ -n "${ha_credential_id:-}" ] && [ -f "$VOICE_WORKFLOW_TEMP" ]; then
-  import_workflow_from_host_file "$VOICE_WORKFLOW_TEMP" 'voice-task-ingress.json'
-fi
 
 ingress_workflow_id="$(workflow_id_by_name "$INGRESS_WORKFLOW_NAME")"
 dispatch_workflow_id="$(workflow_id_by_name "$DISPATCH_WORKFLOW_NAME")"

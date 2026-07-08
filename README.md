@@ -16,7 +16,8 @@ Self-hosted AI development assistant: submit a task in Telegram, n8n dispatches 
 - **Natural language commands** — type requests in plain language; an AI translator converts them to structured commands with proper flags
 - **OpenCode slash commands** — use `/gsd-ship`, `/deploy`, `/brainstorm` etc. in Telegram — they're automatically wrapped as `/task --prompt="/command"` for the worker
 - **Fully self-hosted** — no cloud services, all data under your control
-- **Batteries included** — PostgreSQL, Redis, n8n, Caddy (HTTPS) — one `bash setup-stack.sh` and you're ready
+- **Batteries included** — PostgreSQL, Redis, n8n, Home Assistant, Caddy (HTTPS) — one `bash setup-stack.sh` and you're ready
+- **Voice control** — Home Assistant + Companion App on your phone. Wake word "Окей, Ассистент" → voice task → TTS result back to phone. Works alongside Telegram
 - **CI/CD integration** — trigger pipelines, check build status, diagnose failures, manage releases (`/ci`, `/release`)
 - **Database tools** — explore schemas, analyze queries, review migrations, generate seed data (`/db`)
 - **Observability** — log analysis, error pattern detection, incident reports, health monitoring
@@ -158,7 +159,7 @@ When you include `--verify="criteria"` with a task:
 Telegram → n8n ingress → Data Table → n8n dispatcher → OpenCode worker → result in Telegram
 ```
 
-**Services:** `postgres`, `redis`, `n8n`, `n8n-worker`, `opencode-worker-1`, `caddy` (optional)
+**Services:** `postgres`, `redis`, `n8n`, `n8n-worker`, `opencode-worker-1`, `homeassistant`, `caddy` (optional)
 
 **n8n Workflows (8):** ingress, dispatcher, session-manager, task-launcher, pending-interaction, task-finalizer, auto-task-generator, acceptance-verifier
 
@@ -216,7 +217,8 @@ Created from `.env.example`. Key sections:
 | Worker N | `OPENCODE_WORKER_N_NAME`, `_ALIAS`, `_PORT`, `_PASSWORD`, `_BASE_URL`, `_HEALTH_URL` |
 | Worker limits | `OPENCODE_WORKER_CPU_LIMIT`, `OPENCODE_WORKER_MEMORY_LIMIT` |
 | API keys | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_TOKEN` |
-| Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` |
+| Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` |
+| Home Assistant | `HA_API_TOKEN` |
 | OpenCode | `OPENCODE_AGENT`, `OPENCODE_MODEL`, `OPENCODE_PROVIDER_TIMEOUT_MS` |
 | Optional | `DATABASE_URL`, `GITHUB_REPOSITORY`, `BRAVE_API_KEY` |
 
@@ -238,12 +240,22 @@ bash ./scripts/cleanup-executions.sh
 
 ## Telegram: first launch
 
-1. `bash ./scripts/setup-stack.sh` → provide `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+1. `bash ./scripts/setup-stack.sh` → provide `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS`
 2. Open n8n → Settings → n8n API → create an API key
 3. Add to `.env`: `N8N_API_KEY=<key>`
 4. `bash ./scripts/bootstrap-telegram-integration.sh`
 
 After `docker compose down -v`, the script detects an expired key and asks for a new one.
+
+## Voice control (Home Assistant)
+
+Included in the stack automatically. First launch:
+
+1. `bash ./scripts/setup-stack.sh` starts HA on port 8123
+2. Open HA in browser, create user, go to Profile → Long-lived access tokens → create token
+3. `bash ./scripts/bootstrap-telegram-integration.sh` asks for the token
+4. Install HA Companion App on phone, connect to HA URL
+5. Say "Окей, Ассистент" to create tasks by voice. Results read back via TTS
 
 ## Project files
 

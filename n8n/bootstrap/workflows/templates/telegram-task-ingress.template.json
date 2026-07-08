@@ -133,6 +133,47 @@
     },
     {
       "parameters": {
+        "resource": "service",
+        "operation": "call",
+        "domain": "notify",
+        "service": "notify",
+        "serviceAttributes": {
+          "message": "={{ `❌ ${$json.text}` }}",
+          "title": "n8n Ассистент"
+        }
+      },
+      "id": "ha-parse-error",
+      "name": "Отвечаем HA: ошибка парсинга",
+      "type": "n8n-nodes-base.homeAssistant",
+      "typeVersion": 1,
+      "position": [
+        -2100,
+        600
+      ],
+      "credentials": {
+        "homeAssistantApi": {
+          "id": "__HA_CREDENTIAL_ID__",
+          "name": "__HA_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: $json.message || $json.text || '' }) }}",
+        "options": {}
+      },
+      "id": "resp-parse-error",
+      "name": "Отвечаем HA webhook: ошибка парсинга",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1900,
+        600
+      ]
+    },
+    {
+      "parameters": {
         "chatId": "={{ $('Триггер Telegram').first().json.message.chat.id }}",
         "text": "Недопустимый чат",
         "additionalFields": {
@@ -256,6 +297,47 @@
           "name": "__TELEGRAM_CREDENTIAL_NAME__"
         }
       }
+    },
+    {
+      "parameters": {
+        "resource": "service",
+        "operation": "call",
+        "domain": "notify",
+        "service": "notify",
+        "serviceAttributes": {
+          "message": "={{ `📋 Задача принята` }}",
+          "title": "n8n Ассистент"
+        }
+      },
+      "id": "ha-queued",
+      "name": "Отвечаем HA: задача поставлена",
+      "type": "n8n-nodes-base.homeAssistant",
+      "typeVersion": 1,
+      "position": [
+        -2100,
+        750
+      ],
+      "credentials": {
+        "homeAssistantApi": {
+          "id": "__HA_CREDENTIAL_ID__",
+          "name": "__HA_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: $json.message || $json.text || '' }) }}",
+        "options": {}
+      },
+      "id": "resp-queued",
+      "name": "Отвечаем HA webhook: задача поставлена",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1900,
+        750
+      ]
     },
     {
       "parameters": {
@@ -801,6 +883,47 @@
     },
     {
       "parameters": {
+        "resource": "service",
+        "operation": "call",
+        "domain": "notify",
+        "service": "notify",
+        "serviceAttributes": {
+          "message": "={{ `✅ Ответ отправлен` }}",
+          "title": "n8n Ассистент"
+        }
+      },
+      "id": "ha-answer",
+      "name": "Отвечаем HA: ответ принят",
+      "type": "n8n-nodes-base.homeAssistant",
+      "typeVersion": 1,
+      "position": [
+        -2100,
+        900
+      ],
+      "credentials": {
+        "homeAssistantApi": {
+          "id": "__HA_CREDENTIAL_ID__",
+          "name": "__HA_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: $json.message || $json.text || '' }) }}",
+        "options": {}
+      },
+      "id": "resp-answer",
+      "name": "Отвечаем HA webhook: ответ принят",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1900,
+        900
+      ]
+    },
+    {
+      "parameters": {
         "jsCode": "// Связывает answer_candidate с pending-задачей.\n// Ответ приходит только в формате /task --answer=\"...\" или /task --task_key=\"xxx\" --answer=\"...\"\n\nconst candidate = $input.first().json\nconst pendingTasks = $('Получаем задачи с ожиданием ответа').all().map((item) => item.json)\n\nfunction parsePendingMeta(task) {\n  try { return JSON.parse(String(task.pending_options_json || '{}')) } catch { return {} }\n}\n\n// Определяем какую задачу: --task_key или авто-выбор если одна\nconst flags = candidate.flags || {}\nconst specifiedTaskKey = String(flags.task_key || '').trim()\nlet targetTaskKey = specifiedTaskKey\n\nif (!targetTaskKey && pendingTasks.length === 1) {\n  targetTaskKey = String(pendingTasks[0].task_key || '').trim()\n}\n\nif (!targetTaskKey) {\n  const taskList = pendingTasks.map((task) => `- <code>${task.task_key || 'неизвестно'}</code>`).join('\\n')\n  return [{ json: { mode: 'parse_error', replyText: `Несколько задач ожидают ответа:\\n${taskList}\\n\\nУкажите задачу: /task --task_key=\"task-key\" --answer=\"ваш ответ\"` } }]\n}\n\nconst task = pendingTasks.find((item) => String(item.task_key || '').trim() === targetTaskKey)\nif (!task) {\n  return [{ json: { mode: 'parse_error', replyText: `Не удалось найти задачу <code>${targetTaskKey}</code> среди ожидающих ответа.` } }]\n}\n\nconst pendingMeta = parsePendingMeta(task)\nconst requestId = String(pendingMeta.requestId || '').trim()\nconst interactionType = Array.isArray(pendingMeta.questions) ? 'question' : String(pendingMeta.type || 'permission').trim()\n\nif (!requestId) {\n  return [{ json: { mode: 'parse_error', replyText: `У задачи <code>${targetTaskKey}</code> повреждены данные pending интеракции.` } }]\n}\n\nreturn [{\n  json: {\n    mode: interactionType + '_candidate',\n    rawText: candidate.rawText,\n    targetTaskKey,\n    answerText: candidate.answerText,\n    rejectRequested: String(candidate.answerText || '').trim().toLowerCase() === '/reject',\n    interactionType,\n    pendingMeta,\n  }\n}]"
       },
       "id": "resolve-answer",
@@ -1013,6 +1136,47 @@
           "name": "__TELEGRAM_CREDENTIAL_NAME__"
         }
       }
+    },
+    {
+      "parameters": {
+        "resource": "service",
+        "operation": "call",
+        "domain": "notify",
+        "service": "notify",
+        "serviceAttributes": {
+          "message": "={{ `🛑 ${$json.text}` }}",
+          "title": "n8n Ассистент"
+        }
+      },
+      "id": "ha-abort",
+      "name": "Отвечаем HA: задача прервана",
+      "type": "n8n-nodes-base.homeAssistant",
+      "typeVersion": 1,
+      "position": [
+        -2100,
+        1050
+      ],
+      "credentials": {
+        "homeAssistantApi": {
+          "id": "__HA_CREDENTIAL_ID__",
+          "name": "__HA_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: $json.message || $json.text || '' }) }}",
+        "options": {}
+      },
+      "id": "resp-abort",
+      "name": "Отвечаем HA webhook: задача прервана",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1900,
+        1050
+      ]
     },
     {
       "parameters": {
@@ -1237,6 +1401,47 @@
           "name": "__TELEGRAM_CREDENTIAL_NAME__"
         }
       }
+    },
+    {
+      "parameters": {
+        "resource": "service",
+        "operation": "call",
+        "domain": "notify",
+        "service": "notify",
+        "serviceAttributes": {
+          "message": "={{ `⚙️ ${$json.text}` }}",
+          "title": "n8n Ассистент"
+        }
+      },
+      "id": "ha-auto",
+      "name": "Отвечаем HA: смена режима",
+      "type": "n8n-nodes-base.homeAssistant",
+      "typeVersion": 1,
+      "position": [
+        -2100,
+        1200
+      ],
+      "credentials": {
+        "homeAssistantApi": {
+          "id": "__HA_CREDENTIAL_ID__",
+          "name": "__HA_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok', message: $json.message || $json.text || '' }) }}",
+        "options": {}
+      },
+      "id": "resp-auto",
+      "name": "Отвечаем HA webhook: смена режима",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        -1900,
+        1200
+      ]
     },
     {
       "parameters": {
@@ -1469,7 +1674,13 @@
     },
     "Отправляем: Задача будет прервана": {
       "main": [
-        []
+        [
+          {
+            "node": "Отвечаем HA: задача прервана",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Чат разрешён?": {
@@ -1547,12 +1758,24 @@
     },
     "Отправляем: Ответ принят": {
       "main": [
-        []
+        [
+          {
+            "node": "Отвечаем HA: ответ принят",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Отправляем: Задача поставлена в работу": {
       "main": [
-        []
+        [
+          {
+            "node": "Отвечаем HA: задача поставлена",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Вставляем задачу": {
@@ -1866,6 +2089,108 @@
             "index": 0
           }
         ]
+      ]
+    },
+    "Отправляем: Команда распарсена с ошибкой": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA: ошибка парсинга",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем HA: ошибка парсинга": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA webhook: ошибка парсинга",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем HA: задача поставлена": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA webhook: задача поставлена",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем HA: ответ принят": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA webhook: ответ принят",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем HA: задача прервана": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA webhook: задача прервана",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Уведомляем о смене режима": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA: смена режима",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем HA: смена режима": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA webhook: смена режима",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отвечаем HA webhook: ошибка парсинга": {
+      "main": [
+        []
+      ]
+    },
+    "Отвечаем HA webhook: задача поставлена": {
+      "main": [
+        []
+      ]
+    },
+    "Отвечаем HA webhook: ответ принят": {
+      "main": [
+        []
+      ]
+    },
+    "Отвечаем HA webhook: задача прервана": {
+      "main": [
+        []
+      ]
+    },
+    "Отвечаем HA webhook: смена режима": {
+      "main": [
+        []
       ]
     }
   },

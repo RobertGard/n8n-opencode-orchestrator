@@ -1,6 +1,6 @@
 # OpenCode + n8n
 
-Self-hosted AI development assistant: submit a task in Telegram, n8n dispatches it to OpenCode workers, results come back to the chat.
+Self-hosted AI development assistant: submit a task in Telegram or by voice (Home Assistant), n8n dispatches it to OpenCode workers, results come back to the chat or read aloud via TTS.
 
 > **Русская версия:** [README.ru.md](./README.ru.md)
 
@@ -156,7 +156,7 @@ When you include `--verify="criteria"` with a task:
 ## Architecture
 
 ```
-Telegram → n8n ingress → Data Table → n8n dispatcher → OpenCode worker → result in Telegram
+Telegram / Voice (HA) → n8n ingress → Data Table → n8n dispatcher → OpenCode worker → result in Telegram + TTS
 ```
 
 **Services:** `postgres`, `redis`, `n8n`, `n8n-worker`, `opencode-worker-1`, `homeassistant`, `caddy` (optional)
@@ -273,6 +273,9 @@ Included in the stack automatically. First launch:
 ├── n8n/bootstrap/
 │   ├── opencode-endpoints.json
 │   └── workflows/templates/
+├── ha_config/
+│   ├── configuration.yaml
+│   └── automations.yaml
 └── workers/
     └── config.json.default
 ```

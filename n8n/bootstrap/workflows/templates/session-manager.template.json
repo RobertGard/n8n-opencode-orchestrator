@@ -130,7 +130,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ { title: 'telegram-task-' + $('Разбираем входные данные').item.json.taskKey } }}",
+        "jsonBody": "={{ { title: 'task-' + $('Разбираем входные данные').item.json.taskKey } }}",
         "options": {
           "response": {
             "response": {

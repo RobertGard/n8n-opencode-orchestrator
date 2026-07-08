@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ENV_FILE="${ROOT_DIR}/.env"
 ENV_LIB_FILE="${ROOT_DIR}/scripts/lib/load-env.sh"
-INGRESS_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/telegram-task-ingress.template.json"
-DISPATCH_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/telegram-task-dispatcher.template.json"
+INGRESS_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-ingress.template.json"
+DISPATCH_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-dispatcher.template.json"
 SESSION_MGR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/session-manager.template.json"
 TASK_LAUNCHER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-launcher.template.json"
 PENDING_INTERACTION_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/pending-interaction.template.json"
@@ -16,8 +16,8 @@ ROUTING_FILE="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
 TASKS_TABLE_NAME="agent_tasks"
 CHAT_SETTINGS_TABLE_NAME="chat_settings"
 STATE_FILE="${ROOT_DIR}/.n8n-bootstrap-state.json"
-INGRESS_WORKFLOW_NAME="Постановка задач через Telegram"
-DISPATCH_WORKFLOW_NAME="Диспетчер задач Telegram"
+INGRESS_WORKFLOW_NAME="Постановка задач"
+DISPATCH_WORKFLOW_NAME="Диспетчер задач"
 SESSION_MGR_WORKFLOW_NAME="Менеджер сессий"
 TASK_LAUNCHER_WORKFLOW_NAME="Запуск задачи"
 PENDING_INTERACTION_WORKFLOW_NAME="Обработка интеракций"
@@ -511,8 +511,8 @@ for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
   done
 done
 
-import_workflow_from_host_file "$INGRESS_WORKFLOW_TEMP" 'telegram-task-ingress.json'
-import_workflow_from_host_file "$DISPATCH_WORKFLOW_TEMP" 'telegram-task-dispatcher.json'
+import_workflow_from_host_file "$INGRESS_WORKFLOW_TEMP" 'task-ingress.json'
+import_workflow_from_host_file "$DISPATCH_WORKFLOW_TEMP" 'task-dispatcher.json'
 import_workflow_from_host_file "$SESSION_MGR_WORKFLOW_TEMP" 'session-manager.json'
 import_workflow_from_host_file "$TASK_LAUNCHER_WORKFLOW_TEMP" 'task-launcher.json'
 import_workflow_from_host_file "$PENDING_INTERACTION_WORKFLOW_TEMP" 'pending-interaction.json'

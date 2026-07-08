@@ -399,7 +399,7 @@ if [ -z "${HA_API_TOKEN:-}" ]; then
   printf '  🔑 Нужен токен Home Assistant для голосового управления\n'
   printf '══════════════════════════════════════════════════\n'
   printf '\n'
-  printf '  1. Открой Home Assistant: http://<IP-сервера>:8123\n'
+  printf '  1. Открой Home Assistant: http://%s:8123\n' "$(hostname -I 2>/dev/null | awk '{print $1}')"
   printf '  2. Нажми на свой профиль (иконка внизу слева)\n'
   printf '  3. Прокрути вниз до раздела "Длинные токены доступа"\n'
   printf '  4. Нажми "Создать токен", введи имя (например "n8n")\n'

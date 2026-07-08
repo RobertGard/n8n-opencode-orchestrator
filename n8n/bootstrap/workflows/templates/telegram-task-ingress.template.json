@@ -73,6 +73,11 @@
               "name": "allowed_commands",
               "value": "[\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"answer\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"parent_task_key\",\n      \"parent_match_text\"\n    ]\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": []\n  },\n  {\n    \"command\": \"abort\",\n    \"require\": [\n      \"task_key\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"auto_mode\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\",\n      \"verify\"\n    ]\n  },\n  {\n    \"command\": \"task\",\n    \"require\": [\n      \"prompt\",\n      \"interval\"\n    ]\n  }\n]",
               "type": "array"
+            },
+            {
+              "name": "source",
+              "value": "={{ $json.source || 'telegram' }}",
+              "type": "string"
             }
           ]
         },
@@ -483,7 +488,7 @@
             {
               "id": "a1",
               "name": "chatId",
-              "value": "={{ $('Триггер Telegram').first().json.message.chat.id }}",
+              "value": "={{ $json.source === 'voice' ? $('Задаём переменные').first().json.telegram_chat_id.replace(/\\s/g,'').split(',')[0].trim() : $('Триггер Telegram').first().json.message.chat.id }}",
               "type": "string"
             }
           ]
@@ -1299,6 +1304,93 @@
         1900,
         480
       ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-task",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "voice-webhook",
+      "name": "Voice Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -5000,
+        800
+      ],
+      "webhookId": "voice-task-webhook"
+    },
+    {
+      "parameters": {
+        "language": "javaScript",
+        "jsCode": "// Нормализуем голосовую команду в формат Telegram-сообщения\nconst body = $input.first().json\nconst prompt = String(body.prompt || '').trim()\n\n// Берём первый chat_id из TELEGRAM_CHAT_IDS как fallback для chat.id\nconst chatIds = String($('Задаём переменные').first().json.telegram_chat_id || '').replace(/\\s/g, '').split(',')\nconst fallbackChatId = Number(chatIds[0]) || 0\n\nreturn {\n  json: {\n    message: {\n      message_id: Date.now(),\n      text: prompt,\n      chat: { id: fallbackChatId },\n      from: { id: fallbackChatId, first_name: 'Voice' },\n    },\n    source: 'voice',\n    rawText: prompt,\n  },\n}"
+      },
+      "id": "normalize-voice",
+      "name": "Нормализуем голосовую команду",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4780,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.source }}",
+              "rightValue": "voice",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-is-voice",
+      "name": "Это голосовая команда?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2800,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Фиксируем chat_id').item.json.chatId }}",
+        "text": "={{ `🎤 Голосовая команда принята: <code>${$('Нормализуем голосовую команду').item.json.rawText}</code>` }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "notify-voice-received",
+      "name": "Отправляем: голосовая команда получена",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2600,
+        240
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
     }
   ],
   "connections": {
@@ -1569,7 +1661,7 @@
       "main": [
         [
           {
-            "node": "Получаем задачи с ожиданием ответа",
+            "node": "Это голосовая команда?",
             "type": "main",
             "index": 0
           }
@@ -1719,6 +1811,57 @@
         [
           {
             "node": "Отправляем: Задача будет прервана",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Webhook": {
+      "main": [
+        [
+          {
+            "node": "Нормализуем голосовую команду",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нормализуем голосовую команду": {
+      "main": [
+        [
+          {
+            "node": "Задаём переменные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Это голосовая команда?": {
+      "main": [
+        [
+          {
+            "node": "Отправляем: голосовая команда получена",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Получаем задачи с ожиданием ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отправляем: голосовая команда получена": {
+      "main": [
+        [
+          {
+            "node": "Получаем задачи с ожиданием ответа",
             "type": "main",
             "index": 0
           }

@@ -237,6 +237,23 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro
 
+  # Wyoming voice pipeline — STT (speech-to-text) и TTS (text-to-speech) для Home Assistant
+  wyoming-whisper:
+    image: rhasspy/wyoming-faster-whisper
+    restart: unless-stopped
+    network_mode: host
+    command: --model tiny-int8 --language ru --beam-size 1
+    volumes:
+      - ./ha_whisper_data:/data
+
+  wyoming-piper:
+    image: rhasspy/wyoming-piper
+    restart: unless-stopped
+    network_mode: host
+    command: --voice ru_RU-irina-medium
+    volumes:
+      - ./ha_piper_data:/data
+
 volumes:
   postgres_data:
   redis_data:

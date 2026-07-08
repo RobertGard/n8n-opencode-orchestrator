@@ -14,5 +14,8 @@ api:
 
 mobile_app:
 
+# Голосовой ассистент — локальный STT/TTS через Wyoming
+assist_pipeline:
+
 # Автоматизации в отдельном файле
 automation: !include automations.yaml

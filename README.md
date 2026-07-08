@@ -249,13 +249,15 @@ After `docker compose down -v`, the script detects an expired key and asks for a
 
 ## Voice control (Home Assistant)
 
-Included in the stack automatically. First launch:
+Included in the stack automatically. Wyoming Whisper + Piper for local STT/TTS (~300MB RAM, no GPU needed). First launch:
 
-1. `bash ./scripts/setup-stack.sh` starts HA on port 8123
+1. `bash ./scripts/setup-stack.sh` starts HA + Wyoming containers on port 8123
 2. Open HA in browser, create user, go to Profile → Long-lived access tokens → create token
 3. `bash ./scripts/bootstrap-telegram-integration.sh` asks for the token
-4. Install HA Companion App on phone, connect to HA URL
-5. Say "Окей, Ассистент" to create tasks by voice. Results read back via TTS
+4. In HA: Settings → Devices → Add Wyoming (auto-discovered)
+5. Settings → Voice assistants → Add assistant: Whisper (STT) + Piper (TTS)
+6. Install HA Companion App on phone, connect to HA URL
+7. Say "Окей, Ассистент" to create tasks by voice. Results read back via TTS
 
 ## Project files
 

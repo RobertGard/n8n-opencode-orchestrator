@@ -357,33 +357,6 @@
           "title": "n8n Ассистент"
         }
       },
-      "id": "ha-Уведомляем-о-новой-задаче",
-      "name": "Уведомление HA: Уведомляем о новой задаче",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
-      "position": [
-        9999,
-        9999
-      ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "message": "={{ $json.text }}",
-          "title": "n8n Ассистент"
-        }
-      },
       "id": "ha-auto-task",
       "name": "Уведомление HA: Уведомляем о новой задаче",
       "type": "n8n-nodes-base.homeAssistant",
@@ -472,33 +445,6 @@
         "telegramApi": {
           "id": "__TELEGRAM_CREDENTIAL_ID__",
           "name": "__TELEGRAM_CREDENTIAL_NAME__"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "message": "={{ $json.text }}",
-          "title": "n8n Ассистент"
-        }
-      },
-      "id": "ha-Сообщаем-об-ошибке-генерации",
-      "name": "Уведомление HA: Сообщаем об ошибке генерации",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
-      "position": [
-        9999,
-        9999
-      ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
         }
       }
     },

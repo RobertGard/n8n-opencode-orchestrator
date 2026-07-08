@@ -390,15 +390,23 @@ if [ -z "$deepseek_credential_id" ]; then
   fi
 fi
 
-# Home Assistant credential (для voice ingress)
+# Home Assistant credential (для голосового управления)
 ha_credential_id=""
 HA_CREDENTIAL_NAME="Home Assistant"
 
 if [ -z "${HA_API_TOKEN:-}" ]; then
-  printf '\nДля голосового управления через Home Assistant нужен токен.\n'
-  printf '1. Открой http://<IP-сервера>:8123\n'
-  printf '2. Профиль (внизу слева) → Длинные токены доступа → Создать токен\n'
-  printf '3. Вставь токен ниже (оставь пустым чтобы пропустить):\n'
+  printf '\n══════════════════════════════════════════════════\n'
+  printf '  🔑 Нужен токен Home Assistant для голосового управления\n'
+  printf '══════════════════════════════════════════════════\n'
+  printf '\n'
+  printf '  1. Открой Home Assistant: http://<IP-сервера>:8123\n'
+  printf '  2. Нажми на свой профиль (иконка внизу слева)\n'
+  printf '  3. Прокрути вниз до раздела "Длинные токены доступа"\n'
+  printf '  4. Нажми "Создать токен", введи имя (например "n8n")\n'
+  printf '  5. Скопируй токен и вставь его ниже\n'
+  printf '\n'
+  printf '  Токен (или пустая строка чтобы пропустить голос):\n'
+  printf '  → '
   IFS= read -r ha_token
   ha_token="$(printf '%s' "$ha_token" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
   if [ -n "$ha_token" ]; then
@@ -406,7 +414,7 @@ if [ -z "${HA_API_TOKEN:-}" ]; then
     upsert_env_value HA_API_TOKEN "$HA_API_TOKEN"
     log_ok 'HA_API_TOKEN записан в .env'
   else
-    log_info 'HA_API_TOKEN не указан — голосовое управление будет недоступно.'
+    log_warn 'HA_API_TOKEN не указан — голосовое управление будет недоступно. HA ноды будут молча пропускаться (onError: continueRegularOutput).'
   fi
 fi
 

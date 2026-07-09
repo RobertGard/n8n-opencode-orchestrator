@@ -11,3 +11,4 @@
     - service: rest_command.n8n_voice_task
       data:
         prompt: "{{ trigger.slots.command }}"
+    - set_conversation_response: "Принято! Передаю задачу в обработку. Ожидайте результат."

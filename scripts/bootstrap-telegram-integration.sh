@@ -152,6 +152,25 @@ wait_for_n8n_api() {
   return 1
 }
 
+wait_for_ha() {
+  local ha_host="${1:-127.0.0.1}"
+  local attempt=1
+  local max_attempts=24
+  log_info "Ожидаю готовность Home Assistant (http://${ha_host}:8123)..."
+  while [ "$attempt" -le "$max_attempts" ]; do
+    if curl -fsS "http://${ha_host}:8123" >/dev/null 2>&1; then
+      log_ok "Home Assistant готов (http://${ha_host}:8123)"
+      return 0
+    fi
+    if [ "$attempt" -eq 1 ]; then
+      printf '  Первый запуск HA может занять до 2 минут (создание БД, инициализация)...\n'
+    fi
+    sleep 5
+    attempt=$((attempt + 1))
+  done
+  return 1
+}
+
 render_template() {
   local input="$1"
   local output="$2"
@@ -395,6 +414,8 @@ ha_credential_id=""
 HA_CREDENTIAL_NAME="Home Assistant"
 
 if [ -z "${HA_API_TOKEN:-}" ]; then
+  HA_HOST="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  wait_for_ha "${HA_HOST:-127.0.0.1}" || true
   printf '\n══════════════════════════════════════════════════\n'
   printf '  🔑 Нужен токен Home Assistant для голосового управления\n'
   printf '══════════════════════════════════════════════════\n'

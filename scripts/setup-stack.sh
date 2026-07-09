@@ -449,6 +449,11 @@ run_startup_pipeline() {
   if ! "${run_cmd[@]}"; then
     die 'Не удалось собрать или запустить контейнеры через docker compose.'
   fi
+  # HA и Caddy чувствительны к изменениям конфигов — принудительно пересоздаём
+  "${compose_cmd[@]}" up -d --force-recreate homeassistant 2>/dev/null || true
+  if [ "${ENABLE_CADDY_PROXY:-false}" = "true" ]; then
+    "${compose_cmd[@]}" --profile proxy up -d --force-recreate caddy 2>/dev/null || true
+  fi
   log_ok 'Контейнеры подняты.'
 
   prompt_for_n8n_api_key_if_needed

@@ -229,9 +229,9 @@ services:
     privileged: true
     environment:
       TZ: ${TZ:-UTC}
-      HTTP_USE_X_FORWARDED_FOR: "true"
-      HTTP_TRUSTED_PROXIES: '["127.0.0.1","::1"]'
-    volumes:
+      HTTP_USE_X_FORWARDED_FOR: "1"
+      HTTP_TRUSTED_PROXIES: '["127.0.0.1"]'
+      HTTP_USE_X_FORWARDED_HOST: "1"
       - ./ha_config:/config
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro

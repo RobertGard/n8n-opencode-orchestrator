@@ -6,11 +6,7 @@
   description: "Передаёт голосовую команду из HA Assist в n8n как задачу"
   trigger:
     - platform: conversation
-      command: ".*"
-  condition:
-    - condition: template
-      value_template: "{{ trigger.slots.conversation_command is defined and trigger.slots.conversation_command != '' }}"
   action:
     - service: rest_command.n8n_voice_task
       data:
-        prompt: "{{ trigger.slots.conversation_command }}"
+        prompt: "{{ trigger.slots.conversation_command | default(trigger.text) }}"

@@ -129,7 +129,7 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.text }}",
+          "message": "={{ $json.replyText || $json.text }}",
           "title": "n8n Ассистент"
         }
       },
@@ -234,7 +234,7 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.text }}",
+          "message": "={{ $json.replyText || $json.text }}",
           "title": "n8n Ассистент"
         }
       },
@@ -451,7 +451,7 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.text }}",
+          "message": "={{ $json.replyText || $json.text }}",
           "title": "n8n Ассистент"
         }
       },
@@ -503,7 +503,7 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.text }}",
+          "message": "={{ $json.replyText || $json.text }}",
           "title": "n8n Ассистент"
         }
       },

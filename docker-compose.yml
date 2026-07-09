@@ -232,6 +232,7 @@ services:
       HTTP_USE_X_FORWARDED_FOR: "1"
       HTTP_TRUSTED_PROXIES: '["127.0.0.1"]'
       HTTP_USE_X_FORWARDED_HOST: "1"
+    volumes:
       - ./ha_config:/config
       - /etc/localtime:/etc/localtime:ro
       - /run/dbus:/run/dbus:ro

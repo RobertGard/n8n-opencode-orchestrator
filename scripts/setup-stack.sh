@@ -452,7 +452,7 @@ run_startup_pipeline() {
   # HA и Caddy чувствительны к изменениям конфигов — принудительно пересоздаём
   # Чистим кэш .storage чтобы HA перечитал YAML заново
   if [ -d "${ROOT_DIR}/ha_config/.storage" ]; then
-    rm -rf "${ROOT_DIR}/ha_config/.storage"
+    sudo rm -rf "${ROOT_DIR}/ha_config/.storage" 2>/dev/null || true
   fi
   "${compose_cmd[@]}" up -d --force-recreate homeassistant 2>/dev/null || true
   if [ "${ENABLE_CADDY_PROXY:-false}" = "true" ]; then

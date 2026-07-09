@@ -314,7 +314,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-Сообщаем-родитель-неуспешен",
@@ -444,7 +453,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-Сообщаем-вхождение-не-найдено",
@@ -495,7 +513,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-launch-success",
@@ -546,7 +573,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-launch-error",
@@ -597,7 +633,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-answer-error",
@@ -852,7 +897,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-final-result",
@@ -1319,7 +1373,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-stream-progress",

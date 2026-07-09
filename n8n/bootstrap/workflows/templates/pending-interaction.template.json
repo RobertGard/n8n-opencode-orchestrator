@@ -278,7 +278,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-Отправляем-ожидающую-интеракци",

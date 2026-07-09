@@ -139,7 +139,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ `❌ ${$json.replyText || $json.text}` }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ `❌ ${$json.replyText || $json.text}` }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ `❌ ${$json.replyText || $json.text}` }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-parse-error",
@@ -206,7 +215,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-invalid-chat",
@@ -351,7 +369,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ `📋 Задача принята` }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ `📋 Задача принята` }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ `📋 Задача принята` }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-queued",
@@ -936,7 +963,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ `✅ Ответ отправлен` }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ `✅ Ответ отправлен` }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ `✅ Ответ отправлен` }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-answer",
@@ -1194,7 +1230,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ `🛑 ${$json.replyText || $json.text}` }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ `🛑 ${$json.replyText || $json.text}` }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ `🛑 ${$json.replyText || $json.text}` }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-abort",
@@ -1461,7 +1506,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ `⚙️ ${$json.replyText || $json.text}` }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ `⚙️ ${$json.replyText || $json.text}` }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ `⚙️ ${$json.replyText || $json.text}` }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-auto",
@@ -1658,7 +1712,16 @@
         "domain": "notify",
         "service": "notify",
         "serviceAttributes": {
-          "message": "={{ $json.replyText || $json.text }}"
+          "attributes": [
+            {
+              "name": "message",
+              "value": "={{ $json.replyText || $json.text }}"
+            },
+            {
+              "name": "data",
+              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+            }
+          ]
         }
       },
       "id": "ha-voice-received",

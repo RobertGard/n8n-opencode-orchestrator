@@ -734,7 +734,10 @@ recover_existing_configuration() {
     ensure_env_required PUBLIC_N8N_DOMAIN 'Публичный домен для n8n' 'n8n.example.com'
     ensure_env_required ACME_EMAIL "Email для Let's Encrypt" 'admin@example.com'
     ensure_env_default N8N_HOST "$PUBLIC_N8N_DOMAIN"
-    ensure_env_default PUBLIC_HA_DOMAIN "ha.${PUBLIC_N8N_DOMAIN}"
+    if [ -z "${PUBLIC_HA_DOMAIN:-}" ]; then
+      PUBLIC_HA_DOMAIN="$(ask_required 'Домен для Home Assistant (например ha.example.com)' '')"
+      upsert_env_value PUBLIC_HA_DOMAIN "$PUBLIC_HA_DOMAIN"
+    fi
     WEBHOOK_URL="https://${PUBLIC_N8N_DOMAIN}/"
     N8N_EDITOR_BASE_URL="$WEBHOOK_URL"
   else

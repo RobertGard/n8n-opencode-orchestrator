@@ -361,7 +361,7 @@
             },
             {
               "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
             }
           ]
         }
@@ -421,7 +421,7 @@
             },
             {
               "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
             }
           ]
         }
@@ -481,7 +481,7 @@
             },
             {
               "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ={{ $json.replyText || $json.text }} }) }}"
+              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
             }
           ]
         }

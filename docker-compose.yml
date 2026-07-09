@@ -209,23 +209,17 @@ services:
     image: caddy:2
     profiles: ["proxy"]
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    network_mode: host
     environment:
       PUBLIC_N8N_DOMAIN: ${PUBLIC_N8N_DOMAIN:-}
       PUBLIC_HA_DOMAIN: ${PUBLIC_HA_DOMAIN:-}
       ACME_EMAIL: ${ACME_EMAIL:-}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
       - n8n
-    networks:
-      - edge
     stop_grace_period: 10m
 
   homeassistant:

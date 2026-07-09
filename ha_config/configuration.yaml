@@ -20,3 +20,12 @@ assist_pipeline:
 
 # Автоматизации в отдельном файле
 automation: !include automations.yaml
+
+# REST-команда для отправки голосовых задач в n8n
+rest_command:
+  n8n_voice_task:
+    url: "http://127.0.0.1:5678/webhook/voice-task"
+    method: POST
+    headers:
+      content-type: "application/json"
+    payload: '{"prompt":"{{ prompt }}"}'

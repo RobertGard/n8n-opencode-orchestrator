@@ -336,33 +336,6 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "message": "={{ $json.text }}",
-          "title": "n8n Ассистент"
-        }
-      },
-      "id": "ha-parent-fail",
-      "name": "Уведомление HA: родитель неуспешен",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -483,33 +456,6 @@
       "position": [
         9999,
         9999
-      ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "message": "={{ $json.text }}",
-          "title": "n8n Ассистент"
-        }
-      },
-      "id": "ha-parent-match",
-      "name": "Уведомление HA: вхождение не найдено",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
       ],
       "onError": "continueRegularOutput",
       "credentials": {

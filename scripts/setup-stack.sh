@@ -498,10 +498,8 @@ run_startup_pipeline() {
     printf '     → При первом запуске введи http://%s:8123\n' "$ha_host"
     printf '     → Войди под тем же пользователем что создал в браузере\n'
     printf '     → Разреши все permissions (микрофон, уведомления, фон)\n'
-    printf '  5. Настрой голосового ассистента:\n'
-    printf '     → В HA: Настройки → Устройства и службы → Добавить Wyoming (авто-найдено)\n'
-    printf '     → Настройки → Голосовые помощники → Добавить ассистента\n'
-    printf '       STT: faster-whisper (tiny-int8), TTS: Piper (ru_RU-irina-medium)\n'
+    printf '  5. Голосовой ассистент настраивается автоматически:\n'
+    printf '     → Wyoming whisper + piper + pipeline создаются через bootstrap-скрипт\n'
     printf '     → Проверь: скажи "Окей, Ассистент" в приложении\n'
     printf '  6. Найди имя сервиса уведомлений для телефона:\n'
     printf '     → В HA: Developer Tools → Services → поиск "notify.mobile_app"\n'

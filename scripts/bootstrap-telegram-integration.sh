@@ -501,6 +501,30 @@ if [ -n "${HA_API_TOKEN:-}" ]; then
   fi
 fi
 
+if [ -n "${HA_API_TOKEN:-}" ]; then
+  step_start 'Настраиваю Wyoming (STT/TTS) и голосовой pipeline в Home Assistant'
+
+  wyoming_script="${ROOT_DIR}/scripts/setup-wyoming.py"
+
+  if [ -f "$wyoming_script" ]; then
+    set +e
+    "${BASE_COMPOSE[@]}" exec -T homeassistant \
+      python3 - --ha-host 127.0.0.1 --ha-port 8123 --ha-token="${HA_API_TOKEN}" < "$wyoming_script"
+    wyoming_exit_code=$?
+    set -e
+
+    if [ "$wyoming_exit_code" -eq 0 ]; then
+      log_ok 'Wyoming whisper + piper + голосовой pipeline настроены'
+    else
+      log_warn 'Не удалось автоматически настроить Wyoming. Добавьте вручную:'
+      log_warn '  HA → Settings → Devices & Services → Add Integration → Wyoming Protocol'
+      log_warn '  whisper: 127.0.0.1:10300 | piper: 127.0.0.1:10200'
+    fi
+  else
+    log_warn "Скрипт ${wyoming_script} не найден, пропускаю автонастройку Wyoming"
+  fi
+fi
+
 step_start 'Сохраняю bootstrap state и рендерю workflow'
 
 opencode_routing_json="$(render_opencode_routing_json)"

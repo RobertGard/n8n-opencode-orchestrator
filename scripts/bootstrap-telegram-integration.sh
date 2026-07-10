@@ -511,20 +511,26 @@ if [ -n "${HA_API_TOKEN:-}" ]; then
     wait_for_ha 127.0.0.1 || log_warn 'Home Assistant не ответил вовремя, пробую продолжить...'
 
     # Wyoming containers download models on first run — wait for TCP ports
-    log_info 'Ожидаю готовность Wyoming-контейнеров (порты 10300, 10200)...'
-    wyoming_ready=1
-    for attempt in $(seq 1 60); do
-      if nc -z -w1 127.0.0.1 10300 2>/dev/null && nc -z -w1 127.0.0.1 10200 2>/dev/null; then
-        log_ok 'Wyoming whisper + piper готовы'
-        wyoming_ready=0
-        break
-      fi
-      [ "$attempt" -eq 1 ] || [ $((attempt % 10)) -eq 0 ] && log_info "  попытка ${attempt}/60..."
-      sleep 2
-    done
-    if [ "$wyoming_ready" -ne 0 ]; then
+    wyoming_skip=0
+    if command -v nc >/dev/null 2>&1; then
+      log_info 'Ожидаю готовность Wyoming-контейнеров (порты 10300, 10200)...'
+      wyoming_skip=1
+      for attempt in $(seq 1 60); do
+        if nc -z -w1 127.0.0.1 10300 2>/dev/null && nc -z -w1 127.0.0.1 10200 2>/dev/null; then
+          log_ok 'Wyoming whisper + piper готовы'
+          wyoming_skip=0
+          break
+        fi
+        [ "$attempt" -eq 1 ] || [ $((attempt % 10)) -eq 0 ] && log_info "  попытка ${attempt}/60..."
+        sleep 2
+      done
+    else
+      log_info 'nc не найден — пропускаю проверку Wyoming-портов (контейнеры должны быть готовы)'
+    fi
+
+    if [ "$wyoming_skip" -ne 0 ]; then
       log_warn 'Wyoming-контейнеры не ответили за 2 минуты. Возможно, ещё скачиваются модели.'
-      log_warn 'Продолжаю без Wyoming — настройте вручную позже.'
+      log_warn 'Пропускаю автонастройку Wyoming — запустите bootstrap позже.'
     else
       set +e
       "${BASE_COMPOSE[@]}" exec -T homeassistant \

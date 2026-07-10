@@ -171,6 +171,14 @@ wait_for_ha() {
   return 1
 }
 
+_apply_device_substitution() {
+  local service_name="$1"
+  sudo sed -i "s|notify.mobile_app_YOUR_DEVICE|${service_name}|g" "${ROOT_DIR}/ha_config/scripts.yaml"
+  sudo chown -R "$(id -un):$(id -gn)" "${ROOT_DIR}/ha_config/" 2>/dev/null || true
+  "${BASE_COMPOSE[@]}" restart homeassistant >/dev/null 2>&1 || true
+  _ha_config_updated=1
+}
+
 render_template() {
   local input="$1"
   local output="$2"
@@ -462,14 +470,14 @@ if [ -n "${HA_API_TOKEN:-}" ]; then
     fi
   fi
 
+  # ---- Device notification service (scripts.yaml YOUR_DEVICE placeholder) ----
   scripts_yaml="${ROOT_DIR}/ha_config/scripts.yaml"
+  _ha_config_updated=0
 
   if [ -f "$scripts_yaml" ] && grep -q 'notify.mobile_app_YOUR_DEVICE' "$scripts_yaml"; then
     if [[ "${HA_NOTIFY_SERVICE:-}" == notify.mobile_app_* ]] && [[ "${HA_NOTIFY_SERVICE}" != *YOUR_DEVICE* ]]; then
       log_info "Подставляю HA_NOTIFY_SERVICE=${HA_NOTIFY_SERVICE} в scripts.yaml"
-      sudo sed -i "s|notify.mobile_app_YOUR_DEVICE|${HA_NOTIFY_SERVICE}|g" "$scripts_yaml"
-      sudo chown -R "$(id -un):$(id -gn)" "${ROOT_DIR}/ha_config/" 2>/dev/null || true
-      "${BASE_COMPOSE[@]}" restart homeassistant >/dev/null 2>&1 || true
+      _apply_device_substitution "${HA_NOTIFY_SERVICE}"
       log_ok 'scripts.yaml обновлен, Home Assistant перезапущен'
     else
       printf '\n══════════════════════════════════════════════════\n'
@@ -491,23 +499,20 @@ if [ -n "${HA_API_TOKEN:-}" ]; then
         log_error "Имя сервиса должно начинаться с 'notify.mobile_app_'. Получено: ${notify_service}"
         log_warn 'Отредактируй notify.mobile_app_YOUR_DEVICE в ha_config/scripts.yaml вручную.'
       else
-        sudo sed -i "s|notify.mobile_app_YOUR_DEVICE|${notify_service}|g" "$scripts_yaml"
         upsert_env_value HA_NOTIFY_SERVICE "$notify_service"
-        sudo chown -R "$(id -un):$(id -gn)" "${ROOT_DIR}/ha_config/" 2>/dev/null || true
-        "${BASE_COMPOSE[@]}" restart homeassistant >/dev/null 2>&1 || true
+        _apply_device_substitution "${notify_service}"
         log_ok "HA_NOTIFY_SERVICE=${notify_service} записан в .env и scripts.yaml, Home Assistant перезапущен"
       fi
     fi
   fi
-fi
 
-if [ -n "${HA_API_TOKEN:-}" ]; then
+  # ---- Wyoming STT/TTS + voice pipeline ----
   step_start 'Настраиваю Wyoming (STT/TTS) и голосовой pipeline в Home Assistant'
 
   wyoming_script="${ROOT_DIR}/scripts/setup-wyoming.py"
 
   if [ -f "$wyoming_script" ]; then
-    # HA might be restarting from previous device-substitution step — wait for it
+    # HA might be restarting from device-substitution step — wait for it
     wait_for_ha 127.0.0.1 || log_warn 'Home Assistant не ответил вовремя, пробую продолжить...'
 
     # Wyoming containers download models on first run — wait for TCP ports

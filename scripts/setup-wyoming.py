@@ -195,6 +195,7 @@ async def main():
     ha_token = os.environ.get("HA_API_TOKEN", "")
     ha_host = DEFAULT_HA_HOST
     ha_port = DEFAULT_HA_PORT
+    language = "ru"
 
     for arg in sys.argv[1:]:
         if arg.startswith("--ha-host="):
@@ -203,6 +204,8 @@ async def main():
             ha_port = int(arg.split("=", 1)[1])
         elif arg.startswith("--ha-token="):
             ha_token = arg.split("=", 1)[1]
+        elif arg.startswith("--ha-language="):
+            language = arg.split("=", 1)[1]
 
     if not ha_token:
         print("ERROR: HA_API_TOKEN not set (use --ha-token=TOKEN)")
@@ -267,12 +270,12 @@ async def main():
     stt_engine = stt_engines[0]
     tts_engine = tts_engines[0]
 
-    print(f"\n--- Creating voice pipeline ---")
+    print(f"\n--- Creating voice pipeline (language={language}) ---")
     print(f"  STT: {stt_engine}")
     print(f"  TTS: {tts_engine}")
 
     try:
-        pipeline_id = await create_pipeline(ws, stt_engine, tts_engine)
+        pipeline_id = await create_pipeline(ws, stt_engine, tts_engine, language)
     except RuntimeError as e:
         await ws.close()
         print(f"\n⚠ Pipeline creation failed: {e}")

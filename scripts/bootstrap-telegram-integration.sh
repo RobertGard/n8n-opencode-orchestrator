@@ -509,7 +509,7 @@ if [ -n "${HA_API_TOKEN:-}" ]; then
   if [ -f "$wyoming_script" ]; then
     set +e
     "${BASE_COMPOSE[@]}" exec -T homeassistant \
-      python3 - --ha-host 127.0.0.1 --ha-port 8123 --ha-token="${HA_API_TOKEN}" < "$wyoming_script"
+      python3 - --ha-host 127.0.0.1 --ha-port 8123 --ha-token="${HA_API_TOKEN}" --ha-language="${HA_PIPELINE_LANGUAGE:-ru}" < "$wyoming_script"
     wyoming_exit_code=$?
     set -e
 

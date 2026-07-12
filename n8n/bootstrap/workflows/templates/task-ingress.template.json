@@ -147,13 +147,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -226,13 +226,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -383,13 +383,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -980,13 +980,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -1250,13 +1250,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -1529,13 +1529,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -1738,13 +1738,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Задаём переменные').item.json.haScriptUrl }}",
+        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",

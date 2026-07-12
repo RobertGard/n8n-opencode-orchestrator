@@ -362,13 +362,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Конфигурация авто-генератора').item.json.haScriptUrl }}",
+        "url": "={{ $('Конфигурация авто-генератора').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Конфигурация авто-генератора').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Конфигурация авто-генератора').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -425,13 +425,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Конфигурация авто-генератора').item.json.haScriptUrl }}",
+        "url": "={{ $('Конфигурация авто-генератора').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Конфигурация авто-генератора').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Конфигурация авто-генератора').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",
@@ -488,13 +488,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Конфигурация авто-генератора').item.json.haScriptUrl }}",
+        "url": "={{ $('Конфигурация авто-генератора').first().json.haScriptUrl }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
               "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Конфигурация авто-генератора').item.json.haApiToken }}"
+              "value": "={{ 'Bearer ' + $('Конфигурация авто-генератора').first().json.haApiToken }}"
             },
             {
               "name": "Content-Type",

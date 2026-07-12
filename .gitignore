@@ -13,21 +13,12 @@ compose.overrides/*.yml
 *.log
 .n8n-bootstrap-state.json
 
-# Home Assistant runtime data
-ha_config/.HA_VERSION
-ha_config/.cache/
-ha_config/.cloud/
-ha_config/.storage/
-ha_config/blueprints/
-ha_config/home-assistant.log*
-ha_config/home-assistant_v2.db*
-ha_config/tts/
-ha_config/scenes.yaml
+# Home Assistant — ignore runtime, track only developed configs
+ha_config/*
+!ha_config/automations.yaml
+!ha_config/configuration.yaml
+!ha_config/scripts.yaml.template
+
+# Wyoming model data (runtime)
 ha_piper_data/
 ha_whisper_data/
-
-# HA runtime lock
-ha_config/.ha_run.lock
-
-# HA runtime — generated from template, device-specific
-ha_config/scripts.yaml

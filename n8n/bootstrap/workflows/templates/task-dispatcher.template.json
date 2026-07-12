@@ -161,33 +161,6 @@
     },
     {
       "parameters": {
-        "operation": "rowExists",
-        "dataTableId": {
-          "mode": "id",
-          "value": "__TASKS_TABLE_ID__"
-        },
-        "matchType": "allConditions",
-        "filters": {
-          "conditions": [
-            {
-              "keyName": "task_key",
-              "keyValue": "={{ $('Выбираем кандидатную задачу').item.json.parentTaskKey }}"
-            }
-          ]
-        }
-      },
-      "id": "parent-exists",
-      "name": "Проверяем: родитель найден",
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        2016,
-        336
-      ],
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
         "operation": "get",
         "dataTableId": {
           "mode": "id",
@@ -2254,7 +2227,7 @@
       "main": [
         [
           {
-            "node": "Проверяем: родитель найден",
+            "node": "Получаем родительскую задачу",
             "type": "main",
             "index": 0
           }
@@ -2262,17 +2235,6 @@
         [
           {
             "node": "Управление сессией",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Проверяем: родитель найден": {
-      "main": [
-        [
-          {
-            "node": "Получаем родительскую задачу",
             "type": "main",
             "index": 0
           }

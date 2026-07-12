@@ -132,10 +132,6 @@ def add_wyoming_via_rest(ha_host, ha_port, token, host, port, service_type):
     print(f"  Starting Wyoming flow for {service_type}...")
     result = rest_post(f"{base}/flow", {"handler": "wyoming"}, token)
 
-    if result.get("type") == "create_entry":
-        print(f"  [OK] Wyoming {service_type} already configured")
-        return True
-
     if result.get("type") != "form":
         print(f"  [WARN] Unexpected flow result for {service_type}: {result.get('type')}")
         return False
@@ -339,6 +335,20 @@ async def main():
     print("  [OK] Authenticated")
 
     msg_id = _MsgId()
+
+    # Clean up orphaned STT/TTS entities from deleted duplicate config entries
+    print("\n--- Cleaning up orphaned STT/TTS entities...")
+    states = await ws_call(ws, msg_id.next(), "get_states")
+    import re
+    orphaned = [s["entity_id"] for s in states
+                if re.search(r'_(2|[3-9]|\d{2,})$', s.get("entity_id", ""))
+                and (s["entity_id"].startswith("stt.") or s["entity_id"].startswith("tts."))]
+    for eid in orphaned:
+        try:
+            await ws_call(ws, msg_id.next(), "config/entity_registry/remove", entity_id=eid)
+            print(f"  Removed orphan entity: {eid}")
+        except RuntimeError:
+            print(f"  [WARN] Could not remove entity: {eid}")
 
     # Wait for HA to register newly added Wyoming entities (poll up to 30 sec)
     print("\n--- Discovering STT/TTS engines (waiting for Wyoming entities)...")

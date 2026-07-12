@@ -244,7 +244,7 @@ bash ./scripts/cleanup-executions.sh
 1. `bash ./scripts/setup-stack.sh` → provide `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS`
 2. Open n8n → Settings → n8n API → create an API key
 3. Add to `.env`: `N8N_API_KEY=<key>`
-4. `bash ./scripts/bootstrap-telegram-integration.sh`
+4. `bash ./scripts/bootstrap-stack.sh`
 
 After `docker compose down -v`, the script detects an expired key and asks for a new one.
 
@@ -255,7 +255,7 @@ Included in the stack automatically. Wyoming Whisper + Piper for local STT/TTS (
 1. `bash ./scripts/setup-stack.sh` starts HA + Wyoming containers on port 8123
 2. Open HA in browser, create user, go to Profile → Security → Long-lived access tokens → create token
 3. Install HA Companion App on phone, connect to HA URL
-4. `bash ./scripts/bootstrap-telegram-integration.sh` — **automatically handles everything else**:
+4. `bash ./scripts/bootstrap-stack.sh` — **automatically handles everything else**:
    - Prompts for HA token (if not set in `.env`)
    - Prompts for phone notification service name (`notify.mobile_app_*`)
    - Adds Wyoming whisper (STT) and piper (TTS) via REST API
@@ -277,7 +277,7 @@ Included in the stack automatically. Wyoming Whisper + Piper for local STT/TTS (
 ├── .env.example
 ├── scripts/
 │   ├── setup-stack.sh
-│   ├── bootstrap-telegram-integration.sh
+│   ├── bootstrap-stack.sh
 │   ├── setup-wyoming.py
 │   ├── verify-stack.sh
 │   └── cleanup-executions.sh
@@ -298,7 +298,7 @@ Included in the stack automatically. Wyoming Whisper + Piper for local STT/TTS (
 ## Getting help
 
 - **Installation issues:** run `bash ./scripts/verify-stack.sh` — checks compose, n8n, workers
-- **Telegram not working:** ensure `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` and `N8N_API_KEY` are set in `.env`, then `bash ./scripts/bootstrap-telegram-integration.sh`
+- **Telegram not working:** ensure `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` and `N8N_API_KEY` are set in `.env`, then `bash ./scripts/bootstrap-stack.sh`
 - **Worker not responding:** `docker compose ps` — all services should be healthy; check logs: `docker compose logs opencode-worker-1 --tail 200`
 - **Bugs and suggestions:** [GitHub Issues](https://github.com/RobertGard/home-dev-assistant/issues)
 

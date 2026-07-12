@@ -464,7 +464,7 @@ run_startup_pipeline() {
 
   if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
     step_start 'Настраиваю Telegram интеграцию'
-    if bash "${ROOT_DIR}/scripts/bootstrap-telegram-integration.sh"; then
+    if bash "${ROOT_DIR}/scripts/bootstrap-stack.sh"; then
       log_ok 'Telegram bootstrap завершен.'
     else
       log_warn 'Telegram bootstrap завершился с ошибкой. Можно повторить позже вручную.'
@@ -505,7 +505,7 @@ run_startup_pipeline() {
     printf '     → В HA: Developer Tools → Services → поиск "notify.mobile_app"\n'
     printf '     → Скопируй полное имя (например notify.mobile_app_infinix_x6731b)\n'
     printf '     → Добавь в .env: HA_NOTIFY_SERVICE=<имя_сервиса>\n'
-    printf '     → Или запусти bash ./scripts/bootstrap-telegram-integration.sh — он запросит\n'
+    printf '     → Или запусти bash ./scripts/bootstrap-stack.sh — он запросит\n'
     printf '══════════════════════════════════════════\n\n'
   fi
 }

@@ -150,7 +150,7 @@ if [ -n "${TELEGRAM_BOT_TOKEN:-}" ]; then
     if [ "${cred_count:-0}" -gt 0 ]; then
       log_ok 'Telegram credential существует'
     else
-      log_warn 'Telegram credential не найден — запусти bootstrap-telegram-integration.sh'
+      log_warn 'Telegram credential не найден — запусти bootstrap-stack.sh'
     fi
 
     # Проверяем существование workflow

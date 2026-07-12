@@ -244,7 +244,7 @@ bash ./scripts/cleanup-executions.sh
 1. `bash ./scripts/setup-stack.sh` → укажите `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS`
 2. Откройте n8n → Settings → n8n API → создайте API ключ
 3. Добавьте в `.env`: `N8N_API_KEY=<key>`
-4. `bash ./scripts/bootstrap-telegram-integration.sh`
+4. `bash ./scripts/bootstrap-stack.sh`
 
 После `docker compose down -v` скрипт обнаружит недействительный ключ и запросит новый.
 
@@ -255,7 +255,7 @@ bash ./scripts/cleanup-executions.sh
 1. `bash ./scripts/setup-stack.sh` запускает HA + Wyoming контейнеры на порту 8123
 2. Откройте HA в браузере, создайте пользователя, Профиль → Безопасность → Долгосрочные токены доступа → создайте токен
 3. Установите HA Companion App на телефон, подключитесь к URL HA
-4. `bash ./scripts/bootstrap-telegram-integration.sh` — **автоматически сделает всё остальное**:
+4. `bash ./scripts/bootstrap-stack.sh` — **автоматически сделает всё остальное**:
    - Запросит HA-токен (если не задан в `.env`)
    - Запросит имя сервиса уведомлений для телефона (`notify.mobile_app_*`)
    - Добавит Wyoming whisper (STT) и piper (TTS) через REST API
@@ -277,7 +277,7 @@ bash ./scripts/cleanup-executions.sh
 ├── .env.example
 ├── scripts/
 │   ├── setup-stack.sh
-│   ├── bootstrap-telegram-integration.sh
+│   ├── bootstrap-stack.sh
 │   ├── setup-wyoming.py
 │   ├── verify-stack.sh
 │   └── cleanup-executions.sh
@@ -298,7 +298,7 @@ bash ./scripts/cleanup-executions.sh
 ## Помощь
 
 - **Проблемы установки:** `bash ./scripts/verify-stack.sh` — проверяет compose, n8n, worker-ы
-- **Telegram не работает:** убедитесь что `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` и `N8N_API_KEY` заданы в `.env`, затем `bash ./scripts/bootstrap-telegram-integration.sh`
+- **Telegram не работает:** убедитесь что `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` и `N8N_API_KEY` заданы в `.env`, затем `bash ./scripts/bootstrap-stack.sh`
 - **Worker не отвечает:** `docker compose ps` — все сервисы должны быть healthy; проверьте логи: `docker compose logs opencode-worker-1 --tail 200`
 - **Баг-репорты и предложения:** [GitHub Issues](https://github.com/RobertGard/home-dev-assistant/issues)
 

@@ -19,6 +19,6 @@ bash ./scripts/setup-stack.sh
 Дополнительные скрипты:
 
 ```bash
-bash ./scripts/bootstrap-telegram-integration.sh
+bash ./scripts/bootstrap-stack.sh
 bash ./scripts/verify-stack.sh
 ```

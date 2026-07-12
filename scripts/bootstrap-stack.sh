@@ -99,14 +99,14 @@ fi
 if [ -z "${TELEGRAM_CHAT_IDS:-}" ]; then
   log_error 'TELEGRAM_CHAT_IDS не задан. Telegram интеграция должна быть привязана к одному чату.'
   printf 'Добавь TELEGRAM_CHAT_IDS в .env и запусти:\n' >&2
-  printf 'bash ./scripts/bootstrap-telegram-integration.sh\n' >&2
+  printf 'bash ./scripts/bootstrap-stack.sh\n' >&2
   exit 1
 fi
 
 if [ -z "${N8N_API_KEY:-}" ]; then
   log_error 'N8N_API_KEY не задан. По официальной документации REST API n8n требует API key.'
   printf 'Создай ключ в Settings -> n8n API и добавь его в .env, затем запусти:\n' >&2
-  printf 'bash ./scripts/bootstrap-telegram-integration.sh\n' >&2
+  printf 'bash ./scripts/bootstrap-stack.sh\n' >&2
   exit 1
 fi
 

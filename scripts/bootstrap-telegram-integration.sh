@@ -414,10 +414,7 @@ if [ -z "$deepseek_credential_id" ]; then
   fi
 fi
 
-# Home Assistant credential (для голосового управления)
-ha_credential_id=""
-HA_CREDENTIAL_NAME="Home Assistant"
-
+# Home Assistant token (для голосового управления и HTTP-запросов)
 if [ -z "${HA_API_TOKEN:-}" ]; then
   HA_HOST="$(hostname -I 2>/dev/null | awk '{print $1}')"
   wait_for_ha "${HA_HOST:-127.0.0.1}" || true
@@ -444,28 +441,6 @@ if [ -z "${HA_API_TOKEN:-}" ]; then
 fi
 
 if [ -n "${HA_API_TOKEN:-}" ]; then
-  if [ -f "$STATE_FILE" ]; then
-    ha_credential_id="$(jq -r '.haCredentialId // empty' "$STATE_FILE" 2>/dev/null || true)"
-    if [ -n "$ha_credential_id" ]; then
-      if ! curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/credentials/${ha_credential_id}" >/dev/null 2>&1; then
-        log_warn "HA credential ${ha_credential_id} не найден в n8n. Создам новый."
-        ha_credential_id=""
-      fi
-    fi
-  fi
-  if [ -z "$ha_credential_id" ]; then
-    log_info 'Создаю Home Assistant credential в n8n.'
-    if ! ha_credential_id="$(curl -fsS \
-      -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
-      -H 'Content-Type: application/json' \
-      -X POST \
-      -d "{\"name\":\"${HA_CREDENTIAL_NAME}\",\"type\":\"homeAssistantApi\",\"data\":{\"host\":\"host.docker.internal\",\"port\":8123,\"ssl\":false,\"accessToken\":\"${HA_API_TOKEN}\"}}" \
-      "${N8N_URL}/api/v1/credentials" | jq -r '.data.id // .id')"; then
-      log_warn 'Не удалось создать HA credential в n8n — голосовой ввод не будет работать.'
-    else
-      log_ok "Home Assistant credential готов: ${ha_credential_id}"
-    fi
-  fi
 
   # ---- Device notification service (scripts.yaml YOUR_DEVICE placeholder) ----
   scripts_yaml="${ROOT_DIR}/ha_config/scripts.yaml"
@@ -585,20 +560,20 @@ if [ -n "${N8N_API_KEY:-}" ] && [ -n "${N8N_URL:-}" ]; then
   fi
 fi
 
-printf '{"telegramCredentialId":"%s","deepseekCredentialId":"%s","haCredentialId":"%s","tasksTableId":"%s","chatSettingsTableId":"%s"}\n' \
-  "$credential_id" "${deepseek_credential_id:-}" "${ha_credential_id:-}" "$tasks_table_id" "${chat_settings_table_id:-}" > "$STATE_FILE"
+printf '{"telegramCredentialId":"%s","deepseekCredentialId":"%s","tasksTableId":"%s","chatSettingsTableId":"%s"}\n' \
+  "$credential_id" "${deepseek_credential_id:-}" "$tasks_table_id" "${chat_settings_table_id:-}" > "$STATE_FILE"
 
 auto_generator_workflow_id="900016"
 acceptance_verifier_workflow_id="900017"
 
-render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$TASK_LAUNCHER_TEMPLATE" "$TASK_LAUNCHER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
-render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id" "${ha_credential_id:-}" "${HA_CREDENTIAL_NAME}"
+render_template "$INGRESS_TEMPLATE" "$INGRESS_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
+render_template "$DISPATCH_TEMPLATE" "$DISPATCH_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
+render_template "$SESSION_MGR_TEMPLATE" "$SESSION_MGR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$TASK_LAUNCHER_TEMPLATE" "$TASK_LAUNCHER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
+render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}" "$acceptance_verifier_workflow_id"
+render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
 sed -i "s|__DEFAULT_WORKER_ALIAS__|${default_worker_alias}|g" "$AUTO_GENERATOR_WORKFLOW_TEMP"
 
 log_ok 'Временные workflow-файлы подготовлены.'

@@ -173,7 +173,7 @@ wait_for_ha() {
 
 _apply_device_substitution() {
   local service_name="$1"
-  sudo sed -i "s|notify.mobile_app_YOUR_DEVICE|${service_name}|g" "${ROOT_DIR}/ha_config/scripts.yaml"
+  sudo sed -i "s|notify.mobile_app_YOUR_DEVICE|${service_name}|g" "$scripts_yaml"
   sudo chown -R "$(id -un):$(id -gn)" "${ROOT_DIR}/ha_config/" 2>/dev/null || true
   "${BASE_COMPOSE[@]}" restart homeassistant >/dev/null 2>&1 || true
 }
@@ -452,7 +452,13 @@ if [ -n "${HA_API_TOKEN:-}" ]; then
 
   # ---- Device notification service (scripts.yaml YOUR_DEVICE placeholder) ----
   scripts_yaml="${ROOT_DIR}/ha_config/scripts.yaml"
-  _ha_config_updated=0
+  scripts_template="${ROOT_DIR}/ha_config/scripts.yaml.template"
+
+  # On fresh clone, scripts.yaml is not tracked — copy from template
+  if [ ! -f "$scripts_yaml" ] && [ -f "$scripts_template" ]; then
+    cp "$scripts_template" "$scripts_yaml"
+    log_info 'scripts.yaml создан из шаблона'
+  fi
 
   if [ -f "$scripts_yaml" ] && grep -q 'notify.mobile_app_YOUR_DEVICE' "$scripts_yaml"; then
     if [[ "${HA_NOTIFY_SERVICE:-}" == notify.mobile_app_* ]] && [[ "${HA_NOTIFY_SERVICE}" != *YOUR_DEVICE* ]]; then

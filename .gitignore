@@ -28,3 +28,6 @@ ha_whisper_data/
 
 # HA runtime lock
 ha_config/.ha_run.lock
+
+# HA runtime — generated from template, device-specific
+ha_config/scripts.yaml

@@ -58,7 +58,6 @@ def is_wyoming_configured(ha_host, ha_port, token, host, port):
     """Check if a Wyoming config entry already exists for host:port."""
     url = f"http://{ha_host}:{ha_port}/api/config/config_entries/entry?domain=wyoming"
     try:
-        body = json.dumps({}).encode("utf-8")
         req = urllib.request.Request(
             url,
             headers={
@@ -92,20 +91,6 @@ def add_wyoming_via_rest(ha_host, ha_port, token, host, port, service_type):
 
     # Step 1: Start flow
     print(f"  Starting Wyoming flow for {service_type}...")
-
-    # Clean up any abandoned flows first
-    try:
-        progress_url = f"http://{ha_host}:{ha_port}/api/config/config_entries/flow"
-        # GET current flows in progress
-        req = urllib.request.Request(
-            progress_url,
-            headers={"Authorization": f"Bearer {token}"},
-            method="GET",
-        )
-        # We don't actually need to clean up — just proceed
-    except Exception:
-        pass
-
     result = rest_post(f"{base}/flow", {"handler": "wyoming"}, token)
 
     if result.get("type") == "create_entry":

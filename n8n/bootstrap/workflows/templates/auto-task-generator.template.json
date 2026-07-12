@@ -381,7 +381,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_]{1,2}|<[^>]+>/g, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)/g, '').replace(/[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{1F600}-\\u{1F64F}\\u{2702}-\\u{27B0}\\u{1F680}-\\u{1F6FF}\\u{24C2}-\\u{1F251}\\u{1F900}-\\u{1F9FF}\\u{1FA00}-\\u{1FA6F}\\u{1FA70}-\\u{1FAFF}\\u{200D}\\u{FE0F}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -444,7 +444,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_]{1,2}|<[^>]+>/g, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)/g, '').replace(/[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{1F600}-\\u{1F64F}\\u{2702}-\\u{27B0}\\u{1F680}-\\u{1F6FF}\\u{24C2}-\\u{1F251}\\u{1F900}-\\u{1F9FF}\\u{1FA00}-\\u{1FA6F}\\u{1FA70}-\\u{1FAFF}\\u{200D}\\u{FE0F}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -507,7 +507,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_]{1,2}|<[^>]+>/g, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)/g, '').replace(/[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{1F600}-\\u{1F64F}\\u{2702}-\\u{27B0}\\u{1F680}-\\u{1F6FF}\\u{24C2}-\\u{1F251}\\u{1F900}-\\u{1F9FF}\\u{1FA00}-\\u{1FA6F}\\u{1FA70}-\\u{1FAFF}\\u{200D}\\u{FE0F}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },

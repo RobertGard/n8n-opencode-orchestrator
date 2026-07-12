@@ -177,7 +177,7 @@
         }
       },
       "id": "parent-exists",
-      "name": "Ищем родительскую задачу",
+      "name": "Проверяем: родитель найден",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
@@ -209,7 +209,7 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2376,
+        2240,
         336
       ],
       "alwaysOutputData": true
@@ -2162,37 +2162,6 @@
         424,
         672
       ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": ""
-          },
-          "conditions": [
-            {
-              "id": "parent-found",
-              "leftValue": "={{ $json.exists }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "id": "parent-exists-check",
-      "name": "Родитель найден?",
-      "position": [
-        2196,
-        336
-      ]
     }
   ],
   "connections": {
@@ -2798,29 +2767,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Ищем родительскую задачу": {
-      "main": [
-        [
-          {
-            "node": "Родитель найден?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Родитель найден?": {
-      "main": [
-        [
-          {
-            "node": "Получаем родительскую задачу",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
       ]
     }
   },

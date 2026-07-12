@@ -127,7 +127,10 @@ def add_wyoming_via_rest(ha_host, ha_port, token, host, port, service_type):
 # ---- WebSocket helpers (used after REST setup) ----
 
 async def ws_command(ws, msg_id, msg_type, **kwargs):
-    await ws.send(json.dumps({"id": msg_id, "type": msg_type, **kwargs}))
+    payload = {"type": msg_type, **kwargs}
+    if msg_id is not None:
+        payload["id"] = msg_id
+    await ws.send(json.dumps(payload))
 
 
 async def ws_recv(ws):
@@ -149,7 +152,7 @@ async def ha_connect(ha_host, ha_port, token):
     msg = await ws_recv(ws)
     if msg.get("type") != "auth_required":
         raise RuntimeError(f"Expected auth_required, got: {msg}")
-    await ws_command(ws, 1, "auth", access_token=token)
+    await ws_command(ws, None, "auth", access_token=token)  # no id in auth phase
     msg = await ws_recv(ws)
     if msg.get("type") != "auth_ok":
         raise RuntimeError(f"Auth failed: {msg}")

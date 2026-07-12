@@ -8,8 +8,8 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1,
       "position": [
-        -2384,
-        240
+        -24800,
+        -18928
       ]
     },
     {
@@ -85,8 +85,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2160,
-        240
+        -24576,
+        -18928
       ]
     },
     {
@@ -124,8 +124,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -1936,
-        240
+        -24352,
+        -18928
       ],
       "alwaysOutputData": true
     },
@@ -138,8 +138,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1712,
-        240
+        -24128,
+        -18928
       ]
     },
     {
@@ -152,8 +152,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -1488,
-        240
+        -23904,
+        -18928
       ]
     },
     {
@@ -166,8 +166,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
       "position": [
-        -1416,
-        464
+        -23824,
+        -18704
       ],
       "credentials": {
         "deepSeekApi": {
@@ -185,8 +185,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
-        240
+        -23552,
+        -18928
       ]
     },
     {
@@ -198,8 +198,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -912,
-        240
+        -23328,
+        -18928
       ]
     },
     {
@@ -228,8 +228,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        336,
-        240
+        -22080,
+        -18928
       ]
     },
     {
@@ -259,8 +259,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        560,
-        336
+        -21856,
+        -18832
       ]
     },
     {
@@ -296,8 +296,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        784,
-        240
+        -21632,
+        -18928
       ],
       "alwaysOutputData": true
     },
@@ -329,8 +329,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        784,
-        432
+        -21632,
+        -18736
       ],
       "alwaysOutputData": true
     },
@@ -348,8 +348,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1008,
-        432
+        -21408,
+        -18736
       ],
       "credentials": {
         "telegramApi": {
@@ -392,8 +392,8 @@
       "id": "ha-auto-task",
       "name": "Уведомление HA: Уведомляем о новой задаче",
       "position": [
-        1208,
-        432
+        -21184,
+        -18736
       ],
       "onError": "continueRegularOutput"
     },
@@ -411,8 +411,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1008,
-        240
+        -21408,
+        -18928
       ],
       "credentials": {
         "telegramApi": {
@@ -455,8 +455,8 @@
       "id": "ha-auto-answer",
       "name": "Уведомление HA: Уведомляем об ответе",
       "position": [
-        1208,
-        240
+        -21184,
+        -18928
       ],
       "onError": "continueRegularOutput"
     },
@@ -474,8 +474,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        560,
-        144
+        -21856,
+        -19120
       ],
       "credentials": {
         "telegramApi": {
@@ -518,8 +518,8 @@
       "id": "ha-auto-error",
       "name": "Уведомление HA: Сообщаем об ошибке генерации",
       "position": [
-        760,
-        144
+        -21632,
+        -19120
       ],
       "onError": "continueRegularOutput"
     },
@@ -549,8 +549,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -688,
-        240
+        -23104,
+        -18928
       ]
     },
     {
@@ -562,8 +562,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -464,
-        364
+        -22880,
+        -18800
       ]
     },
     {
@@ -576,8 +576,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -240,
-        364
+        -22656,
+        -18800
       ]
     },
     {
@@ -589,8 +589,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        112,
-        364
+        -22304,
+        -18800
       ]
     },
     {
@@ -603,8 +603,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
       "position": [
-        -168,
-        588
+        -22576,
+        -18576
       ],
       "credentials": {
         "deepSeekApi": {

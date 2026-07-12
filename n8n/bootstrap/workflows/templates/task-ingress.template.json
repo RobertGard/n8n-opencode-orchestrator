@@ -14,8 +14,8 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -4448,
-        352
+        -25952,
+        -18032
       ],
       "credentials": {
         "telegramApi": {
@@ -52,8 +52,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -3776,
-        352
+        -25280,
+        -18128
       ],
       "id": "if-chat-allowed",
       "name": "Чат разрешён?"
@@ -98,8 +98,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -4224,
-        352
+        -25728,
+        -18128
       ],
       "id": "set-vars",
       "name": "Задаём переменные"
@@ -115,8 +115,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -4000,
-        352
+        -25504,
+        -18128
       ]
     },
     {
@@ -133,8 +133,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -512,
-        32
+        -21344,
+        -18544
       ],
       "credentials": {
         "telegramApi": {
@@ -177,8 +177,8 @@
       "id": "ha-parse-error",
       "name": "Отвечаем HA: ошибка парсинга",
       "position": [
-        -312,
-        32
+        -21120,
+        -18544
       ],
       "onError": "continueRegularOutput"
     },
@@ -193,8 +193,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -1900,
-        600
+        -20896,
+        -18544
       ],
       "onError": "continueRegularOutput"
     },
@@ -212,8 +212,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -3552,
-        256
+        -25056,
+        -18304
       ],
       "credentials": {
         "telegramApi": {
@@ -256,8 +256,8 @@
       "id": "ha-invalid-chat",
       "name": "Уведомление HA: Недопустимый чат",
       "position": [
-        -3352,
-        256
+        -24832,
+        -18304
       ],
       "onError": "continueRegularOutput"
     },
@@ -272,8 +272,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        -24608,
+        -18304
       ],
       "onError": "continueRegularOutput"
     },
@@ -287,8 +287,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -3104,
-        448
+        -23936,
+        -18032
       ]
     },
     {
@@ -301,8 +301,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
       "position": [
-        -2800,
-        672
+        -23632,
+        -17808
       ],
       "credentials": {
         "deepSeekApi": {
@@ -324,8 +324,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        -2880,
-        448
+        -23712,
+        -18032
       ]
     },
     {
@@ -338,8 +338,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2528,
-        448
+        -23360,
+        -18032
       ]
     },
     {
@@ -351,8 +351,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2304,
-        448
+        -23136,
+        -18032
       ]
     },
     {
@@ -369,8 +369,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -512,
-        704
+        -21344,
+        -17680
       ],
       "credentials": {
         "telegramApi": {
@@ -413,8 +413,8 @@
       "id": "ha-queued",
       "name": "Отвечаем HA: задача поставлена",
       "position": [
-        -312,
-        704
+        -21120,
+        -17680
       ],
       "onError": "continueRegularOutput"
     },
@@ -429,8 +429,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -1900,
-        750
+        -20896,
+        -17680
       ],
       "onError": "continueRegularOutput"
     },
@@ -653,8 +653,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -736,
-        704
+        -21568,
+        -17680
       ],
       "alwaysOutputData": true
     },
@@ -677,8 +677,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
       "position": [
-        -3552,
-        448
+        -25056,
+        -18032
       ]
     },
     {
@@ -711,8 +711,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -3328,
-        448
+        -24160,
+        -18032
       ],
       "alwaysOutputData": true
     },
@@ -912,8 +912,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -512,
-        320
+        -21344,
+        -18256
       ],
       "alwaysOutputData": true
     },
@@ -947,8 +947,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -288,
-        320
+        -21120,
+        -18256
       ],
       "alwaysOutputData": true
     },
@@ -966,8 +966,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -64,
-        320
+        -20896,
+        -18256
       ],
       "credentials": {
         "telegramApi": {
@@ -1010,8 +1010,8 @@
       "id": "ha-answer",
       "name": "Отвечаем HA: ответ принят",
       "position": [
-        136,
-        320
+        -20672,
+        -18256
       ],
       "onError": "continueRegularOutput"
     },
@@ -1026,8 +1026,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -1900,
-        900
+        -20448,
+        -18256
       ],
       "onError": "continueRegularOutput"
     },
@@ -1040,8 +1040,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1408,
-        224
+        -22240,
+        -18352
       ]
     },
     {
@@ -1072,8 +1072,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -736,
-        224
+        -21568,
+        -18352
       ]
     },
     {
@@ -1085,8 +1085,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -960,
-        704
+        -21792,
+        -17680
       ]
     },
     {
@@ -1117,8 +1117,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1408,
-        704
+        -22240,
+        -17776
       ]
     },
     {
@@ -1130,8 +1130,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1184,
-        512
+        -22016,
+        -17968
       ]
     },
     {
@@ -1164,8 +1164,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -960,
-        512
+        -21792,
+        -17968
       ],
       "alwaysOutputData": true
     },
@@ -1178,8 +1178,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -736,
-        512
+        -21568,
+        -17968
       ]
     },
     {
@@ -1217,8 +1217,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -512,
-        512
+        -21120,
+        -17872
       ],
       "alwaysOutputData": true
     },
@@ -1236,8 +1236,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -288,
-        512
+        -20896,
+        -17968
       ],
       "credentials": {
         "telegramApi": {
@@ -1280,8 +1280,8 @@
       "id": "ha-abort",
       "name": "Отвечаем HA: задача прервана",
       "position": [
-        -88,
-        512
+        -20672,
+        -17968
       ],
       "onError": "continueRegularOutput"
     },
@@ -1296,8 +1296,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -1900,
-        1050
+        -20448,
+        -17968
       ],
       "onError": "continueRegularOutput"
     },
@@ -1329,8 +1329,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1184,
-        224
+        -22016,
+        -18352
       ]
     },
     {
@@ -1342,8 +1342,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -960,
-        128
+        -21792,
+        -18448
       ]
     },
     {
@@ -1355,8 +1355,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -960,
-        320
+        -21792,
+        -18256
       ]
     },
     {
@@ -1368,8 +1368,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -2080,
-        448
+        -22912,
+        -18032
       ]
     },
     {
@@ -1400,8 +1400,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1856,
-        448
+        -22688,
+        -18032
       ]
     },
     {
@@ -1432,8 +1432,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1632,
-        512
+        -22464,
+        -17968
       ]
     },
     {
@@ -1462,8 +1462,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -1184,
-        800
+        -22016,
+        -17584
       ]
     },
     {
@@ -1496,8 +1496,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        -960,
-        896
+        -21792,
+        -17488
       ],
       "alwaysOutputData": true
     },
@@ -1515,8 +1515,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -736,
-        896
+        -21568,
+        -17488
       ],
       "credentials": {
         "telegramApi": {
@@ -1559,8 +1559,8 @@
       "id": "ha-auto",
       "name": "Отвечаем HA: смена режима",
       "position": [
-        -536,
-        896
+        -21344,
+        -17488
       ],
       "onError": "continueRegularOutput"
     },
@@ -1575,8 +1575,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        -1900,
-        1200
+        -21120,
+        -17488
       ],
       "onError": "continueRegularOutput"
     },
@@ -1610,8 +1610,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2100,
-        480
+        -21120,
+        -18064
       ],
       "alwaysOutputData": true
     },
@@ -1643,8 +1643,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1900,
-        480
+        -21344,
+        -17968
       ]
     },
     {
@@ -1659,8 +1659,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -5000,
-        800
+        -26176,
+        -18224
       ],
       "webhookId": "voice-task-webhook"
     },
@@ -1674,8 +1674,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -4780,
-        800
+        -25952,
+        -18224
       ]
     },
     {
@@ -1706,8 +1706,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -2800,
-        352
+        -24832,
+        -18032
       ]
     },
     {
@@ -1724,8 +1724,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -2600,
-        240
+        -24608,
+        -18112
       ],
       "credentials": {
         "telegramApi": {
@@ -1768,8 +1768,8 @@
       "id": "ha-voice-received",
       "name": "Уведомление HA: голосовая команда получена",
       "position": [
-        -2400,
-        240
+        -24384,
+        -18112
       ],
       "onError": "continueRegularOutput"
     }

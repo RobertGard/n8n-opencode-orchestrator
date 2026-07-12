@@ -46,8 +46,8 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        224,
-        288
+        -24032,
+        -19024
       ]
     },
     {
@@ -60,8 +60,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        288
+        -23584,
+        -19024
       ]
     },
     {
@@ -93,8 +93,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        896,
-        288
+        -22912,
+        -19024
       ]
     },
     {
@@ -111,8 +111,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        672,
-        288
+        -23360,
+        -19024
       ],
       "credentials": {
         "telegramApi": {
@@ -155,8 +155,8 @@
       "id": "ha-verify-start",
       "name": "Уведомление HA: верификация начата",
       "position": [
-        872,
-        288
+        -23136,
+        -19024
       ],
       "onError": "continueRegularOutput"
     },
@@ -170,8 +170,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1120,
-        160
+        -22688,
+        -19168
       ]
     },
     {
@@ -208,8 +208,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        1344,
-        160
+        -22400,
+        -19168
       ],
       "alwaysOutputData": true
     },
@@ -227,8 +227,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1568,
-        160
+        -22112,
+        -19168
       ],
       "credentials": {
         "telegramApi": {
@@ -271,8 +271,8 @@
       "id": "ha-verify-queued",
       "name": "Уведомление HA: задача проверки",
       "position": [
-        1768,
-        160
+        -21888,
+        -19168
       ],
       "onError": "continueRegularOutput"
     },
@@ -299,8 +299,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        896,
-        416
+        -22688,
+        -18864
       ]
     },
     {
@@ -313,8 +313,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
       "typeVersion": 1,
       "position": [
-        1200,
-        544
+        -22384,
+        -18640
       ],
       "credentials": {
         "deepSeekApi": {
@@ -336,8 +336,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1120,
-        416
+        -22464,
+        -18864
       ]
     },
     {
@@ -350,8 +350,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1344,
-        416
+        -22112,
+        -18864
       ]
     },
     {
@@ -383,8 +383,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1568,
-        416
+        -21888,
+        -18864
       ]
     },
     {
@@ -397,8 +397,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1792,
-        320
+        -21664,
+        -18960
       ]
     },
     {
@@ -436,8 +436,8 @@
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
       "position": [
-        2016,
-        320
+        -21440,
+        -18960
       ],
       "alwaysOutputData": true
     },
@@ -455,8 +455,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        2240,
-        320
+        -21216,
+        -18960
       ],
       "credentials": {
         "telegramApi": {
@@ -499,8 +499,8 @@
       "id": "ha-verify-fix",
       "name": "Уведомление HA: нужен фикс",
       "position": [
-        2440,
-        320
+        -20992,
+        -18960
       ],
       "onError": "continueRegularOutput"
     },
@@ -518,8 +518,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        1792,
-        544
+        -21664,
+        -18768
       ],
       "credentials": {
         "telegramApi": {
@@ -562,8 +562,8 @@
       "id": "ha-verify-passed",
       "name": "Уведомление HA: приёмка пройдена",
       "position": [
-        1992,
-        544
+        -21440,
+        -18768
       ],
       "onError": "continueRegularOutput"
     },
@@ -592,8 +592,8 @@
       "id": "set-variables",
       "name": "Задаём переменные",
       "position": [
-        424,
-        288
+        -23808,
+        -19024
       ]
     }
   ],

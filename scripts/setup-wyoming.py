@@ -57,6 +57,8 @@ def rest_post(url, data, token):
 def is_wyoming_configured(ha_host, ha_port, token, host, port):
     """Check if a Wyoming config entry already exists for host:port."""
     entries = _get_wyoming_entries(ha_host, ha_port, token)
+    if entries is None:
+        return None  # query failed — caller should retry or fall back
     for entry in entries:
         data = entry.get("data", {})
         entry_host = data.get("host", "")
@@ -67,7 +69,7 @@ def is_wyoming_configured(ha_host, ha_port, token, host, port):
 
 
 def _get_wyoming_entries(ha_host, ha_port, token):
-    """Get all Wyoming config entries."""
+    """Get all Wyoming config entries. Returns None on error, [] if empty."""
     url = f"http://{ha_host}:{ha_port}/api/config/config_entries/entry?domain=wyoming"
     try:
         req = urllib.request.Request(
@@ -76,18 +78,18 @@ def _get_wyoming_entries(ha_host, ha_port, token):
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
             return json.loads(resp.read())
-    except Exception:
-        return []
+    except Exception as e:
+        print(f"  [WARN] Could not query Wyoming config entries: {e}")
+        return None
 
 
 def cleanup_duplicate_wyoming(ha_host, ha_port, token):
-    """Remove duplicate Wyoming config entries for same host:port.
-    
-    Previous bootstrap runs (before idempotency check) may have created
-    duplicate entries like faster_whisper_2, _3, _4. Keep one per host:port,
-    delete the rest.
-    """
+    """Remove duplicate Wyoming config entries for same host:port."""
     entries = _get_wyoming_entries(ha_host, ha_port, token)
+    if entries is None:
+        print("  [WARN] Skipping Wyoming cleanup — could not query entries")
+        return
+
     seen = {}  # (host, port) → entry_id
     to_delete = []
 
@@ -122,7 +124,11 @@ def cleanup_duplicate_wyoming(ha_host, ha_port, token):
 def add_wyoming_via_rest(ha_host, ha_port, token, host, port, service_type):
     """Add a Wyoming service via the HA REST config flow API."""
     # Check if already configured before starting a new flow
-    if is_wyoming_configured(ha_host, ha_port, token, host, port):
+    configured = is_wyoming_configured(ha_host, ha_port, token, host, port)
+    if configured is None:
+        print(f"  [WARN] Could not query Wyoming entries — skipping {service_type} to avoid duplicates")
+        return True  # assume it exists, avoid creating duplicates
+    elif configured:
         print(f"  [OK] Wyoming {service_type} already configured at {host}:{port}")
         return True
 

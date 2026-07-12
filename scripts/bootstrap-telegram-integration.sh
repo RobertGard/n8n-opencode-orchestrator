@@ -189,8 +189,6 @@ render_template() {
   local chat_settings_table_id="${8:-}"
   local deepseek_cred_id="${9:-}"
   local verifier_wf_id="${10:-900017}"
-  local ha_cred_id="${11:-}"
-  local ha_cred_name="${12:-}"
   local cred_id_escaped="${cred_id//|/\\|}"
   local cred_name_escaped="${cred_name//|/\\|}"
   local table_id_escaped="${table_id//|/\\|}"
@@ -199,24 +197,24 @@ render_template() {
   local chat_settings_table_escaped="${chat_settings_table_id//|/\\|}"
   local deepseek_cred_escaped="${deepseek_cred_id//|/\\|}"
   local verifier_wf_id_escaped="${verifier_wf_id//|/\\|}"
-  local ha_cred_id_escaped="${ha_cred_id//|/\\|}"
-  local ha_cred_name_escaped="${ha_cred_name//|/\\|}"
   local opencode_routing_json_sed_escaped="${opencode_routing_json_escaped//\\/\\\\}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//&/\\&}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//|/\\|}"
+  local ha_api_token_escaped="${HA_API_TOKEN//|/\\|}"
+  local ha_host="${HA_HOST:-host.docker.internal}"
   sed \
     -e "s|__TELEGRAM_CREDENTIAL_ID__|${cred_id_escaped}|g" \
     -e "s|__TELEGRAM_CREDENTIAL_NAME__|${cred_name_escaped}|g" \
     -e "s|__DEEPSEEK_CREDENTIAL_ID__|${deepseek_cred_escaped}|g" \
     -e "s|__DEEPSEEK_CREDENTIAL_NAME__|${DEEPSEEK_CREDENTIAL_NAME}|g" \
-    -e "s|__HA_CREDENTIAL_ID__|${ha_cred_id_escaped}|g" \
-    -e "s|__HA_CREDENTIAL_NAME__|${ha_cred_name_escaped}|g" \
     -e "s|__TASKS_TABLE_ID__|${table_id_escaped}|g" \
     -e "s|__CHAT_SETTINGS_TABLE_ID__|${chat_settings_table_escaped}|g" \
     -e "s|__AUTO_GENERATOR_WORKFLOW_ID__|${auto_gen_id_escaped}|g" \
     -e "s|__VERIFIER_WORKFLOW_ID__|${verifier_wf_id_escaped}|g" \
     -e "s|__TELEGRAM_CHAT_IDS__|${telegram_chat_id_escaped}|g" \
     -e "s|__OPENCODE_ROUTING_JSON__|${opencode_routing_json_sed_escaped}|g" \
+    -e "s|__HA_API_TOKEN__|${ha_api_token_escaped}|g" \
+    -e "s|__HA_HOST__|${ha_host}|g" \
     "$input" > "$output"
 }
 

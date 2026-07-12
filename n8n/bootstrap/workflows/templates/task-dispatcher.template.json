@@ -309,38 +309,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-Сообщаем-родитель-неуспешен",
       "name": "Уведомление HA: Сообщаем: родитель неуспешен",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         9999,
         9999
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -448,38 +451,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-Сообщаем-вхождение-не-найдено",
       "name": "Уведомление HA: Сообщаем: вхождение не найдено",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         9999,
         9999
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -508,38 +514,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-launch-success",
       "name": "Уведомление HA: задача запущена",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         -3200,
         400
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -568,38 +577,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-launch-error",
       "name": "Уведомление HA: ошибка асинхронного запуска",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         0,
         0
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -628,38 +640,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-answer-error",
       "name": "Уведомление HA: ошибка ответа на вопрос",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         0,
         0
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -892,38 +907,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-final-result",
       "name": "Уведомление HA: результат задачи",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         -3200,
         800
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1368,38 +1386,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-stream-progress",
       "name": "Уведомление HA: промежуточный прогресс в Telegram",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         0,
         0
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {

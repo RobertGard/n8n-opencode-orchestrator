@@ -124,38 +124,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-verify-start",
       "name": "Уведомление HA: верификация начата",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         100,
         100
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -237,38 +240,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-verify-queued",
       "name": "Уведомление HA: задача проверки",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         100,
         250
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -462,38 +468,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-verify-fix",
       "name": "Уведомление HA: нужен фикс",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         100,
         400
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -522,38 +531,41 @@
     },
     {
       "parameters": {
-        "resource": "service",
-        "operation": "call",
-        "domain": "notify",
-        "service": "notify",
-        "serviceAttributes": {
-          "attributes": [
+        "method": "POST",
+        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "name": "message",
-              "value": "={{ $json.replyText || $json.text }}"
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
             },
             {
-              "name": "data",
-              "value": "={{ JSON.stringify({ tts_text: ($json.replyText || $json.text || '') }) }}"
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
-        }
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ $json.replyText || $json.text || '' }}"
+            }
+          ]
+        },
+        "options": {}
       },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
       "id": "ha-verify-passed",
       "name": "Уведомление HA: приёмка пройдена",
-      "type": "n8n-nodes-base.homeAssistant",
-      "typeVersion": 1,
       "position": [
         100,
         550
       ],
-      "onError": "continueRegularOutput",
-      "credentials": {
-        "homeAssistantApi": {
-          "id": "__HA_CREDENTIAL_ID__",
-          "name": "__HA_CREDENTIAL_NAME__"
-        }
-      }
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {

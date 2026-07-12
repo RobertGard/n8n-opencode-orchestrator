@@ -230,6 +230,18 @@ async def create_pipeline(ws, stt_engine, tts_engine, msg_id, language="ru"):
     existing = pipelines_result.get("pipelines", [])
     preferred = pipelines_result.get("preferred_pipeline")
 
+    # Discover available TTS voice for the chosen language
+    tts_voice = None
+    try:
+        voices = await ws_call(ws, msg_id.next(), "tts/engine/get", engine_id=tts_engine)
+        if voices and "supported_voices" in voices:
+            for v in voices["supported_voices"]:
+                if language in v.get("language", ""):
+                    tts_voice = v.get("voice_id")
+                    break
+    except RuntimeError:
+        pass
+
     pipeline_data = {
         "name": PIPELINE_NAME,
         "language": language,
@@ -239,7 +251,7 @@ async def create_pipeline(ws, stt_engine, tts_engine, msg_id, language="ru"):
         "stt_language": language,
         "tts_engine": tts_engine,
         "tts_language": language,
-        "tts_voice": None,
+        "tts_voice": tts_voice,
         "wake_word_entity": None,
         "wake_word_id": None,
         "prefer_local_intents": True,

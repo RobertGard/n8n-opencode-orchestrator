@@ -56,6 +56,18 @@ def rest_post(url, data, token):
 
 def is_wyoming_configured(ha_host, ha_port, token, host, port):
     """Check if a Wyoming config entry already exists for host:port."""
+    entries = _get_wyoming_entries(ha_host, ha_port, token)
+    for entry in entries:
+        data = entry.get("data", {})
+        entry_host = data.get("host", "")
+        entry_port = data.get("port", 0)
+        if entry_host == host and entry_port == port:
+            return True
+    return False
+
+
+def _get_wyoming_entries(ha_host, ha_port, token):
+    """Get all Wyoming config entries."""
     url = f"http://{ha_host}:{ha_port}/api/config/config_entries/entry?domain=wyoming"
     try:
         req = urllib.request.Request(
@@ -63,17 +75,48 @@ def is_wyoming_configured(ha_host, ha_port, token, host, port):
             headers={"Authorization": f"Bearer {token}"},
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
-            entries = json.loads(resp.read())
-        # Each entry has 'data' field with host/port
-        for entry in entries:
-            data = entry.get("data", {})
-            entry_host = data.get("host", "")
-            entry_port = data.get("port", 0)
-            if entry_host == host and entry_port == port:
-                return True
+            return json.loads(resp.read())
     except Exception:
-        pass
-    return False
+        return []
+
+
+def cleanup_duplicate_wyoming(ha_host, ha_port, token):
+    """Remove duplicate Wyoming config entries for same host:port.
+    
+    Previous bootstrap runs (before idempotency check) may have created
+    duplicate entries like faster_whisper_2, _3, _4. Keep one per host:port,
+    delete the rest.
+    """
+    entries = _get_wyoming_entries(ha_host, ha_port, token)
+    seen = {}  # (host, port) → entry_id
+    to_delete = []
+
+    for entry in entries:
+        data = entry.get("data", {})
+        key = (data.get("host", ""), data.get("port", 0))
+        entry_id = entry.get("entry_id", "")
+        if key in seen:
+            to_delete.append(entry_id)
+        else:
+            seen[key] = entry_id
+
+    if not to_delete:
+        return
+
+    print(f"\n--- Cleaning up {len(to_delete)} duplicate Wyoming entries ---")
+    for entry_id in to_delete:
+        try:
+            url = f"http://{ha_host}:{ha_port}/api/config/config_entries/entry/{entry_id}"
+            req = urllib.request.Request(
+                url,
+                headers={"Authorization": f"Bearer {token}"},
+                method="DELETE",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                pass
+            print(f"  Removed duplicate entry: {entry_id}")
+        except Exception as e:
+            print(f"  [WARN] Could not remove {entry_id}: {e}")
 
 
 def add_wyoming_via_rest(ha_host, ha_port, token, host, port, service_type):
@@ -252,8 +295,11 @@ async def main():
         print("ERROR: HA_API_TOKEN not set (use --ha-token=TOKEN)")
         sys.exit(1)
 
+    # Step 0: Clean up duplicate Wyoming entries from previous failed runs
+    cleanup_duplicate_wyoming(ha_host, ha_port, ha_token)
+
     # Step 1: Add Wyoming via REST API (no websockets dependency needed here)
-    print(f"Adding Wyoming integrations via REST API at {ha_host}:{ha_port}...")
+    print(f"\nAdding Wyoming integrations via REST API at {ha_host}:{ha_port}...")
 
     print("\n--- Adding Wyoming whisper (STT) ---")
     stt_ok = add_wyoming_via_rest(ha_host, ha_port, ha_token, ha_host, WHISPER_PORT, "whisper")

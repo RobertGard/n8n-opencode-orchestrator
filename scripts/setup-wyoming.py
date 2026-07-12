@@ -338,17 +338,29 @@ async def main():
 
     # Clean up orphaned STT/TTS entities from deleted duplicate config entries
     print("\n--- Cleaning up orphaned STT/TTS entities...")
-    states = await ws_call(ws, msg_id.next(), "get_states")
-    import re
-    orphaned = [s["entity_id"] for s in states
-                if re.search(r'_(2|[3-9]|\d{2,})$', s.get("entity_id", ""))
-                and (s["entity_id"].startswith("stt.") or s["entity_id"].startswith("tts."))]
-    for eid in orphaned:
+    # Get current Wyoming config entry IDs (after duplicate cleanup)
+    current_entries = _get_wyoming_entries(ha_host, ha_port, ha_token)
+    current_entry_ids = {e["entry_id"] for e in current_entries if e.get("entry_id")}
+
+    # Get all STT/TTS entities and their config_entry_id from entity registry
+    try:
+        registry = await ws_call(ws, msg_id.next(), "config/entity_registry/list")
+    except RuntimeError:
+        registry = []
+    orphaned = [e for e in registry
+                if e.get("platform") == "wyoming"
+                and e.get("config_entry_id")
+                and e["config_entry_id"] not in current_entry_ids]
+    for entity in orphaned:
+        eid = entity["entity_id"]
         try:
             await ws_call(ws, msg_id.next(), "config/entity_registry/remove", entity_id=eid)
             print(f"  Removed orphan entity: {eid}")
         except RuntimeError:
             print(f"  [WARN] Could not remove entity: {eid}")
+
+    if not orphaned:
+        print("  No orphaned entities found")
 
     # Wait for HA to register newly added Wyoming entities (poll up to 30 sec)
     print("\n--- Discovering STT/TTS engines (waiting for Wyoming entities)...")

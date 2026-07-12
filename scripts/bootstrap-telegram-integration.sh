@@ -202,6 +202,14 @@ render_template() {
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//|/\\|}"
   local ha_api_token_escaped="${HA_API_TOKEN//|/\\|}"
   local ha_host="${HA_HOST:-${PUBLIC_HA_DOMAIN:-host.docker.internal}}"
+  # Build HA URL: domain → https without port; IP/internal → http with port
+  local ha_url
+  if [[ "$ha_host" == *"."* ]] && [[ ! "$ha_host" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "$ha_host" != "host.docker.internal" ]] && [[ "$ha_host" != "localhost" ]]; then
+    ha_url="https://${ha_host}"
+  else
+    ha_url="http://${ha_host}:8123"
+  fi
+  local ha_url_escaped="${ha_url//|/\\|}"
   sed \
     -e "s|__TELEGRAM_CREDENTIAL_ID__|${cred_id_escaped}|g" \
     -e "s|__TELEGRAM_CREDENTIAL_NAME__|${cred_name_escaped}|g" \
@@ -214,7 +222,7 @@ render_template() {
     -e "s|__TELEGRAM_CHAT_IDS__|${telegram_chat_id_escaped}|g" \
     -e "s|__OPENCODE_ROUTING_JSON__|${opencode_routing_json_sed_escaped}|g" \
     -e "s|__HA_API_TOKEN__|${ha_api_token_escaped}|g" \
-    -e "s|__HA_HOST__|${ha_host}|g" \
+    -e "s|__HA_URL__|${ha_url_escaped}|g" \
     "$input" > "$output"
 }
 

@@ -350,7 +350,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "url": "__HA_URL__/api/services/script/1720584135122",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -413,7 +413,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "url": "__HA_URL__/api/services/script/1720584135122",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -476,7 +476,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://__HA_HOST__:8123/api/services/script/1720584135122",
+        "url": "__HA_URL__/api/services/script/1720584135122",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [

@@ -156,12 +156,12 @@ When you include `--verify="criteria"` with a task:
 ## Architecture
 
 ```
-Telegram / Voice (HA) → n8n ingress → Data Table → n8n dispatcher → OpenCode worker → result in Telegram + TTS
+Telegram / Voice (HA) → n8n ingress → Data Table → n8n dispatcher → OpenCode worker → result in Telegram + HTTP Request → HA TTS
 ```
 
 **Services:** `postgres`, `redis`, `n8n`, `n8n-worker`, `opencode-worker-1`, `homeassistant`, `caddy` (optional)
 
-**n8n Workflows (8):** ingress, dispatcher, session-manager, task-launcher, pending-interaction, task-finalizer, auto-task-generator, acceptance-verifier
+**n8n Workflows (9):** ingress, dispatcher, session-manager, task-launcher, pending-interaction, task-finalizer, auto-task-generator, acceptance-verifier, cancel-task
 
 ## Specialist agents
 
@@ -260,6 +260,7 @@ Included in the stack automatically. Wyoming Whisper + Piper for local STT/TTS (
    - Adds Wyoming whisper (STT) and piper (TTS) via REST API
    - Creates voice pipeline with Russian language via WebSocket API
    - Configures accept notifications via HTTP Request (no HA credential needed)
+   - HA configuration (URL and token) centralized in Set nodes per workflow
 5. Say "Окей, Ассистент" to create tasks by voice. Results read back via TTS
 
 **Configurable `.env` variables:**

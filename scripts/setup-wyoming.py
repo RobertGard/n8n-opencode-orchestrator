@@ -58,13 +58,15 @@ def is_wyoming_configured(ha_host, ha_port, token, host, port):
     """Check if a Wyoming config entry already exists for host:port."""
     entries = _get_wyoming_entries(ha_host, ha_port, token)
     if entries is None:
-        return None  # query failed — caller should retry or fall back
+        return None
     for entry in entries:
         data = entry.get("data", {})
         entry_host = data.get("host", "")
         entry_port = data.get("port", 0)
+        print(f"  [DEBUG] entry={entry.get('entry_id','?')} host={entry_host} port={entry_port} looking for {host}:{port}")
         if entry_host == host and entry_port == port:
             return True
+    print(f"  [DEBUG] No match among {len(entries)} entries for {host}:{port}")
     return False
 
 

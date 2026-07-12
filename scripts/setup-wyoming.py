@@ -54,12 +54,58 @@ def rest_post(url, data, token):
         raise RuntimeError(f"HTTP {e.code} {err_body}") from None
 
 
+def is_wyoming_configured(ha_host, ha_port, token, host, port):
+    """Check if a Wyoming config entry already exists for host:port."""
+    url = f"http://{ha_host}:{ha_port}/api/config/config_entries/entry?domain=wyoming"
+    try:
+        body = json.dumps({}).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            entries = json.loads(resp.read())
+        # Each entry has 'data' field with host/port
+        for entry in entries:
+            data = entry.get("data", {})
+            entry_host = data.get("host", "")
+            entry_port = data.get("port", 0)
+            if entry_host == host and entry_port == port:
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def add_wyoming_via_rest(ha_host, ha_port, token, host, port, service_type):
     """Add a Wyoming service via the HA REST config flow API."""
+    # Check if already configured before starting a new flow
+    if is_wyoming_configured(ha_host, ha_port, token, host, port):
+        print(f"  [OK] Wyoming {service_type} already configured at {host}:{port}")
+        return True
+
     base = f"http://{ha_host}:{ha_port}/api/config/config_entries"
 
     # Step 1: Start flow
     print(f"  Starting Wyoming flow for {service_type}...")
+
+    # Clean up any abandoned flows first
+    try:
+        progress_url = f"http://{ha_host}:{ha_port}/api/config/config_entries/flow"
+        # GET current flows in progress
+        req = urllib.request.Request(
+            progress_url,
+            headers={"Authorization": f"Bearer {token}"},
+            method="GET",
+        )
+        # We don't actually need to clean up — just proceed
+    except Exception:
+        pass
+
     result = rest_post(f"{base}/flow", {"handler": "wyoming"}, token)
 
     if result.get("type") == "create_entry":

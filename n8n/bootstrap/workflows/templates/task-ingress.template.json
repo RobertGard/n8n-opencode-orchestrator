@@ -665,7 +665,7 @@
             {
               "id": "a1",
               "name": "chatId",
-              "value": "={{ $json.source === 'voice' ? $('Задаём переменные').first().json.telegram_chat_ids.replace(/\\s/g,'').split(',')[0].trim() : $('Триггер Telegram').first().json.message.chat.id }}",
+              "value": "={{ $('Нормализуем голосовую команду').isExecuted ? $('Задаём переменные').first().json.telegram_chat_ids.replace(/\\s/g,'').split(',')[0].trim() : $('Триггер Telegram').first().json.message.chat.id }}",
               "type": "string"
             }
           ]

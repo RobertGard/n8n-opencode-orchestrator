@@ -28,7 +28,7 @@ DEFAULT_HA_PORT = 8123
 WHISPER_PORT = 10300
 PIPER_PORT = 10200
 PIPELINE_NAME = "Home Assistant"
-CONVERSATION_ENGINE = "homeassistant"
+CONVERSATION_ENGINE = "conversation.home_assistant"
 
 
 def rest_post(url, data, token):

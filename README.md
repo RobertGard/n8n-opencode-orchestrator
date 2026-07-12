@@ -1,6 +1,6 @@
-# OpenCode + n8n
+# Home Dev Assistant
 
-Self-hosted AI development assistant: submit a task in Telegram or by voice (Home Assistant), n8n dispatches it to OpenCode workers, results come back to the chat or read aloud via TTS.
+Self-hosted AI development assistant powered by OpenCode + n8n: submit a task in Telegram or by voice (Home Assistant), n8n dispatches it to OpenCode workers, results come back to the chat or read aloud via TTS.
 
 > **Русская версия:** [README.ru.md](./README.ru.md)
 

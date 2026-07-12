@@ -1,6 +1,6 @@
-# OpenCode + n8n
+# Home Dev Assistant
 
-Self-hosted AI-ассистент для разработки: ставите задачу в Telegram или голосом (Home Assistant), n8n диспетчеризует её на OpenCode worker-ы, результат приходит обратно в чат или озвучивается через TTS.
+Self-hosted AI-ассистент для разработки на базе OpenCode + n8n: ставите задачу в Telegram или голосом (Home Assistant), n8n диспетчеризует её на OpenCode worker-ы, результат приходит обратно в чат или озвучивается через TTS.
 
 > **English version:** [README.md](./README.md)
 

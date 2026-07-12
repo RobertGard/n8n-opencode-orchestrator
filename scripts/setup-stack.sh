@@ -500,7 +500,7 @@ run_startup_pipeline() {
     printf '     → Разреши все permissions (микрофон, уведомления, фон)\n'
     printf '  5. Голосовой ассистент настраивается автоматически:\n'
     printf '     → Wyoming whisper + piper + pipeline создаются через bootstrap-скрипт\n'
-    printf '     → Проверь: скажи "Окей, Ассистент" в приложении\n'
+    printf '     → Проверь: скажи "Okay Nabu" в приложении\n'
     printf '  6. Найди имя сервиса уведомлений для телефона:\n'
     printf '     → В HA: Developer Tools → Services → поиск "notify.mobile_app"\n'
     printf '     → Скопируй полное имя (например notify.mobile_app_infinix_x6731b)\n'

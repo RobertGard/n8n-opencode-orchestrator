@@ -17,7 +17,8 @@ Self-hosted AI development assistant powered by OpenCode + n8n + Home Assistant:
 - **OpenCode slash commands** — use `/gsd-ship`, `/deploy`, `/brainstorm` etc. in Telegram — they're automatically wrapped as `/task --prompt="/command"` for the worker
 - **Fully self-hosted** — no cloud services, all data under your control
 - **Batteries included** — PostgreSQL, Redis, n8n, Home Assistant, Caddy (HTTPS) — one `bash setup-stack.sh` and you're ready
-- **Voice control** — Home Assistant + Companion App. Wake word «Окей, Ассистент» → voice task → TTS result. **Fully automated setup**: Wyoming whisper/piper, voice pipeline, notifications — zero UI clicks. Works alongside Telegram
+- **Voice control** — Home Assistant + Companion App. Wake word «Okay Nabu» → voice task → TTS result. **Fully automated setup**: Wyoming whisper/piper, voice pipeline, notifications — zero UI clicks. Works alongside Telegram
+- **Unlimited extensibility** — full n8n arsenal (400+ nodes) and Home Assistant (thousands of integrations) at your disposal: build custom scenarios, connect IoT devices, sync with calendars, databases, APIs — create any automation without limits
 - **CI/CD integration** — trigger pipelines, check build status, diagnose failures, manage releases (`/ci`, `/release`)
 - **Database tools** — explore schemas, analyze queries, review migrations, generate seed data (`/db`)
 - **Observability** — log analysis, error pattern detection, incident reports, health monitoring
@@ -261,7 +262,7 @@ Included in the stack automatically. Wyoming Whisper + Piper for local STT/TTS (
    - Creates voice pipeline with Russian language via WebSocket API
    - Configures accept notifications via HTTP Request (no HA credential needed)
    - HA configuration (URL and token) centralized in Set nodes per workflow
-5. Say "Окей, Ассистент" to create tasks by voice. Results read back via TTS
+5. Say «Okay Nabu» to create tasks by voice. Results read back via TTS
 
 **Configurable `.env` variables:**
 - `HA_API_TOKEN` — API token (prompted on first run)

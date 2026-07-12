@@ -298,7 +298,7 @@ bash ./scripts/cleanup-executions.sh
 - **Проблемы установки:** `bash ./scripts/verify-stack.sh` — проверяет compose, n8n, worker-ы
 - **Telegram не работает:** убедитесь что `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` и `N8N_API_KEY` заданы в `.env`, затем `bash ./scripts/bootstrap-telegram-integration.sh`
 - **Worker не отвечает:** `docker compose ps` — все сервисы должны быть healthy; проверьте логи: `docker compose logs opencode-worker-1 --tail 200`
-- **Баг-репорты и предложения:** [GitHub Issues](https://github.com/RobertGard/n8n-opencode-orchestrator/issues)
+- **Баг-репорты и предложения:** [GitHub Issues](https://github.com/RobertGard/home-dev-assistant/issues)
 
 ## Участие в разработке
 

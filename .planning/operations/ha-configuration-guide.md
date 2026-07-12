@@ -1,6 +1,6 @@
 # Home Assistant Configuration Guide for Docker Deployments
 
-> **Audience**: Operators of the n8n-opencode-orchestrator stack. This guide ensures Home Assistant works reliably end-to-end — not just scripts, but all subsystems.
+> **Audience**: Operators of the home-dev-assistant stack. This guide ensures Home Assistant works reliably end-to-end — not just scripts, but all subsystems.
 
 ---
 

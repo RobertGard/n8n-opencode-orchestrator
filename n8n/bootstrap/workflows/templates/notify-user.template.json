@@ -3,11 +3,32 @@
   "id": "900018",
   "nodes": [
     {
-      "parameters": {},
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "replyText",
+              "type": "string"
+            },
+            {
+              "name": "text",
+              "type": "string"
+            },
+            {
+              "name": "chatId",
+              "type": "string"
+            },
+            {
+              "name": "fallbackText",
+              "type": "string"
+            }
+          ]
+        }
+      },
       "id": "trigger",
       "name": "Вызов уведомления",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1,
+      "typeVersion": 1.1,
       "position": [
         -1264,
         2368

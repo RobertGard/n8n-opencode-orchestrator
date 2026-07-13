@@ -265,34 +265,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Родительская задача не выполнена"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Родительская задача не выполнена"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-Сообщаем-родитель-неуспешен",
       "name": "Уведомление HA: Сообщаем: родитель неуспешен",
       "position": [
@@ -386,34 +371,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Вхождение не найдено"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Вхождение не найдено"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-Сообщаем-вхождение-не-найдено",
       "name": "Уведомление HA: Сообщаем: вхождение не найдено",
       "position": [
@@ -428,34 +398,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Задача запущена"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Задача запущена"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-launch-success",
       "name": "Уведомление HA: задача запущена",
       "position": [
@@ -470,34 +425,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Ошибка запуска задачи"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Ошибка запуска задачи"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-launch-error",
       "name": "Уведомление HA: ошибка асинхронного запуска",
       "position": [
@@ -512,34 +452,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Ошибка отправки ответа"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Ошибка отправки ответа"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-answer-error",
       "name": "Уведомление HA: ошибка ответа на вопрос",
       "position": [
@@ -757,34 +682,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Результат задачи получен"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Результат задачи получен"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-final-result",
       "name": "Уведомление HA: результат задачи",
       "position": [
@@ -1214,34 +1124,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Промежуточный результат"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Промежуточный результат"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-stream-progress",
       "name": "Уведомление HA: промежуточный прогресс в Telegram",
       "position": [

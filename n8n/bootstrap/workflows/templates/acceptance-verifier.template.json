@@ -104,34 +104,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Верификация начата"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Верификация начата"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-verify-start",
       "name": "Уведомление HA: верификация начата",
       "position": [
@@ -199,34 +184,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Задача на проверке"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Задача на проверке"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-verify-queued",
       "name": "Уведомление HA: задача проверки",
       "position": [
@@ -406,34 +376,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Требуется доработка"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Требуется доработка"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-verify-fix",
       "name": "Уведомление HA: нужен фикс",
       "position": [
@@ -448,34 +403,19 @@
           "value": "900018",
           "mode": "id"
         },
-        "mode": "each",
-        "inputData": {
-          "mode": "define",
-          "fields": {
-            "values": [
-              {
-                "name": "replyText",
-                "value": "={{ $json.replyText || '' }}"
-              },
-              {
-                "name": "text",
-                "value": "={{ $json.result.text || $json.text || '' }}"
-              },
-              {
-                "name": "chatId",
-                "value": "={{ $('Задаём переменные').first().json.chatId }}"
-              },
-              {
-                "name": "fallbackText",
-                "value": "Проверка пройдена"
-              }
-            ]
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "replyText": "={{ $json.replyText || '' }}",
+            "text": "={{ $json.result.text || $json.text || '' }}",
+            "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
+            "fallbackText": "Проверка пройдена"
           }
         },
         "options": {}
       },
       "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
+      "typeVersion": 1.3,
       "id": "ha-verify-passed",
       "name": "Уведомление HA: приёмка пройдена",
       "position": [

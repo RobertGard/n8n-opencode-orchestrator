@@ -12,6 +12,7 @@ PENDING_INTERACTION_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/pend
 TASK_FINALIZER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/task-finalizer.template.json"
 AUTO_GENERATOR_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/auto-task-generator.template.json"
 ACCEPTANCE_VERIFIER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/acceptance-verifier.template.json"
+NOTIFY_USER_TEMPLATE="${ROOT_DIR}/n8n/bootstrap/workflows/templates/notify-user.template.json"
 ROUTING_FILE="${ROOT_DIR}/n8n/bootstrap/opencode-routing.json"
 TASKS_TABLE_NAME="agent_tasks"
 CHAT_SETTINGS_TABLE_NAME="chat_settings"
@@ -24,6 +25,7 @@ PENDING_INTERACTION_WORKFLOW_NAME="Обработка интеракций"
 TASK_FINALIZER_WORKFLOW_NAME="Завершение задачи"
 AUTO_GENERATOR_WORKFLOW_NAME="Авто-генератор задач"
 ACCEPTANCE_VERIFIER_WORKFLOW_NAME="Верификатор приёмки"
+NOTIFY_USER_WORKFLOW_NAME="Уведомление пользователя"
 TELEGRAM_CREDENTIAL_NAME="Telegram Bot"
 DEEPSEEK_CREDENTIAL_NAME="DeepSeek API"
 INGRESS_WORKFLOW_TEMP=""
@@ -34,6 +36,7 @@ PENDING_INTERACTION_WORKFLOW_TEMP=""
 TASK_FINALIZER_WORKFLOW_TEMP=""
 AUTO_GENERATOR_WORKFLOW_TEMP=""
 ACCEPTANCE_VERIFIER_WORKFLOW_TEMP=""
+NOTIFY_USER_WORKFLOW_TEMP=""
 
 log_info() {
   printf '[INFO] %s\n' "$1"
@@ -65,6 +68,7 @@ cleanup_temp_files() {
   [ -n "$TASK_FINALIZER_WORKFLOW_TEMP" ] && rm -f "$TASK_FINALIZER_WORKFLOW_TEMP"
   [ -n "$AUTO_GENERATOR_WORKFLOW_TEMP" ] && rm -f "$AUTO_GENERATOR_WORKFLOW_TEMP"
   [ -n "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" ] && rm -f "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP"
+  [ -n "$NOTIFY_USER_WORKFLOW_TEMP" ] && rm -f "$NOTIFY_USER_WORKFLOW_TEMP"
 }
 
 trap cleanup_temp_files EXIT
@@ -201,6 +205,7 @@ render_template() {
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//&/\\&}"
   opencode_routing_json_sed_escaped="${opencode_routing_json_sed_escaped//|/\\|}"
   local ha_api_token_escaped="${HA_API_TOKEN//|/\\|}"
+  local deepseek_api_key_escaped="${DEEPSEEK_API_KEY//|/\\|}"
   local ha_host="${HA_HOST:-${PUBLIC_HA_DOMAIN:-host.docker.internal}}"
   # Build HA URL: domain → https without port; IP/internal → http with port
   local ha_url
@@ -215,6 +220,7 @@ render_template() {
     -e "s|__TELEGRAM_CREDENTIAL_NAME__|${cred_name_escaped}|g" \
     -e "s|__DEEPSEEK_CREDENTIAL_ID__|${deepseek_cred_escaped}|g" \
     -e "s|__DEEPSEEK_CREDENTIAL_NAME__|${DEEPSEEK_CREDENTIAL_NAME}|g" \
+    -e "s|__DEEPSEEK_API_KEY__|${deepseek_api_key_escaped}|g" \
     -e "s|__TASKS_TABLE_ID__|${table_id_escaped}|g" \
     -e "s|__CHAT_SETTINGS_TABLE_ID__|${chat_settings_table_escaped}|g" \
     -e "s|__AUTO_GENERATOR_WORKFLOW_ID__|${auto_gen_id_escaped}|g" \
@@ -555,6 +561,7 @@ PENDING_INTERACTION_WORKFLOW_TEMP="$(mktemp)"
 TASK_FINALIZER_WORKFLOW_TEMP="$(mktemp)"
 AUTO_GENERATOR_WORKFLOW_TEMP="$(mktemp)"
 ACCEPTANCE_VERIFIER_WORKFLOW_TEMP="$(mktemp)"
+NOTIFY_USER_WORKFLOW_TEMP="$(mktemp)"
 
 # Создаём таблицу chat_settings если ещё нет
 chat_settings_table_id=""
@@ -588,6 +595,7 @@ render_template "$PENDING_INTERACTION_TEMPLATE" "$PENDING_INTERACTION_WORKFLOW_T
 render_template "$TASK_FINALIZER_TEMPLATE" "$TASK_FINALIZER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
 render_template "$AUTO_GENERATOR_TEMPLATE" "$AUTO_GENERATOR_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "$auto_generator_workflow_id" "$chat_settings_table_id" "${deepseek_credential_id:-}" "$acceptance_verifier_workflow_id"
 render_template "$ACCEPTANCE_VERIFIER_TEMPLATE" "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "$chat_settings_table_id" "" "$acceptance_verifier_workflow_id"
+render_template "$NOTIFY_USER_TEMPLATE" "$NOTIFY_USER_WORKFLOW_TEMP" "$credential_id" "$TELEGRAM_CREDENTIAL_NAME" "$tasks_table_id" "$opencode_routing_json_escaped" "" "" "" "$acceptance_verifier_workflow_id"
 sed -i "s|__DEFAULT_WORKER_ALIAS__|${default_worker_alias}|g" "$AUTO_GENERATOR_WORKFLOW_TEMP"
 
 log_ok 'Временные workflow-файлы подготовлены.'
@@ -598,7 +606,8 @@ step_start 'Импортирую workflow в n8n'
 for wf_name in "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME" \
                "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" \
+               "$NOTIFY_USER_WORKFLOW_NAME"; do
   existing_ids="$(curl -fsS --retry 3 --retry-delay 2 \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     "${N8N_URL}/api/v1/workflows" 2>/dev/null | jq -r --arg name "$wf_name" '.data // . // [] | map(select(.name == $name)) | .[].id' 2>/dev/null || true)"
@@ -619,6 +628,7 @@ import_workflow_from_host_file "$PENDING_INTERACTION_WORKFLOW_TEMP" 'pending-int
 import_workflow_from_host_file "$TASK_FINALIZER_WORKFLOW_TEMP" 'task-finalizer.json'
 import_workflow_from_host_file "$AUTO_GENERATOR_WORKFLOW_TEMP" 'auto-task-generator.json'
 import_workflow_from_host_file "$ACCEPTANCE_VERIFIER_WORKFLOW_TEMP" 'acceptance-verifier.json'
+import_workflow_from_host_file "$NOTIFY_USER_WORKFLOW_TEMP" 'notify-user.json'
 
 ingress_workflow_id="$(workflow_id_by_name "$INGRESS_WORKFLOW_NAME")"
 dispatch_workflow_id="$(workflow_id_by_name "$DISPATCH_WORKFLOW_NAME")"
@@ -668,8 +678,8 @@ fi
 log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
 for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
-  sub_wf_id="$(workflow_id_by_name "$wf_name")"
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" \
+               "$NOTIFY_USER_WORKFLOW_NAME"; do
   if [ -z "$sub_wf_id" ]; then
     die "Не удалось найти sub-workflow по имени: ${wf_name}"
   fi

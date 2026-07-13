@@ -1,0 +1,176 @@
+{
+  "name": "Уведомление пользователя",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Вызов уведомления",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json\nconst text = String(input.replyText || (input.result || {}).text || input.text || input.fallbackText || '')\nreturn { json: { text, chatId: input.chatId || '' } }"
+      },
+      "id": "normalize",
+      "name": "Нормализуем входные данные",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "send-telegram",
+      "name": "Отправка в Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        0
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "__TELEGRAM_CREDENTIAL_NAME__"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.deepseek.com/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer __DEEPSEEK_API_KEY__"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'deepseek-chat', messages: [{role: 'system', content: \"Ты — обработчик текста для озвучивания через TTS. Получив текст, верни ТОЛЬКО очищенный текст. ПРАВИЛА: 1. Если текст на английском — переведи на русский. 2. Убери пути к файлам, URL, куски кода, массивы, JSON, логи. 3. Убери markdown, бэктики, спецсимволы. 4. Сократи до 3-4 предложений, сохранив СУТЬ. 5. Не добавляй пояснений — только сам текст. 6. Plain text, без форматирования.\"}, {role: 'user', content: ($json.text || '')}], max_tokens: 300, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "ai-clean",
+      "name": "AI подготовка текста для озвучивания",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        660,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "__HA_URL__/api/services/script/1720584135122",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer __HA_API_TOKEN__"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text_to_say",
+              "value": "={{ String($json.choices[0].message.content || $json.text || '') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ha-tts",
+      "name": "Озвучивание через HA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        880,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Вызов уведомления": {
+      "main": [
+        [
+          {
+            "node": "Нормализуем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Нормализуем входные данные": {
+      "main": [
+        [
+          {
+            "node": "Отправка в Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI подготовка текста для озвучивания",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отправка в Telegram": {
+      "main": [
+        []
+      ]
+    },
+    "AI подготовка текста для озвучивания": {
+      "main": [
+        [
+          {
+            "node": "Озвучивание через HA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Озвучивание через HA": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -285,41 +285,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Родительская задача не выполнена').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Родительская задача не выполнена"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-Сообщаем-родитель-неуспешен",
       "name": "Уведомление HA: Сообщаем: родитель неуспешен",
       "position": [
         -20496,
         -18304
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {
@@ -427,41 +430,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Вхождение не найдено').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Вхождение не найдено"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-Сообщаем-вхождение-не-найдено",
       "name": "Уведомление HA: Сообщаем: вхождение не найдено",
       "position": [
         -20496,
         -18688
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {
@@ -490,41 +496,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Задача запущена').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Задача запущена"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-launch-success",
       "name": "Уведомление HA: задача запущена",
       "position": [
         -19824,
         -18560
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {
@@ -553,41 +562,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Ошибка запуска задачи').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Ошибка запуска задачи"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-launch-error",
       "name": "Уведомление HA: ошибка асинхронного запуска",
       "position": [
         -19824,
         -18320
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {
@@ -616,41 +628,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Ошибка отправки ответа').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Ошибка отправки ответа"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-answer-error",
       "name": "Уведомление HA: ошибка ответа на вопрос",
       "position": [
         -20720,
         -17888
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {
@@ -883,41 +898,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Результат задачи получен').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Результат задачи получен"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-final-result",
       "name": "Уведомление HA: результат задачи",
       "position": [
         -19152,
         -18032
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {
@@ -1362,41 +1380,44 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $('Задаём переменные').first().json.haScriptUrl }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "={{ 'Bearer ' + $('Задаём переменные').first().json.haApiToken }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
+        "workflowId": {
+          "mode": "name",
+          "value": "Уведомление пользователя"
         },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Промежуточный результат').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
-            }
-          ]
+        "mode": "each",
+        "inputData": {
+          "mode": "define",
+          "fields": {
+            "values": [
+              {
+                "name": "replyText",
+                "value": "={{ $json.replyText || '' }}"
+              },
+              {
+                "name": "text",
+                "value": "={{ $json.result.text || $json.text || '' }}"
+              },
+              {
+                "name": "chatId",
+                "value": "={{ $('Задаём переменные').first().json.chatId }}"
+              },
+              {
+                "name": "fallbackText",
+                "value": "Промежуточный результат"
+              }
+            ]
+          }
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
       "id": "ha-stream-progress",
       "name": "Уведомление HA: промежуточный прогресс в Telegram",
       "position": [
         -19600,
         -17840
-      ],
-      "onError": "continueRegularOutput"
+      ]
     },
     {
       "parameters": {

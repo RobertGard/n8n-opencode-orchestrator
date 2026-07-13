@@ -295,7 +295,14 @@ import_workflow_from_host_file() {
     die "Не найден workflow-файл для импорта: ${host_file}"
   fi
 
-  if ! "${BASE_COMPOSE[@]}" exec -T n8n sh -lc "cat > /tmp/${temp_file_name} && n8n import:workflow --active --input=/tmp/${temp_file_name} && rm -f /tmp/${temp_file_name}" < "$host_file"; then
+  # Use REST API instead of n8n import:workflow (--active flag doesn't persist)
+  local workflow_json
+  workflow_json="$(cat "$host_file")"
+  if ! curl -fsS -X POST \
+    -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
+    -H 'Content-Type: application/json' \
+    -d "$workflow_json" \
+    "${N8N_URL}/api/v1/workflows" >/dev/null 2>&1; then
     die "Не удалось импортировать workflow: ${host_file}"
   fi
 }
@@ -687,24 +694,42 @@ if ! wait_for_n8n; then
   die 'n8n не поднялся после перезапуска.'
 fi
 
-# С --active флагом импорта все workflow уже published. Проверяем статус.
-log_info 'Проверяю статус workflow...'
-for wf_name in "$NOTIFY_USER_WORKFLOW_NAME" \
-               "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
+# Активируем sub-workflow ПЕРВЫМИ — n8n 2.x требует чтобы все зависимые workflow были активны
+log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
+# notify-user активируем ПЕРВЫМ — остальные ссылаются на него
+notify_user_id="$(workflow_id_by_name "$NOTIFY_USER_WORKFLOW_NAME")"
+if [ -z "$notify_user_id" ]; then
+  die "Не удалось найти sub-workflow по имени: ${NOTIFY_USER_WORKFLOW_NAME}"
+fi
+activate_and_verify "$notify_user_id" "$NOTIFY_USER_WORKFLOW_NAME"
+
+# Перезапуск чтобы n8n перестроил индекс с notify-user как published
+log_info 'Перезапускаю n8n для обновления индекса зависимостей...'
+if ! "${BASE_COMPOSE[@]}" restart n8n n8n-worker >/dev/null; then
+  die 'Не удалось перезапустить n8n и n8n-worker.'
+fi
+if ! wait_for_n8n; then
+  die 'n8n не поднялся после перезапуска.'
+fi
+
+for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" \
-               "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME"; do
-  wf_id="$(workflow_id_by_name "$wf_name")"
-  if [ -z "$wf_id" ]; then
-    log_warn "Workflow '${wf_name}' не найден в n8n"
-    continue
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
+  sub_wf_id="$(workflow_id_by_name "$wf_name")"
+  if [ -z "$sub_wf_id" ]; then
+    die "Не удалось найти sub-workflow по имени: ${wf_name}"
   fi
-  # Check if active
-  if curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${wf_id}" 2>/dev/null | jq -e '.active == true' >/dev/null 2>&1; then
-    log_ok "Workflow '${wf_name}' активен"
-  else
-    log_warn "Workflow '${wf_name}' неактивен — проверьте вручную в n8n UI"
+  if [ "$wf_name" = "$AUTO_GENERATOR_WORKFLOW_NAME" ] && [ -z "${deepseek_credential_id:-}" ]; then
+    log_warn 'Авто-генератор задач активирован, но DeepSeek креды не созданы — авто-режим не будет работать.'
   fi
+  activate_and_verify "$sub_wf_id" "$wf_name"
 done
+log_ok 'Sub-workflow активированы.'
+
+# Теперь активируем основные workflow
+activate_and_verify "$ingress_workflow_id" "$INGRESS_WORKFLOW_NAME"
+activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
+
+log_ok 'Workflow активированы после перезапуска.'
 
 log_ok 'Telegram credential и workflow импортированы.'

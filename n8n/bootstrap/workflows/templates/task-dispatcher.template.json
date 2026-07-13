@@ -686,7 +686,7 @@
           "mappingMode": "defineBelow",
           "value": {
             "replyText": "={{ $json.replyText || '' }}",
-            "text": "={{ $json.replyText || '' }}",
+            "text": "={{ $('Завершение задачи').first().json.replyText || '' }}",
             "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
             "fallbackText": "🏁 Результат задачи получен"
           }

@@ -374,7 +374,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}",
-            "fallbackText": "📤 Ответ обработан"
+            "fallbackText": "✨ Ответ обработан"
           }
         },
         "options": {}
@@ -401,7 +401,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}",
-            "fallbackText": "❌ Ошибка генерации задачи"
+            "fallbackText": "🧨 Ошибка генерации задачи"
           }
         },
         "options": {}
@@ -543,7 +543,7 @@
             {
               "id": "set-auto-reply-notify-rt",
               "name": "replyText",
-              "value": "📤 Ответ успешно отправлен.",
+              "value": "✨ Ответ успешно отправлен.",
               "type": "string"
             }
           ]
@@ -566,7 +566,7 @@
             {
               "id": "set-gen-error-notify-rt",
               "name": "replyText",
-              "value": "=❌ Ошибка генерации авто-задачи: {{ $json.error || 'непредвиденная ошибка' }}. Попробуйте позже.",
+              "value": "=🧨 Ошибка генерации авто-задачи: {{ $json.error || 'непредвиденная ошибка' }}. Попробуйте позже.",
               "type": "string"
             }
           ]

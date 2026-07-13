@@ -259,7 +259,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Запуск по вызову из другого сценария').first().json.chatId }}",
-            "fallbackText": "❓ Требуется ваш ответ"
+            "fallbackText": "💡 Требуется ваш ответ"
           }
         },
         "options": {}
@@ -779,7 +779,7 @@
             {
               "id": "set-interaction-notify-rt",
               "name": "replyText",
-              "value": "=❓ {{ ($json.questionText || $json.pendingQuestion) ? ($json.questionText || $json.pendingQuestion) : 'Требуется ваш ответ' }}",
+              "value": "=💡 {{ ($json.questionText || $json.pendingQuestion) ? ($json.questionText || $json.pendingQuestion) : 'Требуется ваш ответ' }}",
               "type": "string"
             }
           ]

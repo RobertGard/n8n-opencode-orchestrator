@@ -150,7 +150,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
-            "fallbackText": "❌ Ошибка распознавания команды"
+            "fallbackText": "🧩 Ошибка распознавания команды"
           }
         },
         "options": {}
@@ -193,7 +193,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
-            "fallbackText": "🚫 Чат не разрешён"
+            "fallbackText": "🔒 Чат не разрешён"
           }
         },
         "options": {}
@@ -875,7 +875,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
-            "fallbackText": "📤 Ответ отправлен"
+            "fallbackText": "📨 Ответ отправлен"
           }
         },
         "options": {}
@@ -1352,7 +1352,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Задаём переменные').first().json.chatId }}",
-            "fallbackText": "⚙️ Режим изменён"
+            "fallbackText": "⚙️ ️ Режим изменён"
           }
         },
         "options": {}
@@ -1575,7 +1575,7 @@
             {
               "id": "set-reply-sent-replyText",
               "name": "replyText",
-              "value": "📤 Ответ успешно отправлен",
+              "value": "📨 Ответ успешно отправлен",
               "type": "string"
             }
           ]
@@ -1621,7 +1621,7 @@
             {
               "id": "set-mode-replyText",
               "name": "replyText",
-              "value": "=⚙️ {{ $json.auto_mode ? 'Авто-режим включён. Я буду предлагать новые задачи на основе ваших запросов.' : 'Авто-режим выключен.' }}",
+              "value": "=⚙️ ️ {{ $json.auto_mode ? 'Авто-режим включён. Я буду предлагать новые задачи на основе ваших запросов.' : 'Авто-режим выключен.' }}",
               "type": "string"
             }
           ]
@@ -1644,7 +1644,7 @@
             {
               "id": "set-parse-error-notify-rt",
               "name": "replyText",
-              "value": "❌ Не удалось распознать команду. Попробуйте переформулировать или используйте /help для списка команд.",
+              "value": "🧩 Не удалось распознать команду. Попробуйте переформулировать или используйте /help для списка команд.",
               "type": "string"
             }
           ]
@@ -1667,7 +1667,7 @@
             {
               "id": "set-bad-chat-notify-rt",
               "name": "replyText",
-              "value": "🚫 Чат не разрешён. Обратитесь к администратору для получения доступа.",
+              "value": "🔒 Чат не разрешён. Обратитесь к администратору для получения доступа.",
               "type": "string"
             }
           ]

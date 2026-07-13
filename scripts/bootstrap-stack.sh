@@ -295,7 +295,7 @@ import_workflow_from_host_file() {
     die "Не найден workflow-файл для импорта: ${host_file}"
   fi
 
-  if ! "${BASE_COMPOSE[@]}" exec -T n8n sh -lc "cat > /tmp/${temp_file_name} && n8n import:workflow --input=/tmp/${temp_file_name} && rm -f /tmp/${temp_file_name}" < "$host_file"; then
+  if ! "${BASE_COMPOSE[@]}" exec -T n8n sh -lc "cat > /tmp/${temp_file_name} && n8n import:workflow --active --input=/tmp/${temp_file_name} && rm -f /tmp/${temp_file_name}" < "$host_file"; then
     die "Не удалось импортировать workflow: ${host_file}"
   fi
 }
@@ -687,27 +687,11 @@ if ! wait_for_n8n; then
   die 'n8n не поднялся после перезапуска.'
 fi
 
-# Активируем sub-workflow ПЕРВЫМИ — n8n 2.x требует чтобы все зависимые workflow были активны
+# Активируем sub-workflow — n8n 2.x требует чтобы все зависимые workflow были активны
+# (с --active флагом импорта они уже published, но verify на всякий случай)
 log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
-
-# Фаза 1: активируем notify-user — он ни от кого не зависит
-notify_user_id="$(workflow_id_by_name "$NOTIFY_USER_WORKFLOW_NAME")"
-if [ -z "$notify_user_id" ]; then
-  die "Не удалось найти sub-workflow по имени: ${NOTIFY_USER_WORKFLOW_NAME}"
-fi
-activate_and_verify "$notify_user_id" "$NOTIFY_USER_WORKFLOW_NAME"
-
-# Перезапускаем n8n чтобы перестроить индекс зависимостей
-log_info 'Перезапускаю n8n чтобы обновить индекс зависимостей...'
-if ! "${BASE_COMPOSE[@]}" restart n8n n8n-worker >/dev/null; then
-  die 'Не удалось перезапустить n8n и n8n-worker.'
-fi
-if ! wait_for_n8n; then
-  die 'n8n не поднялся после перезапуска.'
-fi
-
-# Фаза 2: активируем остальные sub-workflow (зависят от notify-user)
-for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
+for wf_name in "$NOTIFY_USER_WORKFLOW_NAME" \
+               "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
                "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
   sub_wf_id="$(workflow_id_by_name "$wf_name")"

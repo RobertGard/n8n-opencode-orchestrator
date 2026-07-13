@@ -641,13 +641,15 @@ fi
 activate_workflow_by_id() {
   local wf_id="$1"
   local wf_label="$2"
-  if ! curl -fsS --retry 3 --retry-delay 2 -X POST \
+  local error_output
+  error_output="$(curl -fsS --retry 3 --retry-delay 2 -X POST \
     -H "X-N8N-API-KEY: ${N8N_API_KEY}" \
     -H 'Content-Type: application/json' \
-    "${N8N_URL}/api/v1/workflows/${wf_id}/activate" >/dev/null 2>&1; then
-    return 0
-  fi
-  return 1
+    "${N8N_URL}/api/v1/workflows/${wf_id}/activate" 2>&1)" || {
+    log_error "Activation failed for ${wf_label} (${wf_id}): ${error_output}"
+    return 1
+  }
+  return 0
 }
 
 activate_and_verify() {

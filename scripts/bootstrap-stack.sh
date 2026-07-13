@@ -671,8 +671,7 @@ for wf_name in "${publish_targets[@]}"; do
 done
 log_ok "Опубликовано workflow: ${published_count}"
 
-step_start 'Перезапускаю n8n для применения публикаций'
-log_info 'Перезапуск требуется один раз — n8n перестроит индекс со всеми published workflow.'
+log_info 'Перезапускаю n8n для применения публикаций (нужен один раз — n8n перестроит индекс).'
 if ! "${BASE_COMPOSE[@]}" restart n8n n8n-worker >/dev/null; then
   die 'Не удалось перезапустить n8n и n8n-worker.'
 fi

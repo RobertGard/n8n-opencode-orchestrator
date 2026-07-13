@@ -271,7 +271,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Выбираем кандидатную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Родительская задача не выполнена"
+            "fallbackText": "⚠️ Родительская задача не выполнена"
           }
         },
         "options": {}
@@ -377,7 +377,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Выбираем кандидатную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Вхождение не найдено"
+            "fallbackText": "⚠️ Вхождение не найдено"
           }
         },
         "options": {}
@@ -404,7 +404,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Выбираем кандидатную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Задача запущена"
+            "fallbackText": "🚀 Задача запущена"
           }
         },
         "options": {}
@@ -431,7 +431,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Выбираем кандидатную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Ошибка запуска задачи"
+            "fallbackText": "❌ Ошибка запуска задачи"
           }
         },
         "options": {}
@@ -458,7 +458,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Ошибка отправки ответа"
+            "fallbackText": "❌ Ошибка отправки ответа"
           }
         },
         "options": {}
@@ -688,7 +688,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.replyText || '' }}",
             "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Результат задачи получен"
+            "fallbackText": "✅ Результат задачи получен"
           }
         },
         "options": {}
@@ -1130,7 +1130,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.streamProgressText || '' }}",
             "chatId": "={{ $('Выбираем активную задачу').first().json.task.chat_id }}",
-            "fallbackText": "Промежуточный результат"
+            "fallbackText": "💭 Промежуточный результат"
           }
         },
         "options": {}
@@ -1903,7 +1903,7 @@
             {
               "id": "set-parent-failed-notify-rt",
               "name": "replyText",
-              "value": "=Задача <code>{{ $('Выбираем кандидатную задачу').first().json.task.task_key }}</code> отменена: родительская задача <code>{{ $('Выбираем кандидатную задачу').first().json.parentTaskKey }}</code> не выполнена.",
+              "value": "=⚠️ Задача <code>{{ $('Выбираем кандидатную задачу').first().json.task.task_key }}</code> отменена: родительская задача <code>{{ $('Выбираем кандидатную задачу').first().json.parentTaskKey }}</code> не выполнена.",
               "type": "string"
             }
           ]
@@ -1926,7 +1926,7 @@
             {
               "id": "set-no-match-notify-rt",
               "name": "replyText",
-              "value": "=Задача <code>{{ $('Выбираем кандидатную задачу').first().json.task.task_key }}</code> отменена: в результате <code>{{ $('Выбираем кандидатную задачу').first().json.parentTaskKey }}</code> не найдено вхождение.",
+              "value": "=⚠️ Задача <code>{{ $('Выбираем кандидатную задачу').first().json.task.task_key }}</code> отменена: в результате <code>{{ $('Выбираем кандидатную задачу').first().json.parentTaskKey }}</code> не найдено вхождение.",
               "type": "string"
             }
           ]
@@ -1950,7 +1950,7 @@
               "id": "launch-rt",
               "name": "replyText",
               "type": "string",
-              "value": "=Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [{{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] успешно запущена. Ожидайте результат."
+              "value": "=🚀 Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [{{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] успешно запущена. Ожидайте результат."
             }
           ]
         },
@@ -1972,7 +1972,7 @@
             {
               "id": "set-launch-error-notify-rt",
               "name": "replyText",
-              "value": "=Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [{{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] не запущена: {{ $json.launchError }}",
+              "value": "=❌ Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [{{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] не запущена: {{ $json.launchError }}",
               "type": "string"
             }
           ]
@@ -1995,7 +1995,7 @@
             {
               "id": "set-reply-error-notify-rt",
               "name": "replyText",
-              "value": "=Задача <code>{{ $('Выбираем активную задачу').first().json.task.task_key }}</code> [{{ $('Выбираем активную задачу').first().json.task.worker_alias || 'primary' }}]: ошибка ответа — {{ $('Обработка интеракций').first().json.error }}",
+              "value": "=❌ Задача <code>{{ $('Выбираем активную задачу').first().json.task.task_key }}</code> [{{ $('Выбираем активную задачу').first().json.task.worker_alias || 'primary' }}]: ошибка ответа — {{ $('Обработка интеракций').first().json.error }}",
               "type": "string"
             }
           ]

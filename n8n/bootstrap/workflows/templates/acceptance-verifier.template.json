@@ -110,7 +110,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}",
-            "fallbackText": "Верификация начата"
+            "fallbackText": "🔍 Верификация начата"
           }
         },
         "options": {}
@@ -190,7 +190,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}",
-            "fallbackText": "Задача на проверке"
+            "fallbackText": "📋 Задача на проверке"
           }
         },
         "options": {}
@@ -382,7 +382,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}",
-            "fallbackText": "Требуется доработка"
+            "fallbackText": "⚠️ Требуется доработка"
           }
         },
         "options": {}
@@ -409,7 +409,7 @@
             "replyText": "={{ $json.replyText || '' }}",
             "text": "={{ $json.result.text || $json.text || '' }}",
             "chatId": "={{ $('Триггер: вызов из диспетчера').first().json.chat_id }}",
-            "fallbackText": "Проверка пройдена"
+            "fallbackText": "✅ Проверка пройдена"
           }
         },
         "options": {}
@@ -467,7 +467,7 @@
             {
               "id": "set-verify-task-notify-rt",
               "name": "replyText",
-              "value": "=Задача проверки <code>{{ $('Создаём задачу проверки').first().json.task_key }}</code> [{{ $('Создаём задачу проверки').first().json.worker_alias || 'primary' }}] поставлена в очередь.",
+              "value": "=📋 Задача проверки <code>{{ $('Создаём задачу проверки').first().json.task_key }}</code> [{{ $('Создаём задачу проверки').first().json.worker_alias || 'primary' }}] поставлена в очередь.",
               "type": "string"
             }
           ]
@@ -490,7 +490,7 @@
             {
               "id": "set-fix-task-notify-rt",
               "name": "replyText",
-              "value": "=Задача <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] не прошла приёмку{{ ($('Извлекаем вердикт').first().json.reason) ? ': ' + $('Извлекаем вердикт').first().json.reason : '' }}. Назначена задача на доработку.",
+              "value": "=⚠️ Задача <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] не прошла приёмку{{ ($('Извлекаем вердикт').first().json.reason) ? ': ' + $('Извлекаем вердикт').first().json.reason : '' }}. Назначена задача на доработку.",
               "type": "string"
             }
           ]
@@ -513,7 +513,7 @@
             {
               "id": "set-verify-started-notify-rt",
               "name": "replyText",
-              "value": "=Верификация задачи <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] начата.",
+              "value": "=🔍 Верификация задачи <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] начата.",
               "type": "string"
             }
           ]
@@ -536,7 +536,7 @@
             {
               "id": "set-verify-passed-notify-rt",
               "name": "replyText",
-              "value": "=Приёмка задачи <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] пройдена{{ ($('Извлекаем вердикт').first().json.reason) ? ': ' + $('Извлекаем вердикт').first().json.reason : '' }}.",
+              "value": "=✅ Приёмка задачи <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] пройдена{{ ($('Извлекаем вердикт').first().json.reason) ? ': ' + $('Извлекаем вердикт').first().json.reason : '' }}.",
               "type": "string"
             }
           ]

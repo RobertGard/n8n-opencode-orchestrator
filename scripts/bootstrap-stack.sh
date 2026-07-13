@@ -678,6 +678,7 @@ for wf_name in "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
                "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" \
                "$NOTIFY_USER_WORKFLOW_NAME"; do
+  sub_wf_id="$(workflow_id_by_name "$wf_name")"
   if [ -z "$sub_wf_id" ]; then
     die "Не удалось найти sub-workflow по имени: ${wf_name}"
   fi

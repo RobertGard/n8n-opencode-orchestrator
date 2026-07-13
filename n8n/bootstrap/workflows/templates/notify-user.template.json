@@ -81,6 +81,19 @@
     },
     {
       "parameters": {
+        "jsCode": "// Парсим ответ DeepSeek и очищаем текст для озвучивания\nconst data = $input.first().json\n\n// Извлекаем текст из ответа AI\nlet cleanText = ''\ntry {\n  if (data.choices && data.choices[0] && data.choices[0].message) {\n    cleanText = String(data.choices[0].message.content || '')\n  }\n} catch (_) {}\n\n// Если AI не вернул текст — берём оригинал\nif (!cleanText || cleanText.trim() === '') {\n  try {\n    const normalizeOutput = $('Нормализуем входные данные').first().json\n    cleanText = String(normalizeOutput.text || '')\n  } catch (_) {}\n}\n\n// Финальная очистка: убираем остатки markdown, бэктики, лишние пробелы\ncleanText = cleanText\n  .replace(/```[\\s\\S]*?```/g, '')\n  .replace(/`([^`]*)`/g, '$1')\n  .replace(/[*_~]{1,2}/g, '')\n  .replace(/\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')\n  .replace(/\\s+/g, ' ')\n  .trim()\n\nreturn { json: { cleanText } }"
+      },
+      "id": "parse-ai",
+      "name": "Парсим ответ AI",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        200
+      ]
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "__HA_URL__/api/services/script/1720584135122",
         "sendHeaders": true,
@@ -101,7 +114,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ String($json.choices[0].message.content || $json.text || '') }}"
+              "value": "={{ $json.cleanText || '' }}"
             }
           ]
         },
@@ -156,7 +169,7 @@
       "main": [
         [
           {
-            "node": "Озвучивание через HA",
+            "node": "Парсим ответ AI",
             "type": "main",
             "index": 0
           }
@@ -166,6 +179,17 @@
     "Озвучивание через HA": {
       "main": [
         []
+      ]
+    },
+    "Парсим ответ AI": {
+      "main": [
+        [
+          {
+            "node": "Озвучивание через HA",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

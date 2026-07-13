@@ -1536,6 +1536,58 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Восстанавливаем replyText после dataTable insert.\n// DataTable возвращает только {success:true}, а не данные строки —\n// поэтому оригинальный replyText из 'Готовим новую задачу' теряется.\n// Собираем формулировку заново из полей, которые мы вставили в таблицу.\n\nconst input = $('Вставляем задачу').first().json\nconst taskKey = String(input.task_key || '').trim()\nconst worker = String(input.worker_alias || 'primary')\n\nreturn {\n  json: {\n    ...input,\n    replyText: taskKey ? `Задача поставлена в очередь: <code>${taskKey}</code> [${worker}]` : 'Задача принята в работу',\n  },\n}"
+      },
+      "id": "build-task-created-notification",
+      "name": "Готовим уведомление о постановке",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6144,
+        -1264
+      ]
+    },
+    {
+      "name": "Готовим уведомление об ответе",
+      "id": "build-reply-notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6144,
+        -1792
+      ],
+      "parameters": {
+        "jsCode": "// Восстанавливаем replyText после проверки сохранения ответа.\n// DataTable возвращает {exists:bool}, не оригинальные данные.\n\nconst input = $('Проверяем: ответ сохранён').first().json\nreturn {\n  json: {\n    ...input,\n    replyText: 'Ответ успешно отправлен',\n  },\n}"
+      }
+    },
+    {
+      "name": "Готовим уведомление о прерывании",
+      "id": "build-abort-notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6144,
+        -2048
+      ],
+      "parameters": {
+        "jsCode": "// Восстанавливаем replyText после двух dataTable update-операций.\n// Оригинальный replyText из 'Определяем цель прерывания' теряется\n// при последовательном прохождении через Сохраняем флаг прерывания и\n// Отменяем queued задачу (оба возвращают {success:bool}).\n// Поэтому используем upstream-ноду, которая гарантированно исполнена.\n\nconst target = $('Определяем цель прерывания').first().json\nreturn {\n  json: {\n    replyText: String(target.replyText || 'Задача прервана'),\n  },\n}"
+      }
+    },
+    {
+      "name": "Готовим уведомление о смене режима",
+      "id": "build-mode-notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6144,
+        -2304
+      ],
+      "parameters": {
+        "jsCode": "// Формируем replyText после upsert.\n// DataTable upsert возвращает либо {success:bool}, либо данные строки.\n// Если данные строки доступны — используем auto_mode для текста.\n\nconst input = $('Обновляем режим авто-задач').first().json\nconst enabled = (input.auto_mode !== undefined) ? Boolean(input.auto_mode) : null\nconst text = enabled === null ? 'Режим изменён' : (enabled ? 'Авто-режим включён. Я буду предлагать новые задачи на основе ваших запросов.' : 'Авто-режим выключен.')\nreturn {\n  json: {\n    ...input,\n    replyText: text,\n  },\n}"
+      }
     }
   ],
   "connections": {
@@ -1605,7 +1657,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем HA: задача прервана",
+            "node": "Готовим уведомление о прерывании",
             "type": "main",
             "index": 0
           }
@@ -1678,7 +1730,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем HA: ответ принят",
+            "node": "Готовим уведомление об ответе",
             "type": "main",
             "index": 0
           }
@@ -1689,7 +1741,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем HA: задача поставлена",
+            "node": "Готовим уведомление о постановке",
             "type": "main",
             "index": 0
           }
@@ -1867,7 +1919,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем HA: смена режима",
+            "node": "Готовим уведомление о смене режима",
             "type": "main",
             "index": 0
           }
@@ -1940,7 +1992,7 @@
       "main": [
         [
           {
-            "node": "Отвечаем HA: задача прервана",
+            "node": "Готовим уведомление о прерывании",
             "type": "main",
             "index": 0
           }
@@ -2092,6 +2144,50 @@
     "Отвечаем HA webhook: недопустимый чат": {
       "main": [
         []
+      ]
+    },
+    "Готовим уведомление о постановке": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA: задача поставлена",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление об ответе": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA: ответ принят",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление о прерывании": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA: задача прервана",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление о смене режима": {
+      "main": [
+        [
+          {
+            "node": "Отвечаем HA: смена режима",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

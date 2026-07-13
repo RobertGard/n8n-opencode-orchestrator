@@ -64,7 +64,8 @@
     },
     {
       "parameters": {
-        "options": {}
+        "options": {},
+        "model": "deepseek-chat"
       },
       "id": "ds-tts-model",
       "name": "DeepSeek Chat Model (TTS)",

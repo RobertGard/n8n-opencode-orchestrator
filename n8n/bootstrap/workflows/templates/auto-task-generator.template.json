@@ -504,6 +504,52 @@
           "name": "__DEEPSEEK_CREDENTIAL_NAME__"
         }
       }
+    },
+    {
+      "name": "Готовим уведомление о новой задаче",
+      "id": "set-auto-task-notify",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3808,
+        -10272
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-auto-task-notify-rt",
+              "name": "replyText",
+              "value": "=Авто-задача <code>{{ $('Записываем задачу в БД').first().json.task_key }}</code> [{{ $('Записываем задачу в БД').first().json.worker_alias || 'primary' }}] создана.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "name": "Готовим уведомление об ответе авто",
+      "id": "set-auto-reply-notify",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3808,
+        -10784
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-auto-reply-notify-rt",
+              "name": "replyText",
+              "value": "Ответ успешно отправлен.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -635,7 +681,7 @@
       "main": [
         [
           {
-            "node": "Уведомление HA: Уведомляем об ответе",
+            "node": "Готовим уведомление об ответе авто",
             "type": "main",
             "index": 0
           }
@@ -646,7 +692,7 @@
       "main": [
         [
           {
-            "node": "Уведомление HA: Уведомляем о новой задаче",
+            "node": "Готовим уведомление о новой задаче",
             "type": "main",
             "index": 0
           }
@@ -728,6 +774,28 @@
     "Уведомление HA: Сообщаем об ошибке генерации": {
       "main": [
         []
+      ]
+    },
+    "Готовим уведомление о новой задаче": {
+      "main": [
+        [
+          {
+            "node": "Уведомление HA: Уведомляем о новой задаче",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление об ответе авто": {
+      "main": [
+        [
+          {
+            "node": "Уведомление HA: Уведомляем об ответе",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

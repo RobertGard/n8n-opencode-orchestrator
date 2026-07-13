@@ -1887,6 +1887,52 @@
         -23432,
         -18304
       ]
+    },
+    {
+      "name": "Готовим уведомление: родитель неуспешен",
+      "id": "set-parent-failed-notify",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -20944,
+        -20240
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-parent-failed-notify-rt",
+              "name": "replyText",
+              "value": "=Задача <code>{{ $('Выбираем кандидатную задачу').first().json.task.task_key }}</code> отменена: родительская задача <code>{{ $('Выбираем кандидатную задачу').first().json.parentTaskKey }}</code> не выполнена.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "name": "Готовим уведомление: вхождение не найдено",
+      "id": "set-no-match-notify",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -20944,
+        -21584
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-no-match-notify-rt",
+              "name": "replyText",
+              "value": "=Задача <code>{{ $('Выбираем кандидатную задачу').first().json.task.task_key }}</code> отменена: в результате <code>{{ $('Выбираем кандидатную задачу').first().json.parentTaskKey }}</code> не найдено вхождение.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -2026,7 +2072,7 @@
       "main": [
         [
           {
-            "node": "Уведомление HA: Сообщаем: родитель неуспешен",
+            "node": "Готовим уведомление: родитель неуспешен",
             "type": "main",
             "index": 0
           }
@@ -2055,7 +2101,7 @@
       "main": [
         [
           {
-            "node": "Уведомление HA: Сообщаем: вхождение не найдено",
+            "node": "Готовим уведомление: вхождение не найдено",
             "type": "main",
             "index": 0
           }
@@ -2400,6 +2446,28 @@
         [
           {
             "node": "Задаём конфигурацию OpenCode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление: родитель неуспешен": {
+      "main": [
+        [
+          {
+            "node": "Уведомление HA: Сообщаем: родитель неуспешен",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление: вхождение не найдено": {
+      "main": [
+        [
+          {
+            "node": "Уведомление HA: Сообщаем: вхождение не найдено",
             "type": "main",
             "index": 0
           }

@@ -451,6 +451,52 @@
         424,
         288
       ]
+    },
+    {
+      "name": "Готовим уведомление: задача проверки",
+      "id": "set-verify-task-notify",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -23072,
+        -23376
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-verify-task-notify-rt",
+              "name": "replyText",
+              "value": "Задача проверки создана и поставлена в очередь.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "name": "Готовим уведомление: нужен фикс",
+      "id": "set-fix-task-notify",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -23072,
+        -23888
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-fix-task-notify-rt",
+              "name": "replyText",
+              "value": "Задача на доработку поставлена в очередь.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -509,7 +555,7 @@
       "main": [
         [
           {
-            "node": "Уведомление HA: задача проверки",
+            "node": "Готовим уведомление: задача проверки",
             "type": "main",
             "index": 0
           }
@@ -593,7 +639,7 @@
       "main": [
         [
           {
-            "node": "Уведомление HA: нужен фикс",
+            "node": "Готовим уведомление: нужен фикс",
             "type": "main",
             "index": 0
           }
@@ -631,6 +677,28 @@
         [
           {
             "node": "Разбираем входные данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление: задача проверки": {
+      "main": [
+        [
+          {
+            "node": "Уведомление HA: задача проверки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Готовим уведомление: нужен фикс": {
+      "main": [
+        [
+          {
+            "node": "Уведомление HA: нужен фикс",
             "type": "main",
             "index": 0
           }

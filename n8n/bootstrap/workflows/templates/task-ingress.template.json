@@ -184,7 +184,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Ошибка распознавания команды').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -263,7 +263,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Чат не разрешён').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -420,7 +420,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Задача принята в работу').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -1017,7 +1017,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Ответ отправлен').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -1287,7 +1287,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Задача прервана').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -1566,7 +1566,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Режим изменён').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },

@@ -305,7 +305,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Родительская задача не выполнена').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -447,7 +447,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Вхождение не найдено').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -510,7 +510,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Задача запущена').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -573,7 +573,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Ошибка запуска задачи').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -636,7 +636,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Ошибка отправки ответа').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -903,7 +903,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Результат задачи получен').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },
@@ -1382,7 +1382,7 @@
           "parameters": [
             {
               "name": "text_to_say",
-              "value": "={{ ($json.replyText || $json.result.text || $json.text || '').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
+              "value": "={{ ($json.replyText || $json.result.text || $json.text || 'Промежуточный результат').replace(/`{1,3}|[*_~]{1,2}|<[^>]+>|https?:\\/\\/\\S+|\\[[^\\]]*\\]\\([^)]*\\)|[\\p{Emoji}]/gu, '').replace(/\\s+/g, ' ').trim() }}"
             }
           ]
         },

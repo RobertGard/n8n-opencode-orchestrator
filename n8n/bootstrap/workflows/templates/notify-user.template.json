@@ -36,7 +36,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json\nconst text = String(input.replyText || input.text || input.fallbackText || '')\nconst chatId = input.chatId || ''\nreturn [\n  { json: { text, chatId } },\n  { json: { text, chatId } },\n]"
+        "jsCode": "const input = $input.first().json\nconst text = String(input.replyText || input.text || input.fallbackText || '')\nconst chatId = input.chatId || ''\nreturn [{ json: { text, chatId } }]"
       },
       "id": "normalize",
       "name": "Нормализуем входные данные",

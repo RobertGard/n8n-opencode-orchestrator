@@ -467,7 +467,7 @@
             {
               "id": "set-verify-task-notify-rt",
               "name": "replyText",
-              "value": "Задача проверки создана и поставлена в очередь.",
+              "value": "=Задача проверки <code>{{ $('Создаём задачу проверки').first().json.task_key }}</code> [{{ $('Создаём задачу проверки').first().json.worker_alias || 'primary' }}] поставлена в очередь.",
               "type": "string"
             }
           ]
@@ -490,7 +490,7 @@
             {
               "id": "set-fix-task-notify-rt",
               "name": "replyText",
-              "value": "Задача на доработку поставлена в очередь.",
+              "value": "=Задача <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] не прошла приёмку{{ ($('Извлекаем вердикт').first().json.reason) ? ': ' + $('Извлекаем вердикт').first().json.reason : '' }}. Назначена задача на доработку.",
               "type": "string"
             }
           ]
@@ -536,7 +536,7 @@
             {
               "id": "set-verify-passed-notify-rt",
               "name": "replyText",
-              "value": "=Приёмка задачи <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] пройдена.",
+              "value": "=Приёмка задачи <code>{{ $('Триггер: вызов из диспетчера').first().json.task_key }}</code> [{{ $('Триггер: вызов из диспетчера').first().json.worker_alias || 'primary' }}] пройдена{{ ($('Извлекаем вердикт').first().json.reason) ? ': ' + $('Извлекаем вердикт').first().json.reason : '' }}.",
               "type": "string"
             }
           ]

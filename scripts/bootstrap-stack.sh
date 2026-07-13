@@ -687,28 +687,24 @@ if ! wait_for_n8n; then
   die 'n8n не поднялся после перезапуска.'
 fi
 
-# Активируем sub-workflow — n8n 2.x требует чтобы все зависимые workflow были активны
-# (с --active флагом импорта они уже published, но verify на всякий случай)
-log_info 'Активирую sub-workflow (требование n8n 2.x для executeWorkflow)'
+# С --active флагом импорта все workflow уже published. Проверяем статус.
+log_info 'Проверяю статус workflow...'
 for wf_name in "$NOTIFY_USER_WORKFLOW_NAME" \
                "$SESSION_MGR_WORKFLOW_NAME" "$TASK_LAUNCHER_WORKFLOW_NAME" \
                "$PENDING_INTERACTION_WORKFLOW_NAME" "$TASK_FINALIZER_WORKFLOW_NAME" \
-               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME"; do
-  sub_wf_id="$(workflow_id_by_name "$wf_name")"
-  if [ -z "$sub_wf_id" ]; then
-    die "Не удалось найти sub-workflow по имени: ${wf_name}"
+               "$AUTO_GENERATOR_WORKFLOW_NAME" "$ACCEPTANCE_VERIFIER_WORKFLOW_NAME" \
+               "$INGRESS_WORKFLOW_NAME" "$DISPATCH_WORKFLOW_NAME"; do
+  wf_id="$(workflow_id_by_name "$wf_name")"
+  if [ -z "$wf_id" ]; then
+    log_warn "Workflow '${wf_name}' не найден в n8n"
+    continue
   fi
-  if [ "$wf_name" = "$AUTO_GENERATOR_WORKFLOW_NAME" ] && [ -z "${deepseek_credential_id:-}" ]; then
-    log_warn 'Авто-генератор задач активирован, но DeepSeek креды не созданы — авто-режим не будет работать.'
+  # Check if active
+  if curl -fsS -H "X-N8N-API-KEY: ${N8N_API_KEY}" "${N8N_URL}/api/v1/workflows/${wf_id}" 2>/dev/null | jq -e '.active == true' >/dev/null 2>&1; then
+    log_ok "Workflow '${wf_name}' активен"
+  else
+    log_warn "Workflow '${wf_name}' неактивен — проверьте вручную в n8n UI"
   fi
-  activate_and_verify "$sub_wf_id" "$wf_name"
 done
-log_ok 'Sub-workflow активированы.'
-
-# Теперь активируем основные workflow
-activate_and_verify "$ingress_workflow_id" "$INGRESS_WORKFLOW_NAME"
-activate_and_verify "$dispatch_workflow_id" "$DISPATCH_WORKFLOW_NAME"
-
-log_ok 'Workflow активированы после перезапуска.'
 
 log_ok 'Telegram credential и workflow импортированы.'

@@ -1575,7 +1575,7 @@
             {
               "id": "set-reply-sent-replyText",
               "name": "replyText",
-              "value": "📨 Ответ успешно отправлен",
+              "value": "=📨 {{ $('Ответ распознан?').first().json.replyText || 'Ответ успешно отправлен' }}",
               "type": "string"
             }
           ]

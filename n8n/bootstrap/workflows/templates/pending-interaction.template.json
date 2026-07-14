@@ -779,7 +779,7 @@
             {
               "id": "set-interaction-notify-rt",
               "name": "replyText",
-              "value": "=💡 {{ ($json.questionText || $json.pendingQuestion) ? ($json.questionText || $json.pendingQuestion) : 'Требуется ваш ответ' }}",
+              "value": "=💡 {{ $('Выбираем найденную интеракцию').first().json.pendingQuestionText || 'Требуется ваш ответ' }}",
               "type": "string"
             }
           ]

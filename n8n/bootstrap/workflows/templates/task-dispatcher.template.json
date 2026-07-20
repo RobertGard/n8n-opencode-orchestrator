@@ -1972,13 +1972,52 @@
             {
               "id": "set-launch-error-notify-rt",
               "name": "replyText",
-              "value": "=💥 Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [воркер {{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] не запущена: {{ $json.launchError }}",
+              "value": "=💥 Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [воркер {{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] не запущена: {{ $('Запуск задачи').first().json.launchError }}",
               "type": "string"
             }
           ]
         },
         "options": {}
       }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "mode": "id",
+          "value": "__TASKS_TABLE_ID__"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "task_key",
+              "keyValue": "={{ $('Запуск задачи').first().json.taskKey }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "failed",
+            "pending_question": "",
+            "pending_options_json": "[]",
+            "result_text": "=💥 Задача <code>{{ $('Запуск задачи').first().json.taskKey }}</code> [воркер {{ $('Выбираем кандидатную задачу').first().json.task.worker_alias || 'primary' }}] не запущена: {{ $('Запуск задачи').first().json.launchError }}"
+          }
+        },
+        "options": {
+          "dryRun": false
+        }
+      },
+      "id": "set-launch-failed",
+      "name": "Помечаем задачу failed",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -19824,
+        -21216
+      ],
+      "alwaysOutputData": true
     },
     {
       "name": "Готовим уведомление: ошибка ответа на вопрос",
@@ -2241,7 +2280,7 @@
       "main": [
         [
           {
-            "node": "Готовим уведомление: ошибка запуска",
+            "node": "Помечаем задачу failed",
             "type": "main",
             "index": 0
           }
@@ -2548,6 +2587,17 @@
         [
           {
             "node": "Уведомление HA: задача запущена",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Помечаем задачу failed": {
+      "main": [
+        [
+          {
+            "node": "Готовим уведомление: ошибка запуска",
             "type": "main",
             "index": 0
           }

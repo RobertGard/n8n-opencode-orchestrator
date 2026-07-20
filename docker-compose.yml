@@ -247,6 +247,8 @@ services:
     command: --model tiny-int8 --language ru --data-dir /data --download-dir /data
     volumes:
       - ./ha_whisper_data:/data
+    profiles:
+      - voice
 
   wyoming-piper:
     image: rhasspy/wyoming-piper
@@ -255,6 +257,8 @@ services:
     command: --voice ru_RU-irina-medium --data-dir /data --download-dir /data
     volumes:
       - ./ha_piper_data:/data
+    profiles:
+      - voice
 
 volumes:
   postgres_data:

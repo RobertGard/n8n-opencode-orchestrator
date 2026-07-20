@@ -260,7 +260,8 @@
     {
       "parameters": {
         "sessionKey": "translate",
-        "contextWindowLength": 10
+        "contextWindowLength": 10,
+        "sessionIdType": "customKey"
       },
       "id": "memory-translate",
       "name": "Simple Memory (транслятор)",

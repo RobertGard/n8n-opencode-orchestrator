@@ -890,6 +890,32 @@ recover_existing_configuration() {
 
   compose_cmd=(docker compose -f "$ROOT_DIR/docker-compose.yml")
   append_override_files_to_compose_cmd
+
+  prompt_optional_api_keys
+}
+
+prompt_optional_api_keys() {
+  local key label current new_val
+  while IFS=':' read -r key label; do
+    current="${!key:-}"
+    if [ -n "$current" ]; then
+      continue
+    fi
+    new_val="$(ask "${label} (можно пусто)" "")"
+    new_val="$(trim "$new_val")"
+    if [ -n "$new_val" ]; then
+      upsert_env_value "$key" "$new_val"
+      log_ok "${key} записан в .env"
+    fi
+  done <<'API_KEYS_EOF'
+OPENAI_API_KEY:OpenAI API key
+DEEPSEEK_API_KEY:DeepSeek API key
+ANTHROPIC_API_KEY:Anthropic API key
+OPENROUTER_API_KEY:OpenRouter API key
+GITHUB_TOKEN:GitHub token для приватных репозиториев
+NPM_TOKEN:NPM token
+PNPM_HOME:PNPM home
+API_KEYS_EOF
 }
 
 trim() {
